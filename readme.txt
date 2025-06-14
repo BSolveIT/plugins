@@ -3,7 +3,7 @@ Contributors: 365i
 Tags: queue, scheduler, background-jobs, optimization, performance
 Requires at least: 5.8
 Tested up to: 6.4
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -153,6 +153,41 @@ No. The plugin uses WordPress options for data storage, keeping your database cl
 3. **Admin Interface** - Clean, responsive design that works on all devices
 
 == Changelog ==
+
+= 1.1.0 - 2025-06-15 =
+**Major Dashboard & Logging Enhancements**
+
+* **Dashboard Integration Overhaul**
+  * Fixed fake data issues - now displays real Action Scheduler counts
+  * Connected to ActionScheduler_Store API for accurate pending/processing/completed/failed counts
+  * Added fourth status box for "Failed" entries with red styling
+  * Implemented responsive 4-column → 2x2 → single column grid layout
+
+* **JSON-Lines Logging System**
+  * Complete logging rewrite using structured JSON-lines format
+  * Master log file at `wp-content/uploads/365i-queue-optimizer.log`
+  * Comprehensive Action Scheduler event coverage (run start/end, before/after execute, failures, scheduling)
+  * Performance metrics tracking (duration, memory usage, peak memory)
+  * Auto-rotation when log exceeds 10MB with timestamped backups
+  * Human-readable log viewer showing last 200 events with formatted display
+
+* **Enhanced Log Management**
+  * Fixed "Clear Plugin Logs" button to properly clear JSON-lines master log
+  * Added "Clear Action Scheduler Logs" button for removing completed/failed entries
+  * Daily automated cleanup with configurable retention period (1-365 days)
+  * WP_Filesystem integration for improved portability
+
+* **Performance & Monitoring**
+  * Unique run ID tracking for queue processing sessions
+  * Memory delta calculation for individual actions
+  * Execution time tracking in milliseconds
+  * Peak memory usage monitoring
+  * Full exception details and stack traces for failed actions
+
+* **Responsive Design Improvements**
+  * Enhanced mobile layout with better breakpoint management
+  * Improved status box animation and highlighting
+  * Better visual feedback for processing states
 
 = 1.0.0 - 2025-06-14 =
 **Initial Release**
