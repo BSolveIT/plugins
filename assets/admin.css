@@ -1,0 +1,355 @@
+/**
+ * Queue Optimizer Admin CSS
+ * Styles for the plugin's admin interface.
+ */
+
+/* Main admin container */
+.queue-optimizer-admin-container {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 20px;
+	margin-top: 20px;
+}
+
+@media (max-width: 1200px) {
+	.queue-optimizer-admin-container {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* Settings panel */
+.queue-optimizer-settings-panel {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	box-shadow: 0 1px 1px rgba(0,0,0,.04);
+	padding: 20px;
+}
+
+.queue-optimizer-settings-panel .form-table {
+	margin-top: 0;
+}
+
+.queue-optimizer-settings-panel .form-table th {
+	padding-top: 15px;
+	padding-bottom: 15px;
+}
+
+.queue-optimizer-settings-panel .form-table td {
+	padding-top: 10px;
+	padding-bottom: 15px;
+}
+
+/* Dashboard panel */
+.queue-optimizer-dashboard-panel {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	box-shadow: 0 1px 1px rgba(0,0,0,.04);
+	padding: 20px;
+}
+
+.queue-optimizer-dashboard-panel h2 {
+	margin-top: 0;
+	margin-bottom: 20px;
+	color: #23282d;
+}
+
+/* Status grid */
+.queue-optimizer-status-grid {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 15px;
+	margin-bottom: 20px;
+}
+
+/* Medium screens: 2 rows of 2 boxes */
+@media (max-width: 1100px) {
+	.queue-optimizer-status-grid {
+		grid-template-columns: repeat(2, 1fr);
+		gap: 15px;
+	}
+}
+
+/* Small screens: 1 column */
+@media (max-width: 768px) {
+	.queue-optimizer-status-grid {
+		grid-template-columns: 1fr;
+		gap: 10px;
+	}
+}
+
+.status-item {
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	padding: 15px;
+	text-align: center;
+	transition: all 0.2s ease;
+}
+
+.status-item:hover {
+	box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.status-item h3 {
+	margin: 0 0 10px 0;
+	font-size: 14px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.status-item .count {
+	display: block;
+	font-size: 28px;
+	font-weight: bold;
+	line-height: 1;
+}
+
+/* Status item colors */
+.status-item.pending h3 {
+	color: #d63638;
+}
+
+.status-item.pending .count {
+	color: #d63638;
+}
+
+.status-item.processing h3 {
+	color: #dba617;
+}
+
+.status-item.processing .count {
+	color: #dba617;
+}
+
+.status-item.completed h3 {
+	color: #00a32a;
+}
+
+.status-item.completed .count {
+	color: #00a32a;
+}
+
+.status-item.failed h3 {
+	color: #dc3232;
+}
+
+.status-item.failed .count {
+	color: #dc3232;
+}
+
+/* Last run info */
+.queue-optimizer-last-run {
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	padding: 15px;
+	margin-bottom: 20px;
+}
+
+.queue-optimizer-last-run p {
+	margin: 0;
+	font-size: 14px;
+}
+
+.queue-optimizer-last-run strong {
+	color: #23282d;
+}
+
+/* Actions */
+.queue-optimizer-actions {
+	margin-bottom: 20px;
+}
+
+.queue-optimizer-actions .button {
+	margin-right: 10px;
+	margin-bottom: 5px;
+}
+
+.queue-optimizer-actions .button:last-child {
+	margin-right: 0;
+}
+
+/* Messages */
+.queue-optimizer-messages {
+	padding: 10px 15px;
+	border-radius: 4px;
+	margin-top: 15px;
+}
+
+.queue-optimizer-messages.success {
+	background: #d1eddd;
+	border-left: 4px solid #00a32a;
+	color: #00a32a;
+}
+
+.queue-optimizer-messages.error {
+	background: #f2dede;
+	border-left: 4px solid #d63638;
+	color: #d63638;
+}
+
+.queue-optimizer-messages.info {
+	background: #e5f5ff;
+	border-left: 4px solid #0073aa;
+	color: #0073aa;
+}
+
+/* Log viewer */
+.queue-optimizer-logs {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	box-shadow: 0 1px 1px rgba(0,0,0,.04);
+	border-radius: 4px;
+	margin-top: 20px;
+	padding: 15px;
+}
+
+.queue-optimizer-logs h3 {
+	margin-top: 0;
+	margin-bottom: 15px;
+	color: #23282d;
+	font-size: 16px;
+}
+
+.queue-optimizer-logs .log-content {
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	padding: 15px;
+	margin-bottom: 15px;
+	max-height: 400px;
+	overflow-y: auto;
+}
+
+.queue-optimizer-logs .log-content pre {
+	margin: 0;
+	padding: 0;
+	background: none;
+	border: none;
+	font-family: 'Courier New', Courier, monospace;
+	font-size: 12px;
+	line-height: 1.4;
+	color: #23282d;
+	white-space: pre-wrap;
+	word-wrap: break-word;
+}
+
+.queue-optimizer-logs .log-actions {
+	text-align: right;
+}
+
+.queue-optimizer-logs .log-actions .button {
+	margin-left: 5px;
+}
+
+/* Loading states */
+.queue-optimizer-loading {
+	opacity: 0.6;
+	pointer-events: none;
+}
+
+.queue-optimizer-loading .button {
+	position: relative;
+}
+
+.queue-optimizer-loading .button::after {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 16px;
+	height: 16px;
+	margin: -8px 0 0 -8px;
+	border: 2px solid transparent;
+	border-top: 2px solid #fff;
+	border-radius: 50%;
+	animation: queue-optimizer-spin 1s linear infinite;
+}
+
+@keyframes queue-optimizer-spin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+
+/* Form improvements */
+.queue-optimizer-settings-panel input[type="number"] {
+	width: 80px;
+}
+
+.queue-optimizer-settings-panel .description {
+	color: #646970;
+	font-style: italic;
+	margin-top: 5px;
+}
+
+/* Settings errors styling */
+.settings-error {
+	margin: 20px 0;
+}
+
+/* Responsive improvements */
+@media (max-width: 600px) {
+	.queue-optimizer-admin-container {
+		margin-top: 10px;
+	}
+	
+	.queue-optimizer-settings-panel,
+	.queue-optimizer-dashboard-panel {
+		padding: 15px;
+	}
+	
+	.queue-optimizer-status-grid {
+		gap: 10px;
+	}
+	
+	.status-item {
+		padding: 10px;
+	}
+	
+	.status-item .count {
+		font-size: 24px;
+	}
+}
+
+
+/* Accessibility improvements */
+.status-item:focus {
+	outline: 2px solid #005cee;
+	outline-offset: 2px;
+}
+
+.queue-optimizer-actions .button:focus {
+	box-shadow: 0 0 0 2px #005cee;
+	outline: none;
+}
+
+/* Responsive improvements for logs */
+@media (max-width: 600px) {
+	.queue-optimizer-logs .log-content {
+		padding: 10px;
+		font-size: 11px;
+	}
+	
+	.queue-optimizer-logs .log-actions {
+		text-align: center;
+	}
+	
+	.queue-optimizer-logs .log-actions .button {
+		margin: 2px;
+		font-size: 12px;
+	}
+}
+
+/* Print styles */
+@media print {
+	.queue-optimizer-actions,
+	.queue-optimizer-logs {
+		display: none;
+	}
+}
