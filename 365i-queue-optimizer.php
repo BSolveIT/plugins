@@ -181,7 +181,7 @@ class Queue_Optimizer_Plugin {
 	 * Set image processor preference to override WordPress default selection.
 	 */
 	public function set_image_processor_preference() {
-		$preferred_engine = get_option( '365i_qo_image_engine', 'imagick' );
+		$preferred_engine = get_option( '365i_qo_image_engine', 'gd' );
 		
 		if ( 'gd' === $preferred_engine ) {
 			// Force GD Library usage.

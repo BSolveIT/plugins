@@ -109,7 +109,7 @@ class Queue_Optimizer_Scheduler {
 		// Based on user's working functions.php code
 		add_filter( 'action_scheduler_queue_runner_time_limit', array( $this, 'set_time_limit' ), 10, 1 );
 		add_filter( 'action_scheduler_queue_runner_concurrent_batches', array( $this, 'set_concurrent_batches' ), 10, 1 );
-		add_filter( 'wp_image_editors', array( $this, 'set_image_editor_priority' ), 10, 1 );
+		// Note: wp_image_editors filter is handled by main plugin file based on user's Image Processing Engine setting
 		
 		// Initialize tracking variables
 		$this->current_run_id = null;
@@ -162,16 +162,6 @@ class Queue_Optimizer_Scheduler {
 		return $custom_batches;
 	}
 	
-	/**
-	 * Set image editor priority to optimize image processing.
-	 *
-	 * @param array $editors Default image editors array.
-	 * @return array Modified image editors with GD prioritized over Imagick.
-	 */
-	public function set_image_editor_priority( $editors ) {
-		// Return GD first, then Imagick (user's working configuration)
-		return array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
-	}
 	
 	/**
 	 * Schedule daily cleanup for log files and pending tasks.

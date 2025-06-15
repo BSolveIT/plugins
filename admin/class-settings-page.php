@@ -156,7 +156,7 @@ class Queue_Optimizer_Settings_Page {
 			array(
 				'type'              => 'string',
 				'sanitize_callback' => array( $this, 'sanitize_image_engine' ),
-				'default'           => 'imagick',
+				'default'           => 'gd',
 			)
 		);
 
@@ -299,7 +299,7 @@ class Queue_Optimizer_Settings_Page {
 	 * Render image engine field.
 	 */
 	public function render_image_engine_field() {
-		$value = get_option( '365i_qo_image_engine', 'imagick' );
+		$value = get_option( '365i_qo_image_engine', 'gd' );
 		include plugin_dir_path( __FILE__ ) . '../templates/settings/image-engine-field.php';
 	}
 
@@ -416,7 +416,7 @@ class Queue_Optimizer_Settings_Page {
 				'invalid_image_engine',
 				__( 'Invalid image engine selected.', '365i-queue-optimizer' )
 			);
-			return 'imagick';
+			return 'gd';
 		}
 		
 		// If ImageMagick is selected but not available, fallback to GD.
