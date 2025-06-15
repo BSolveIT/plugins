@@ -137,10 +137,18 @@ class Queue_Optimizer_Admin_Menu {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', '365i-queue-optimizer' ) );
 		}
 
-		// Redirect to ActionScheduler interface.
+		// JavaScript redirect to ActionScheduler interface since wp_redirect doesn't work well with menu callbacks.
 		$redirect_url = admin_url( 'tools.php?page=action-scheduler' );
-		wp_redirect( $redirect_url );
-		exit;
+		?>
+		<script type="text/javascript">
+			window.location.href = '<?php echo esc_url( $redirect_url ); ?>';
+		</script>
+		<div class="wrap">
+			<h1><?php esc_html_e( 'Queue Activity', '365i-queue-optimizer' ); ?></h1>
+			<p><?php esc_html_e( 'Redirecting to ActionScheduler interface...', '365i-queue-optimizer' ); ?></p>
+			<p><a href="<?php echo esc_url( $redirect_url ); ?>"><?php esc_html_e( 'Click here if you are not automatically redirected', '365i-queue-optimizer' ); ?></a></p>
+		</div>
+		<?php
 	}
 
 	/**
