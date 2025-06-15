@@ -42,7 +42,7 @@
         // Update UI to show processing state
         $button.addClass('queue-optimizer-processing');
         $button.prop('disabled', true);
-        $button.text(queueOptimizerAjax.strings.processing);
+        $button.text(queueOptimizerAdmin.strings.processing);
         $container.addClass('queue-optimizer-loading');
 
         // Hide any previous messages
@@ -50,11 +50,11 @@
 
         // Make AJAX request
         $.ajax({
-            url: queueOptimizerAjax.ajax_url,
+            url: queueOptimizerAdmin.ajax_url,
             type: 'POST',
             data: {
                 action: 'queue_optimizer_run_now',
-                nonce: queueOptimizerAjax.nonce
+                nonce: queueOptimizerAdmin.nonce
             },
             timeout: 60000, // 60 second timeout
             success: function(response) {
@@ -66,11 +66,11 @@
                         updateStatusCounts(response.data.status);
                     }
                 } else {
-                    showMessage('error', response.data || queueOptimizerAjax.strings.error);
+                    showMessage('error', response.data || queueOptimizerAdmin.strings.error);
                 }
             },
             error: function(xhr, status, error) {
-                var errorMessage = queueOptimizerAjax.strings.error;
+                var errorMessage = queueOptimizerAdmin.strings.error;
                 
                 if (status === 'timeout') {
                     errorMessage = 'Request timed out. The queue may still be processing.';
@@ -111,28 +111,28 @@
         $button.addClass('queue-optimizer-processing');
         $button.prop('disabled', true);
         var originalText = $button.text();
-        $button.text(queueOptimizerAjax.strings.processing);
+        $button.text(queueOptimizerAdmin.strings.processing);
 
         // Hide any previous messages
         hideMessages();
 
         // Make AJAX request
         $.ajax({
-            url: queueOptimizerAjax.ajax_url,
+            url: queueOptimizerAdmin.ajax_url,
             type: 'POST',
             data: {
                 action: 'queue_optimizer_clear_logs',
-                nonce: queueOptimizerAjax.nonce
+                nonce: queueOptimizerAdmin.nonce
             },
             success: function(response) {
                 if (response.success) {
                     showMessage('success', response.data.message);
                 } else {
-                    showMessage('error', response.data || queueOptimizerAjax.strings.error);
+                    showMessage('error', response.data || queueOptimizerAdmin.strings.error);
                 }
             },
             error: function(xhr, status, error) {
-                var errorMessage = queueOptimizerAjax.strings.error;
+                var errorMessage = queueOptimizerAdmin.strings.error;
                 
                 if (xhr.responseJSON && xhr.responseJSON.data) {
                     errorMessage = xhr.responseJSON.data;
@@ -170,18 +170,18 @@
         $button.addClass('queue-optimizer-processing');
         $button.prop('disabled', true);
         var originalText = $button.text();
-        $button.text(queueOptimizerAjax.strings.processing);
+        $button.text(queueOptimizerAdmin.strings.processing);
 
         // Hide any previous messages
         hideMessages();
 
         // Make AJAX request
         $.ajax({
-            url: queueOptimizerAjax.ajax_url,
+            url: queueOptimizerAdmin.ajax_url,
             type: 'POST',
             data: {
                 action: 'queue_optimizer_clear_action_scheduler_logs',
-                nonce: queueOptimizerAjax.nonce
+                nonce: queueOptimizerAdmin.nonce
             },
             success: function(response) {
                 if (response.success) {
@@ -189,11 +189,11 @@
                     // Refresh status after clearing
                     setTimeout(refreshQueueStatus, 1000);
                 } else {
-                    showMessage('error', response.data || queueOptimizerAjax.strings.error);
+                    showMessage('error', response.data || queueOptimizerAdmin.strings.error);
                 }
             },
             error: function(xhr, status, error) {
-                var errorMessage = queueOptimizerAjax.strings.error;
+                var errorMessage = queueOptimizerAdmin.strings.error;
                 
                 if (xhr.responseJSON && xhr.responseJSON.data) {
                     errorMessage = xhr.responseJSON.data;
@@ -221,11 +221,11 @@
         }
 
         $.ajax({
-            url: queueOptimizerAjax.ajax_url,
+            url: queueOptimizerAdmin.ajax_url,
             type: 'POST',
             data: {
                 action: 'queue_optimizer_get_status',
-                nonce: queueOptimizerAjax.nonce
+                nonce: queueOptimizerAdmin.nonce
             },
             success: function(response) {
                 if (response.success && response.data.status) {
@@ -384,11 +384,11 @@
 
         // Make AJAX request
         $.ajax({
-            url: queueOptimizerAjax.ajax_url,
+            url: queueOptimizerAdmin.ajax_url,
             type: 'POST',
             data: {
                 action: 'queue_optimizer_get_logs',
-                nonce: queueOptimizerAjax.nonce
+                nonce: queueOptimizerAdmin.nonce
             },
             success: function(response) {
                 if (response.success) {

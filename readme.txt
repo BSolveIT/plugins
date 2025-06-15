@@ -211,6 +211,12 @@ No. The plugin uses WordPress options for data storage, keeping your database cl
   * Updated [`get_plugin_settings()`](src/Dashboard_Page.php:198) to use correct option name `queue_optimizer_log_retention_days`
   * Retention days now displays the actual configured value (default is 7 days)
 
+* **Dashboard Buttons JavaScript Fix**
+  * Fixed all dashboard buttons (Run Now, Clear Logs, View Logs, Clear Action Scheduler Logs) not working
+  * Corrected JavaScript variable name mismatch - changed `queueOptimizerAjax` to `queueOptimizerAdmin` in [`assets/admin.js`](assets/admin.js)
+  * The PHP was localizing the script with `queueOptimizerAdmin` but JavaScript was trying to use `queueOptimizerAjax`
+  * All AJAX functionality now works correctly: queue processing, log clearing, log viewing, and status refresh
+
 * **UI Clarification**
   * Dashboard shows 5 queue statistics (Total Jobs, Pending, Completed, Failed, In Progress)
   * Activity Log shows 4 log statistics (Total Logs, Successful, Errors, Pending)
