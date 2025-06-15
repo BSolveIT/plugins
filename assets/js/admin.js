@@ -239,6 +239,211 @@
 				function() { $(this).addClass('hover'); },
 				function() { $(this).removeClass('hover'); }
 			);
+
+			// Queue Optimizer dashboard panel button handlers
+			this.initializeDashboardButtons();
+		},
+
+		/**
+		 * Initialize dashboard panel button event handlers
+		 */
+		initializeDashboardButtons: function() {
+			// Run Queue Now button
+			$(document).on('click', '#run-queue-now', function(e) {
+				e.preventDefault();
+				QueueOptimizerAdmin.handleRunQueueNow($(this));
+			});
+
+			// View Logs button
+			$(document).on('click', '#view-logs', function(e) {
+				e.preventDefault();
+				QueueOptimizerAdmin.handleViewLogs();
+			});
+
+			// Clear Plugin Logs button
+			$(document).on('click', '#clear-logs', function(e) {
+				e.preventDefault();
+				QueueOptimizerAdmin.handleClearLogs($(this));
+			});
+
+			// Clear Action Scheduler Logs button
+			$(document).on('click', '#clear-action-scheduler-logs', function(e) {
+				e.preventDefault();
+				QueueOptimizerAdmin.handleClearActionSchedulerLogs($(this));
+			});
+
+			// Refresh Logs button
+			$(document).on('click', '#refresh-logs', function(e) {
+				e.preventDefault();
+				QueueOptimizerAdmin.loadLogs();
+			});
+
+			// Close Logs button
+			$(document).on('click', '#close-logs', function(e) {
+				e.preventDefault();
+				$('#queue-optimizer-logs').hide();
+			});
+		},
+
+		/**
+		 * Handle Run Queue Now button click
+		 */
+		handleRunQueueNow: function(button) {
+			button.prop('disabled', true).text(queueOptimizerAdmin.strings.processing);
+			
+			$.ajax({
+				url: queueOptimizerAdmin.ajax_url,
+				type: 'POST',
+				data: {
+					action: 'queue_optimizer_run_now',
+					nonce: queueOptimizerAdmin.nonce
+				},
+				success: function(response) {
+					if (response.success) {
+						QueueOptimizerAdmin.showNotification(response.data.message, 'success');
+						// Update dashboard stats if available
+						if (response.data.status) {
+							QueueOptimizerAdmin.updateQueueStatus(response.data.status);
+						}
+					} else {
+						QueueOptimizerAdmin.showNotification(response.data.message || queueOptimizerAdmin.strings.error, 'error');
+					}
+				},
+				error: function() {
+					QueueOptimizerAdmin.showNotification(queueOptimizerAdmin.strings.error, 'error');
+				},
+				complete: function() {
+					button.prop('disabled', false).text('Run Now');
+				}
+			});
+		},
+
+		/**
+		 * Handle View Logs button click
+		 */
+		handleViewLogs: function() {
+			var logsContainer = $('#queue-optimizer-logs');
+			
+			if (logsContainer.is(':visible')) {
+				logsContainer.hide();
+			} else {
+				logsContainer.show();
+				this.loadLogs();
+			}
+		},
+
+		/**
+		 * Load logs content via AJAX
+		 */
+		loadLogs: function() {
+			var logDisplay = $('#log-display');
+			
+			logDisplay.html('<span style="color: #666;">Loading logs...</span>');
+			
+			$.ajax({
+				url: queueOptimizerAdmin.ajax_url,
+				type: 'POST',
+				data: {
+					action: 'queue_optimizer_get_logs',
+					nonce: queueOptimizerAdmin.nonce
+				},
+				success: function(response) {
+					if (response.success) {
+						logDisplay.text(response.data.logs || 'No logs available.');
+					} else {
+						logDisplay.text('Error loading logs: ' + (response.data.message || 'Unknown error'));
+					}
+				},
+				error: function() {
+					logDisplay.text('Network error occurred while loading logs.');
+				}
+			});
+		},
+
+		/**
+		 * Handle Clear Plugin Logs button click
+		 */
+		handleClearLogs: function(button) {
+			if (!confirm('Are you sure you want to clear all plugin logs? This action cannot be undone.')) {
+				return;
+			}
+
+			button.prop('disabled', true).text(queueOptimizerAdmin.strings.processing);
+			
+			$.ajax({
+				url: queueOptimizerAdmin.ajax_url,
+				type: 'POST',
+				data: {
+					action: 'queue_optimizer_clear_logs',
+					nonce: queueOptimizerAdmin.nonce
+				},
+				success: function(response) {
+					if (response.success) {
+						QueueOptimizerAdmin.showNotification(response.data.message, 'success');
+						// Clear the log display
+						$('#log-display').text('Logs have been cleared.');
+					} else {
+						QueueOptimizerAdmin.showNotification(response.data.message || queueOptimizerAdmin.strings.error, 'error');
+					}
+				},
+				error: function() {
+					QueueOptimizerAdmin.showNotification(queueOptimizerAdmin.strings.error, 'error');
+				},
+				complete: function() {
+					button.prop('disabled', false).text('Clear Plugin Logs');
+				}
+			});
+		},
+
+		/**
+		 * Handle Clear Action Scheduler Logs button click
+		 */
+		handleClearActionSchedulerLogs: function(button) {
+			if (!confirm('Are you sure you want to clear all Action Scheduler logs? This action cannot be undone.')) {
+				return;
+			}
+
+			button.prop('disabled', true).text(queueOptimizerAdmin.strings.processing);
+			
+			$.ajax({
+				url: queueOptimizerAdmin.ajax_url,
+				type: 'POST',
+				data: {
+					action: 'queue_optimizer_clear_action_scheduler_logs',
+					nonce: queueOptimizerAdmin.nonce
+				},
+				success: function(response) {
+					if (response.success) {
+						QueueOptimizerAdmin.showNotification(response.data.message, 'success');
+					} else {
+						QueueOptimizerAdmin.showNotification(response.data.message || queueOptimizerAdmin.strings.error, 'error');
+					}
+				},
+				error: function() {
+					QueueOptimizerAdmin.showNotification(queueOptimizerAdmin.strings.error, 'error');
+				},
+				complete: function() {
+					button.prop('disabled', false).text('Clear Action Scheduler Logs');
+				}
+			});
+		},
+
+		/**
+		 * Update queue status display
+		 */
+		updateQueueStatus: function(status) {
+			if (status.pending !== undefined) {
+				$('#pending-count').text(this.formatNumber(status.pending));
+			}
+			if (status.processing !== undefined) {
+				$('#processing-count').text(this.formatNumber(status.processing));
+			}
+			if (status.completed !== undefined) {
+				$('#completed-count').text(this.formatNumber(status.completed));
+			}
+			if (status.failed !== undefined) {
+				$('#failed-count').text(this.formatNumber(status.failed));
+			}
 		},
 
 		/**
@@ -246,7 +451,7 @@
 		 */
 		refreshDashboardStats: function() {
 			$.ajax({
-				url: ajaxurl,
+				url: queueOptimizerAdmin.ajax_url,
 				type: 'POST',
 				data: {
 					action: 'queue_optimizer_refresh_stats',
@@ -287,7 +492,7 @@
 			button.prop('disabled', true).addClass('loading');
 			
 			$.ajax({
-				url: ajaxurl,
+				url: queueOptimizerAdmin.ajax_url,
 				type: 'POST',
 				data: {
 					action: 'queue_optimizer_quick_action',
@@ -431,7 +636,7 @@
 		 */
 		refreshData: function(section) {
 			$.ajax({
-				url: ajaxurl,
+				url: queueOptimizerAdmin.ajax_url,
 				type: 'POST',
 				data: {
 					action: 'queue_optimizer_refresh_section',
@@ -538,9 +743,6 @@
 		}
 	};
 
-	// Initialize when DOM is ready
-	$(document).ready(function() {
-		QueueOptimizerAdmin.init();
-	});
+	// Initialization is handled in bindEvents() method above
 
 })(jQuery);

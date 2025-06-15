@@ -204,7 +204,7 @@ class Queue_Optimizer_Scheduler {
 	 */
 	public function ajax_run_now() {
 		// Verify nonce and permissions.
-		if ( ! wp_verify_nonce( $_POST['nonce'] ?? '', 'queue_optimizer_nonce' ) ||
+		if ( ! wp_verify_nonce( $_POST['nonce'] ?? '', 'queue_optimizer_admin_nonce' ) ||
 			 ! current_user_can( 'manage_options' ) ) {
 			wp_die(
 				esc_html__( 'Security check failed.', '365i-queue-optimizer' ),
@@ -241,7 +241,7 @@ class Queue_Optimizer_Scheduler {
 	 */
 	public function ajax_clear_logs() {
 		// Verify nonce and permissions.
-		if ( ! wp_verify_nonce( $_POST['nonce'] ?? '', 'queue_optimizer_nonce' ) ||
+		if ( ! wp_verify_nonce( $_POST['nonce'] ?? '', 'queue_optimizer_admin_nonce' ) ||
 			 ! current_user_can( 'manage_options' ) ) {
 			wp_die(
 				esc_html__( 'Security check failed.', '365i-queue-optimizer' ),
@@ -265,7 +265,7 @@ class Queue_Optimizer_Scheduler {
 	 */
 	public function ajax_clear_action_scheduler_logs() {
 		// Verify nonce and permissions.
-		if ( ! wp_verify_nonce( $_POST['nonce'] ?? '', 'queue_optimizer_nonce' ) ||
+		if ( ! wp_verify_nonce( $_POST['nonce'] ?? '', 'queue_optimizer_admin_nonce' ) ||
 			 ! current_user_can( 'manage_options' ) ) {
 			wp_die(
 				esc_html__( 'Security check failed.', '365i-queue-optimizer' ),
@@ -293,7 +293,7 @@ class Queue_Optimizer_Scheduler {
 	 */
 	public function ajax_get_status() {
 		// Verify nonce and permissions.
-		if ( ! wp_verify_nonce( $_POST['nonce'] ?? '', 'queue_optimizer_nonce' ) ||
+		if ( ! wp_verify_nonce( $_POST['nonce'] ?? '', 'queue_optimizer_admin_nonce' ) ||
 			 ! current_user_can( 'manage_options' ) ) {
 			wp_die(
 				esc_html__( 'Security check failed.', '365i-queue-optimizer' ),
@@ -394,7 +394,7 @@ class Queue_Optimizer_Scheduler {
 	 */
 	public function ajax_get_logs() {
 		// Verify nonce and permissions.
-		if ( ! wp_verify_nonce( $_POST['nonce'] ?? '', 'queue_optimizer_nonce' ) ||
+		if ( ! wp_verify_nonce( $_POST['nonce'] ?? '', 'queue_optimizer_admin_nonce' ) ||
 			 ! current_user_can( 'manage_options' ) ) {
 			wp_die(
 				esc_html__( 'Security check failed.', '365i-queue-optimizer' ),
