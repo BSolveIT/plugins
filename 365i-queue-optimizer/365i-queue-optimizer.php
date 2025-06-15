@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: 365i Queue Optimizer
- * Plugin URI: https://www.365i.co.uk/
+ * Plugin URI: https://www.365i.co.uk/blog/2025/04/20/fix-wordpress-6-8-slow-image-uploads-with-365i-queue-optimizer/
  * Description: A lightweight WordPress plugin to optimize ActionScheduler queue processing for faster image optimization and background tasks.
  * Version: 1.1.0
  * Author: 365i
- * Author URI: https://www.365i.co.uk/
+ * Author URI: https://www.mcneece.com/author/mark-mcneece/
  * Text Domain: 365i-queue-optimizer
  * Domain Path: /languages
  * Requires at least: 5.8
