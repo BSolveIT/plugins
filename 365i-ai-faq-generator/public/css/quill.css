@@ -1,0 +1,276 @@
+/**
+ * Quill Editor CSS - Custom styling for Quill editor integration
+ *
+ * Extends and customizes the Quill editor's appearance to match
+ * the FAQ AI Generator's design system.
+ *
+ * @package    FAQ_AI_Generator
+ * @subpackage FAQ_AI_Generator/public/css
+ */
+
+/* Quill container */
+.faq-ai-editor-container {
+    margin-bottom: 20px;
+    border-radius: 4px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+/* Label for editor */
+.faq-ai-editor-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+/* Container for Quill toolbar and editor */
+.faq-ai-quill-wrapper {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: #fff;
+    transition: all 0.3s ease;
+}
+
+.faq-ai-quill-wrapper:focus-within {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+}
+
+/* Custom styling for the Quill toolbar */
+.faq-ai-quill-wrapper .ql-toolbar.ql-snow {
+    border: none;
+    border-bottom: 1px solid #ddd;
+    padding: 8px;
+    background: #f9f9f9;
+}
+
+.faq-ai-quill-wrapper .ql-container.ql-snow {
+    border: none;
+}
+
+/* Styling for the editor area */
+.faq-ai-quill-wrapper .ql-editor {
+    min-height: 100px;
+    max-height: 300px;
+    overflow-y: auto;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #333;
+}
+
+/* Question editor specific styles */
+.faq-ai-question-editor-container .faq-ai-quill-wrapper .ql-editor {
+    min-height: 60px;
+    max-height: 150px;
+}
+
+/* Answer editor specific styles */
+.faq-ai-answer-editor-container .faq-ai-quill-wrapper .ql-editor {
+    min-height: 120px;
+}
+
+/* Toolbar button styling */
+.faq-ai-quill-wrapper .ql-toolbar.ql-snow .ql-formats {
+    margin-right: 12px;
+}
+
+.faq-ai-quill-wrapper .ql-toolbar.ql-snow button {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.faq-ai-quill-wrapper .ql-toolbar.ql-snow button:hover {
+    color: #2271b1;
+}
+
+.faq-ai-quill-wrapper .ql-toolbar.ql-snow button.ql-active {
+    color: #2271b1;
+    background-color: rgba(34, 113, 177, 0.1);
+}
+
+/* Styling for placeholder text */
+.faq-ai-quill-wrapper .ql-editor.ql-blank::before {
+    font-style: italic;
+    color: #999;
+}
+
+/* Custom styling for specific formats */
+.faq-ai-quill-wrapper .ql-editor p {
+    margin-bottom: 10px;
+}
+
+.faq-ai-quill-wrapper .ql-editor h1,
+.faq-ai-quill-wrapper .ql-editor h2,
+.faq-ai-quill-wrapper .ql-editor h3,
+.faq-ai-quill-wrapper .ql-editor h4,
+.faq-ai-quill-wrapper .ql-editor h5,
+.faq-ai-quill-wrapper .ql-editor h6 {
+    margin-top: 15px;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.faq-ai-quill-wrapper .ql-editor ul,
+.faq-ai-quill-wrapper .ql-editor ol {
+    padding-left: 20px;
+    margin-bottom: 10px;
+}
+
+.faq-ai-quill-wrapper .ql-editor li {
+    margin-bottom: 5px;
+}
+
+.faq-ai-quill-wrapper .ql-editor a {
+    color: #2271b1;
+    text-decoration: none;
+}
+
+.faq-ai-quill-wrapper .ql-editor a:hover {
+    text-decoration: underline;
+}
+
+.faq-ai-quill-wrapper .ql-editor blockquote {
+    border-left: 4px solid #ddd;
+    padding-left: 16px;
+    margin: 10px 0;
+    color: #555;
+}
+
+.faq-ai-quill-wrapper .ql-editor code,
+.faq-ai-quill-wrapper .ql-editor pre {
+    background-color: #f5f5f5;
+    border-radius: 3px;
+    padding: 2px 4px;
+    font-family: monospace;
+}
+
+.faq-ai-quill-wrapper .ql-editor pre {
+    padding: 10px;
+    margin: 10px 0;
+    overflow-x: auto;
+}
+
+/* Disabled state */
+.faq-ai-editor-container.disabled .faq-ai-quill-wrapper {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Read-only state */
+.faq-ai-editor-container.read-only .faq-ai-quill-wrapper .ql-toolbar.ql-snow {
+    display: none;
+}
+
+.faq-ai-editor-container.read-only .faq-ai-quill-wrapper .ql-editor {
+    background-color: #f9f9f9;
+}
+
+/* Error state */
+.faq-ai-editor-container.has-error .faq-ai-quill-wrapper {
+    border-color: #d63638;
+}
+
+.faq-ai-editor-error {
+    color: #d63638;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+/* Editor focus highlight animation */
+@keyframes editorFocus {
+    0% { box-shadow: 0 0 0 0 rgba(34, 113, 177, 0.4); }
+    70% { box-shadow: 0 0 0 5px rgba(34, 113, 177, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(34, 113, 177, 0); }
+}
+
+.faq-ai-quill-wrapper.focus-active {
+    animation: editorFocus 1s;
+}
+
+/* Counter for character/word count */
+.faq-ai-editor-counter {
+    text-align: right;
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+}
+
+.faq-ai-editor-counter.limit-close {
+    color: #e67e22;
+}
+
+.faq-ai-editor-counter.limit-exceeded {
+    color: #d63638;
+    font-weight: bold;
+}
+
+/* Adjustments for WordPress admin integration */
+.wp-admin .faq-ai-quill-wrapper .ql-toolbar.ql-snow {
+    background: #f0f0f1;
+}
+
+.wp-admin .faq-ai-quill-wrapper .ql-container.ql-snow {
+    background: #fff;
+}
+
+.wp-admin .faq-ai-quill-wrapper:focus-within {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+}
+
+/* Dark mode support */
+.faq-ai-dark-mode .faq-ai-quill-wrapper {
+    border-color: #555;
+    background-color: #333;
+}
+
+.faq-ai-dark-mode .faq-ai-quill-wrapper .ql-toolbar.ql-snow {
+    background: #444;
+    border-bottom-color: #555;
+}
+
+.faq-ai-dark-mode .faq-ai-quill-wrapper .ql-container.ql-snow {
+    background: #333;
+}
+
+.faq-ai-dark-mode .faq-ai-quill-wrapper .ql-editor {
+    color: #f5f5f5;
+}
+
+.faq-ai-dark-mode .faq-ai-quill-wrapper .ql-snow .ql-stroke {
+    stroke: #ccc;
+}
+
+.faq-ai-dark-mode .faq-ai-quill-wrapper .ql-snow .ql-fill {
+    fill: #ccc;
+}
+
+.faq-ai-dark-mode .faq-ai-quill-wrapper .ql-toolbar.ql-snow button:hover .ql-stroke {
+    stroke: #fff;
+}
+
+.faq-ai-dark-mode .faq-ai-quill-wrapper .ql-toolbar.ql-snow button:hover .ql-fill {
+    fill: #fff;
+}
+
+.faq-ai-dark-mode .faq-ai-quill-wrapper .ql-toolbar.ql-snow button.ql-active .ql-stroke {
+    stroke: #2271b1;
+}
+
+.faq-ai-dark-mode .faq-ai-quill-wrapper .ql-toolbar.ql-snow button.ql-active .ql-fill {
+    fill: #2271b1;
+}
+
+.faq-ai-dark-mode .faq-ai-quill-wrapper .ql-editor.ql-blank::before {
+    color: #888;
+}
+
+.faq-ai-dark-mode .faq-ai-editor-container.read-only .faq-ai-quill-wrapper .ql-editor {
+    background-color: #3a3a3a;
+}

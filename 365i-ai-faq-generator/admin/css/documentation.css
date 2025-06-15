@@ -1,0 +1,246 @@
+/**
+ * Documentation Styles
+ *
+ * Styles for the FAQ AI Generator documentation pages
+ *
+ * @package    FAQ_AI_Generator
+ * @subpackage FAQ_AI_Generator/admin/css
+ */
+
+/* Documentation Container */
+.faq-ai-documentation {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    color: #333;
+    line-height: 1.6;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Header */
+.faq-ai-doc-header {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.faq-ai-doc-header h1 {
+    font-size: 28px;
+    font-weight: 600;
+    color: #23282d;
+    margin-bottom: 10px;
+}
+
+.faq-ai-doc-description {
+    font-size: 16px;
+    color: #666;
+    margin-top: 0;
+}
+
+/* Navigation */
+.faq-ai-doc-navigation {
+    background-color: #f9f9f9;
+    padding: 15px 20px;
+    margin-bottom: 30px;
+    border-radius: 4px;
+    border-left: 4px solid #4a6bef;
+}
+
+.faq-ai-doc-navigation ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.faq-ai-doc-navigation a {
+    color: #4a6bef;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.faq-ai-doc-navigation a:hover {
+    color: #1abc9c;
+    text-decoration: underline;
+}
+
+/* Sections */
+.faq-ai-doc-section {
+    margin-bottom: 40px;
+}
+
+.faq-ai-doc-section h2 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #23282d;
+    margin-top: 30px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.faq-ai-doc-section h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #23282d;
+    margin-top: 25px;
+    margin-bottom: 15px;
+}
+
+.faq-ai-doc-section p {
+    margin-bottom: 15px;
+}
+
+.faq-ai-doc-section ul, 
+.faq-ai-doc-section ol {
+    margin-left: 20px;
+    margin-bottom: 20px;
+}
+
+.faq-ai-doc-section li {
+    margin-bottom: 8px;
+}
+
+/* Tables */
+.faq-ai-doc-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+    border: 1px solid #eaeaea;
+}
+
+.faq-ai-doc-table th {
+    background-color: #f5f5f5;
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid #ddd;
+}
+
+.faq-ai-doc-table td {
+    padding: 10px 15px;
+    border-bottom: 1px solid #eaeaea;
+    vertical-align: top;
+}
+
+.faq-ai-doc-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.faq-ai-doc-table tr:hover {
+    background-color: #f0f0f0;
+}
+
+/* Code Blocks */
+.faq-ai-documentation pre {
+    background-color: #f5f5f5;
+    padding: 15px;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin-bottom: 20px;
+    border: 1px solid #eaeaea;
+}
+
+.faq-ai-documentation code {
+    font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+    font-size: 14px;
+    color: #333;
+}
+
+.faq-ai-documentation pre code {
+    display: block;
+    line-height: 1.5;
+}
+
+.faq-ai-documentation p code,
+.faq-ai-documentation li code {
+    background-color: #f5f5f5;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 90%;
+    border: 1px solid #eaeaea;
+}
+
+/* Notes */
+.faq-ai-doc-note {
+    background-color: #f8f9fa;
+    border-left: 4px solid #1abc9c;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    border-radius: 0 4px 4px 0;
+}
+
+.faq-ai-doc-note p {
+    margin: 0;
+}
+
+.faq-ai-doc-note strong {
+    color: #1abc9c;
+}
+
+/* Images */
+.faq-ai-doc-image {
+    max-width: 100%;
+    height: auto;
+    margin: 20px 0;
+    border: 1px solid #eaeaea;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+/* Responsive */
+@media screen and (max-width: 782px) {
+    .faq-ai-documentation {
+        padding: 15px;
+        margin: 10px;
+    }
+    
+    .faq-ai-doc-navigation ul {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .faq-ai-doc-table {
+        display: block;
+        overflow-x: auto;
+    }
+    
+    .faq-ai-doc-header h1 {
+        font-size: 24px;
+    }
+    
+    .faq-ai-doc-section h2 {
+        font-size: 22px;
+    }
+    
+    .faq-ai-doc-section h3 {
+        font-size: 18px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .faq-ai-documentation {
+        box-shadow: none;
+        max-width: 100%;
+    }
+    
+    .faq-ai-doc-navigation {
+        display: none;
+    }
+    
+    .faq-ai-doc-section {
+        page-break-inside: avoid;
+    }
+    
+    .faq-ai-documentation pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+}

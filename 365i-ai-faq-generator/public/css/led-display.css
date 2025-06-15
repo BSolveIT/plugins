@@ -1,0 +1,159 @@
+/**
+ * LED Display CSS - Styles for the SEO score LED display
+ *
+ * Creates a retro-style LED digit display for visualizing SEO scores
+ * with appropriate color coding based on score values.
+ *
+ * @package    FAQ_AI_Generator
+ * @subpackage FAQ_AI_Generator/public/css
+ */
+
+/* Container for the LED display */
+.faq-ai-led-display {
+    display: flex;
+    justify-content: center;
+    background: #111;
+    border-radius: 6px;
+    padding: 15px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
+    margin: 15px 0;
+    width: 100px;
+    height: 60px;
+}
+
+/* Digit container */
+.faq-ai-led-digit {
+    position: relative;
+    width: 35px;
+    height: 60px;
+    margin: 0 5px;
+}
+
+/* LED segments */
+.faq-ai-led-segment {
+    position: absolute;
+    background: #333;
+    border-radius: 2px;
+    transition: background-color 0.2s;
+}
+
+/* Horizontal segments (A, D, G) */
+.faq-ai-led-segment.horizontal {
+    width: 30px;
+    height: 6px;
+    left: 3px;
+}
+
+/* Vertical segments (B, C, E, F) */
+.faq-ai-led-segment.vertical {
+    width: 6px;
+    height: 25px;
+}
+
+/* Segment positions */
+.faq-ai-led-segment.a { top: 0; }             /* Top */
+.faq-ai-led-segment.b { top: 1px; right: 0; } /* Top right */
+.faq-ai-led-segment.c { bottom: 1px; right: 0; } /* Bottom right */
+.faq-ai-led-segment.d { bottom: 0; }          /* Bottom */
+.faq-ai-led-segment.e { bottom: 1px; left: 0; } /* Bottom left */
+.faq-ai-led-segment.f { top: 1px; left: 0; }  /* Top left */
+.faq-ai-led-segment.g { top: 27px; }          /* Middle */
+
+/* Active segment states */
+.faq-ai-led-segment.active {
+    background-color: #f00; /* Default color (red) */
+}
+
+/* Color variations based on score */
+.faq-ai-led-segment.low.active {
+    background-color: #f00; /* Red for low scores */
+    box-shadow: 0 0 10px #f00, 0 0 5px #f00;
+}
+
+.faq-ai-led-segment.medium.active {
+    background-color: #ff0; /* Yellow for medium scores */
+    box-shadow: 0 0 10px #ff0, 0 0 5px #ff0;
+}
+
+.faq-ai-led-segment.high.active {
+    background-color: #0f0; /* Green for high scores */
+    box-shadow: 0 0 10px #0f0, 0 0 5px #0f0;
+}
+
+/* Score label */
+.faq-ai-led-label {
+    text-align: center;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #777;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Animation for updating score */
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1; }
+}
+
+.faq-ai-led-updating .faq-ai-led-segment.active {
+    animation: pulse 1s infinite;
+}
+
+/* LED display wrapper with score info */
+.faq-ai-seo-score-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px 0;
+}
+
+.faq-ai-seo-score-title {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.faq-ai-seo-score-info {
+    font-size: 12px;
+    color: #666;
+    margin-top: 10px;
+    text-align: center;
+    max-width: 200px;
+}
+
+/* Score levels legend */
+.faq-ai-seo-legend {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    width: 100%;
+    max-width: 200px;
+    font-size: 11px;
+}
+
+.faq-ai-seo-legend-item {
+    display: flex;
+    align-items: center;
+}
+
+.faq-ai-seo-legend-color {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.faq-ai-seo-legend-color.low {
+    background-color: #f00;
+}
+
+.faq-ai-seo-legend-color.medium {
+    background-color: #ff0;
+}
+
+.faq-ai-seo-legend-color.high {
+    background-color: #0f0;
+}

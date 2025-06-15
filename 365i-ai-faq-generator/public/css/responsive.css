@@ -1,0 +1,352 @@
+/**
+ * Responsive CSS - Styles for different screen sizes
+ *
+ * Ensures the FAQ AI Generator works well on all devices from
+ * mobile phones to large desktop displays.
+ *
+ * @package    FAQ_AI_Generator
+ * @subpackage FAQ_AI_Generator/public/css
+ */
+
+/* Base mobile-first approach - styles for smallest screens */
+.faq-ai-container {
+    width: 100%;
+    padding: 15px;
+    box-sizing: border-box;
+}
+
+.faq-ai-tabs {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.faq-ai-tab-list {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #ddd;
+}
+
+.faq-ai-tab {
+    flex: 0 0 auto;
+    padding: 10px 15px;
+    white-space: nowrap;
+    scroll-snap-align: start;
+    border: 1px solid transparent;
+    border-bottom: none;
+}
+
+.faq-ai-item {
+    margin-bottom: 15px;
+}
+
+.faq-ai-item-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.faq-ai-drag-handle {
+    margin-right: 10px;
+}
+
+.faq-ai-item-actions {
+    width: 100%;
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.faq-ai-button {
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+.faq-ai-templates-panel,
+.faq-ai-url-import-panel {
+    flex-direction: column;
+}
+
+.faq-ai-template-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.faq-ai-url-results-list {
+    flex-direction: column;
+}
+
+.faq-ai-seo-score-display {
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Small tablets and large phones (landscape) */
+@media (min-width: 576px) {
+    .faq-ai-template-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .faq-ai-item-actions {
+        width: auto;
+        margin-top: 0;
+        margin-left: auto;
+    }
+    
+    .faq-ai-url-results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+}
+
+/* Medium tablets */
+@media (min-width: 768px) {
+    .faq-ai-container {
+        padding: 20px;
+    }
+    
+    .faq-ai-tabs {
+        flex-direction: row;
+    }
+    
+    .faq-ai-tab-list {
+        flex-direction: column;
+        width: 200px;
+        border-bottom: none;
+        border-right: 1px solid #ddd;
+        overflow-x: visible;
+        margin-bottom: 0;
+        margin-right: 20px;
+    }
+    
+    .faq-ai-tab {
+        padding: 15px;
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+        white-space: normal;
+    }
+    
+    .faq-ai-tab.active {
+        border-right: 3px solid #2271b1;
+        background-color: rgba(34, 113, 177, 0.05);
+    }
+    
+    .faq-ai-tab-content {
+        flex: 1;
+    }
+    
+    .faq-ai-template-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .faq-ai-templates-panel,
+    .faq-ai-url-import-panel {
+        flex-direction: row;
+    }
+    
+    .faq-ai-url-results-list {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    
+    .faq-ai-url-result-item {
+        width: 48%;
+        margin: 1%;
+    }
+    
+    .faq-ai-seo-score-display {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+}
+
+/* Laptops and small desktops */
+@media (min-width: 992px) {
+    .faq-ai-container {
+        padding: 25px;
+    }
+    
+    .faq-ai-tab-list {
+        width: 250px;
+    }
+    
+    .faq-ai-template-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .faq-ai-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .faq-ai-toolbar-group {
+        display: flex;
+        align-items: center;
+    }
+}
+
+/* Large desktops */
+@media (min-width: 1200px) {
+    .faq-ai-container {
+        max-width: 1140px;
+        margin: 0 auto;
+    }
+    
+    .faq-ai-main-content {
+        display: flex;
+    }
+    
+    .faq-ai-sidebar {
+        width: 300px;
+        margin-left: 30px;
+    }
+    
+    .faq-ai-content {
+        flex: 1;
+    }
+    
+    .faq-ai-template-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Extra large desktops */
+@media (min-width: 1400px) {
+    .faq-ai-container {
+        max-width: 1320px;
+    }
+    
+    .faq-ai-sidebar {
+        width: 350px;
+    }
+    
+    .faq-ai-template-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Print styles */
+@media print {
+    .faq-ai-container {
+        padding: 0;
+    }
+    
+    .faq-ai-toolbar,
+    .faq-ai-tabs .faq-ai-tab-list,
+    .faq-ai-item-actions,
+    .faq-ai-drag-handle,
+    .faq-ai-suggestions-panel,
+    .faq-ai-panel,
+    .faq-ai-button,
+    .faq-ai-loading-overlay {
+        display: none !important;
+    }
+    
+    .faq-ai-item {
+        page-break-inside: avoid;
+        margin-bottom: 20px;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    .faq-ai-question {
+        font-weight: bold;
+        font-size: 16px;
+        margin-bottom: 10px;
+    }
+    
+    .faq-ai-answer {
+        font-size: 14px;
+    }
+    
+    .faq-ai-tabs {
+        display: block;
+    }
+    
+    .faq-ai-tab-panel {
+        display: block !important;
+    }
+    
+    .faq-ai-tab-content {
+        margin-left: 0;
+    }
+    
+    a {
+        text-decoration: none !important;
+        color: #000 !important;
+    }
+}
+
+/* RTL language support */
+.rtl .faq-ai-container {
+    direction: rtl;
+    text-align: right;
+}
+
+.rtl .faq-ai-drag-handle {
+    margin-right: 0;
+    margin-left: 10px;
+}
+
+.rtl .faq-ai-button {
+    margin-right: 0;
+    margin-left: 5px;
+}
+
+.rtl .faq-ai-tabs .faq-ai-tab-list {
+    border-right: none;
+    border-left: 1px solid #ddd;
+    margin-right: 0;
+    margin-left: 20px;
+}
+
+.rtl .faq-ai-tab.active {
+    border-right: none;
+    border-left: 3px solid #2271b1;
+}
+
+.rtl .faq-ai-item-actions {
+    margin-left: 0;
+    margin-right: auto;
+}
+
+/* Accessibility adjustments */
+@media (prefers-reduced-motion: reduce) {
+    .faq-ai-container * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+.faq-ai-container:focus,
+.faq-ai-button:focus,
+.faq-ai-tab:focus,
+.faq-ai-question:focus {
+    outline: 2px solid #2271b1;
+    outline-offset: 2px;
+}
+
+/* High contrast mode */
+@media (forced-colors: active) {
+    .faq-ai-button {
+        border: 1px solid currentColor;
+    }
+    
+    .faq-ai-tab.active {
+        border: 2px solid currentColor;
+    }
+    
+    .faq-ai-item {
+        border: 1px solid currentColor;
+    }
+}
