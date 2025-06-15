@@ -318,15 +318,9 @@
 		 * Initialize system info specific functionality
 		 */
 		initializeSystemInfo: function() {
-			// System info panel collapsing
-			$('.components-card__header').on('click', function() {
-				var card = $(this).closest('.components-card');
-				var body = card.find('.components-card__body');
-				
-				body.slideToggle(300);
-				card.toggleClass('collapsed');
-			});
-
+			// Removed card header click handler to prevent conflicts with WordPress postbox
+			// WordPress postbox functionality handles collapsing/expanding automatically
+			
 			// Plugin list export
 			$('#export-plugin-list').on('click', function() {
 				QueueOptimizerAdmin.exportPluginList();

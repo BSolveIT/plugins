@@ -189,6 +189,17 @@ No. The plugin uses WordPress options for data storage, keeping your database cl
   * Eliminated all jQuery UI dependency errors from console
   * Note: Some jQuery UI errors may still appear from WordPress core or other plugins
 
+* **Card Header Animation Fix**
+  * Fixed continuous animation loop when clicking on card headers
+  * Removed conflicting click handler on `.components-card__header` in [`admin.js`](assets/js/admin.js:320)
+  * WordPress postbox functionality now handles card collapsing/expanding without conflicts
+
+* **Settings Page 403 Error Fix**
+  * Fixed 403 Forbidden error when clicking "Manage Settings" button
+  * Corrected incorrect menu URLs pointing to `options-general.php?page=queue-optimizer-settings`
+  * Updated URLs to correctly point to Tools menu at `admin.php?page=queue-optimizer`
+  * Fixed in [`templates/dashboard-panel-settings-overview.php`](templates/dashboard-panel-settings-overview.php:81), [`templates/dashboard/settings-overview.php`](templates/dashboard/settings-overview.php:25), and [`templates/system-info/queue-status.php`](templates/system-info/queue-status.php:131)
+
 * **UI Clarification**
   * Dashboard shows 5 queue statistics (Total Jobs, Pending, Completed, Failed, In Progress)
   * Activity Log shows 4 log statistics (Total Logs, Successful, Errors, Pending)
