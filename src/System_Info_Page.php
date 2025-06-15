@@ -470,8 +470,19 @@ class Queue_Optimizer_System_Info_Page {
 			}
 		}
 
-		// Format last run time
+		// Format last run time with robust timestamp handling
 		$last_run_timestamp = get_option( 'queue_optimizer_last_run', 0 );
+		
+		// Convert string timestamps to integers if needed
+		if ( is_string( $last_run_timestamp ) ) {
+			$last_run_timestamp = strtotime( $last_run_timestamp );
+		}
+		
+		// Ensure we have a valid timestamp
+		if ( ! $last_run_timestamp || $last_run_timestamp <= 0 ) {
+			$last_run_timestamp = 0;
+		}
+		
 		$last_run = $last_run_timestamp ? date( 'Y-m-d H:i:s', $last_run_timestamp ) : 'Never';
 
 		// Calculate average processing time (estimated)

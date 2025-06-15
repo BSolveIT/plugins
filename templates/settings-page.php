@@ -49,7 +49,17 @@ include plugin_dir_path( __FILE__ ) . 'partials/header.php';
 			
 			<div class="dashboard-buttons" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #dcdcde;">
 				<p><strong><?php esc_html_e( 'Last Run:', '365i-queue-optimizer' ); ?></strong>
-				   <?php echo esc_html( date( 'F j, Y g:i:s A', $template_data['status']['last_run'] ?? time() ) ); ?></p>
+				   <?php
+				   $last_run = $template_data['status']['last_run'] ?? time();
+				   // Ensure we have a valid timestamp integer
+				   if ( is_string( $last_run ) ) {
+				   	$last_run = strtotime( $last_run );
+				   }
+				   if ( ! $last_run || $last_run <= 0 ) {
+				   	$last_run = time();
+				   }
+				   echo esc_html( date( 'F j, Y g:i:s A', (int) $last_run ) );
+				   ?></p>
 				
 				<div style="margin-top: 15px;">
 					<button type="button" id="run-queue-now" class="button button-primary" style="margin-right: 8px;">
