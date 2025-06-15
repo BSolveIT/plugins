@@ -1,68 +1,46 @@
 === 365i Queue Optimizer ===
 Contributors: 365i
-Tags: queue, scheduler, background-jobs, optimization, performance
+Tags: actionscheduler, queue, optimization, performance, background-tasks
 Requires at least: 5.8
 Tested up to: 6.4
-Stable tag: 1.7.5
+Stable tag: 1.0.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-A lightweight WordPress plugin to manage and optimize background queue processing with native WP scheduling.
+A lightweight WordPress plugin to optimize ActionScheduler queue processing for faster image optimization and background tasks.
 
 == Description ==
 
-**365i Queue Optimizer** is a simple yet powerful plugin designed to help WordPress site owners and developers manage background queue processing efficiently. Built with WordPress standards in mind, it provides a clean interface for controlling how your site handles scheduled tasks and background jobs.
+**365i Queue Optimizer** is an ultra-lightweight WordPress plugin designed to optimize ActionScheduler performance for faster image processing and background task execution. Perfect for sites using image optimization plugins, WooCommerce, or any plugin that relies on ActionScheduler.
+
+### What This Plugin Does
+
+This plugin applies three essential ActionScheduler optimizations:
+
+* **Time Limit Control** - Sets how long ActionScheduler processes tasks (default: 60 seconds, configurable 10-300)
+* **Concurrent Batch Processing** - Controls simultaneous background processes (default: 4 batches, configurable 1-10)
+* **Image Processing Engine** - Prioritizes your chosen image processor (GD or ImageMagick)
 
 ### Key Features
 
-* **Native WordPress Integration** - Uses built-in `wp_schedule_event` for reliable scheduling
-* **Configurable Time Limits** - Set processing time limits from 5 to 300 seconds
-* **Concurrent Batch Processing** - Control how many batches run simultaneously (1-10 batches)
-* **Real-time Dashboard** - View pending, processing, and completed job counts
-* **Manual Processing** - "Run Now" button for immediate queue processing
-* **Optional Logging** - Enable detailed logging for debugging and monitoring
-* **Clean Uninstall** - Completely removes all data when uninstalled
-* **Security First** - Proper nonce verification and capability checks
-* **Translation Ready** - Full internationalization support
+* **Ultra-Lightweight** - Only 5 files, minimal server impact
+* **Zero Overhead** - No complex dashboards, logging, or debugging features
+* **Simple Configuration** - Clean settings page under Tools > Queue Optimizer
+* **Instant Results** - Optimizations apply automatically after activation
+* **WordPress Standards** - Follows all WordPress coding and security standards
+* **Performance Focused** - Based on proven optimization techniques
 
 ### Perfect For
 
-* **Site Owners** who need fine-tuned control over background jobs like image processing, report generation, or data imports
-* **Developers** who want an easy-to-read, easy-to-extend plugin skeleton for scheduling tasks
-* **Agencies** managing multiple WordPress sites with custom background processing needs
+* **Image Optimization** - Faster processing with Elementor Image Optimizer, Smush, ShortPixel, etc.
+* **WooCommerce Sites** - Better handling of product imports, order processing, and bulk operations
+* **High-Volume Sites** - Improved performance for sites with large background task queues
+* **Plugin Compatibility** - Works with any plugin that uses ActionScheduler
 
-### Technical Highlights
+### Philosophy
 
-* PSR-12 PHP coding standards
-* WordPress Coding Standards compliant
-* Minimal overhead - assets only load on plugin pages
-* Secure AJAX endpoints with nonce verification
-* Capability checks for all admin actions
-* Responsive admin interface
-* Compatible with all major WordPress admin color schemes
-
-### Planned Features (Currently UI Placeholders)
-
-**Debug Mode** - Currently displayed in Settings Overview but not yet implemented
-* Would enable verbose logging of all queue operations and processing steps
-* Detailed timing information for performance analysis and bottleneck identification
-* Enhanced error reporting with stack traces and detailed failure context
-* Debug-specific log entries for troubleshooting queue processing issues
-* Additional admin interface elements showing internal queue state information
-
-**Email Notifications** - Currently displayed in Settings Overview but not yet implemented
-* Automated email alerts when queue processing fails or encounters errors
-* Daily/weekly queue status reports with processing statistics and health metrics
-* Threshold-based notifications when queue backlogs exceed configured limits
-* Administrative alerts for critical queue failures requiring immediate attention
-* Configurable notification recipients and escalation paths for different alert types
-
-*Note: These features appear in the dashboard Settings Overview panel but are not yet functional. They serve as placeholders for future development and will always display as "Disabled" until properly implemented with backend logic and database options.*
-
-### Professional Support
-
-This plugin is developed and maintained by [365i WordPress Hosting](https://www.365i.co.uk/), specialists in high-performance WordPress hosting solutions.
+Simple, fast, and effective. This plugin does one thing well: optimize ActionScheduler performance with minimal overhead and maximum compatibility.
 
 == Installation ==
 
@@ -76,664 +54,110 @@ This plugin is developed and maintained by [365i WordPress Hosting](https://www.
 ### Manual Installation
 
 1. Download the plugin zip file
-2. Extract the files to your `/wp-content/plugins/365i-queue-optimizer/` directory
-3. Activate the plugin through the **Plugins** menu in WordPress
+2. Extract to `/wp-content/plugins/365i-queue-optimizer/`
+3. Activate through the **Plugins** menu in WordPress
 
-### After Installation
+### Configuration
 
-1. Navigate to **Tools > Queue Optimizer** in your WordPress admin
+1. Go to **Tools > Queue Optimizer** in WordPress admin
 2. Configure your preferred settings:
-   - **Time Limit**: Maximum processing time per run (5-300 seconds)
-   - **Concurrent Batches**: Number of batches to process simultaneously (1-10)
-   - **Enable Logging**: Turn on detailed logging for debugging
+   - **Time Limit**: How long ActionScheduler runs per batch (10-300 seconds)
+   - **Concurrent Batches**: Number of simultaneous processes (1-10 batches)
+   - **Image Engine**: Choose GD or ImageMagick for image processing
 3. Click **Save Settings**
-4. Use the **Run Now** button to test queue processing
-5. Monitor the status dashboard for real-time updates
+4. Optimizations apply automatically - no further setup required
 
 == Usage ==
 
-### Basic Configuration
+### Settings Configuration
 
-Once installed, the plugin provides a simple settings interface under **Tools > Queue Optimizer**:
+**Time Limit (10-300 seconds, default: 60)**
+Controls how long ActionScheduler processes tasks in each batch. Higher values process more tasks per run but may impact server performance. Lower values are safer for shared hosting.
 
-**Time Limit Settings**
-Set how long (in seconds) the queue processor should run during each execution. Lower values are safer for shared hosting environments.
+**Concurrent Batches (1-10 batches, default: 4)**
+Determines how many background processes run simultaneously. More batches can speed up processing but increase server load. Start with 4 and adjust based on your server capacity.
 
-**Concurrent Batches**
-Control how many job batches are processed simultaneously. Higher values can improve performance but may increase server load.
+**Image Processing Engine (GD or ImageMagick, default: GD)**
+Prioritizes your chosen image processing library. GD is more universally compatible, while ImageMagick often provides better quality and performance for image operations.
 
-**Logging Options**
-Enable logging to track queue processing activity. Logs are stored in the plugin's logs directory and can be cleared via the admin interface.
+### Current Status
 
-### Dashboard Features
-
-The plugin includes a real-time dashboard showing:
-
-* **Pending Jobs** - Tasks waiting to be processed
-* **Processing Jobs** - Currently active tasks
-* **Completed Jobs** - Successfully finished tasks
-* **Last Run Time** - When the queue was last processed
-
-### Manual Processing
-
-Use the **Run Now** button to immediately process the queue without waiting for the scheduled interval. This is useful for:
-
-* Testing configuration changes
-* Processing urgent jobs
-* Debugging queue issues
-
-### Log Management
-
-When logging is enabled:
-
-* Daily log files are created in `/wp-content/plugins/365i-queue-optimizer/logs/`
-* Use the **Clear Logs** button to remove old log files
-* Logs include timestamps and detailed processing information
+The settings page shows your current optimization status, including:
+* Whether optimizations are active
+* Current ActionScheduler processing time limit
+* Number of concurrent batches configured
+* Selected image processing engine
 
 == Frequently Asked Questions ==
 
-= How often does the queue process automatically? =
+= How does this plugin improve performance? =
 
-By default, the queue processes every hour using WordPress's built-in cron system. This can be customized by developers using WordPress hooks.
+It optimizes three key ActionScheduler settings that control how WordPress processes background tasks. This results in faster image optimization, smoother WooCommerce operations, and better handling of any background processing.
 
-= Can I add my own jobs to the queue? =
+= Will this affect my website's front-end performance? =
 
-Yes! The plugin provides WordPress actions and filters that developers can use to add custom jobs. See the plugin's source code for available hooks.
+No. This plugin only affects background task processing and has zero impact on your website's front-end performance. It actually improves overall site responsiveness by making background tasks more efficient.
 
-= Will this plugin slow down my website? =
+= Is this compatible with my existing plugins? =
 
-No. The plugin only loads its assets on the admin settings page and processes jobs in the background. It's designed to have minimal impact on site performance.
+Yes. This plugin works with any plugin that uses ActionScheduler, including Elementor, WooCommerce, image optimization plugins, and backup plugins. It enhances their performance rather than conflicting with them.
+
+= Do I need to configure anything after installation? =
+
+The plugin works with sensible defaults immediately after activation. However, you can fine-tune the settings under Tools > Queue Optimizer to optimize for your specific server and needs.
 
 = What happens if I deactivate the plugin? =
 
-Deactivating the plugin stops all queue processing and clears scheduled events. Your data remains intact until you uninstall the plugin.
+All optimizations are immediately removed and ActionScheduler returns to its default behavior. Your site will continue working normally, just without the performance enhancements.
 
-= What happens when I uninstall the plugin? =
+= Can I use this on shared hosting? =
 
-Complete cleanup! All plugin options, log files, scheduled events, and data are permanently removed from your database.
+Yes. The default settings are conservative and safe for shared hosting environments. You can even reduce the time limit and concurrent batches if needed.
 
-= Is this plugin compatible with multisite? =
+= How do I know if it's working? =
 
-The plugin is designed to work on single WordPress installations. Multisite compatibility may require additional configuration.
-
-= Can I customize the processing logic? =
-
-Yes! Developers can extend the plugin using WordPress actions and filters. The code follows WordPress standards and is well-documented.
-
-= Does this plugin create any database tables? =
-
-No. The plugin uses WordPress options for data storage, keeping your database clean and avoiding compatibility issues.
+After activation, image processing and background tasks should be noticeably faster. You can also check the Current Status section in the plugin settings to confirm optimizations are active.
 
 == Screenshots ==
 
-1. **Settings Panel** - Configure time limits, concurrent batches, and logging options
-2. **Status Dashboard** - Real-time view of pending, processing, and completed jobs
-3. **Admin Interface** - Clean, responsive design that works on all devices
+1. **Settings Page** - Simple configuration interface under Tools > Queue Optimizer
+2. **Current Status** - Shows your optimization settings and ActionScheduler status
 
 == Changelog ==
 
-= 1.7.6 - 2025-06-15 =
-**Settings Page Architecture Fix - Template System Restructure + Dashboard Buttons Restoration**
+= 1.0.0 - 2025-06-15 =
 
-* **Settings Page Class Restructuring**
-  * Fixed "hanging" issue with [`admin/class-settings-page.php`](admin/class-settings-page.php) that was preventing proper template loading
-  * Restructured oversized settings class (362 lines) into modular template system following 300-line rule
-  * Fixed broken template paths pointing to non-existent [`includes/admin/templates/`](includes/admin/templates/) directory
-  * Updated render methods to use proper template paths in [`templates/settings/`](templates/settings/) subdirectory
-
-* **Complete Settings Template System**
-  * Created main [`templates/settings-page.php`](templates/settings-page.php) template with proper header/footer partial integration
-  * Individual field templates: [`time-limit-field.php`](templates/settings/time-limit-field.php), [`concurrent-batches-field.php`](templates/settings/concurrent-batches-field.php), [`logging-field.php`](templates/settings/logging-field.php), [`retention-days-field.php`](templates/settings/retention-days-field.php), [`image-engine-field.php`](templates/settings/image-engine-field.php)
-  * All field templates under 25 lines with proper escaping and validation
-  * Template data filtering with [`apply_filters('queue_optimizer_settings_data')`](admin/class-settings-page.php:192) for extensibility
-
-* **Dashboard Buttons Functionality Restoration**
-  * **CRITICAL FIX**: Restored missing dashboard buttons that were accidentally removed during template restructure
-  * Added working buttons: [`Run Now`](templates/settings-page.php:54), [`View Logs`](templates/settings-page.php:57), [`Clear Plugin Logs`](templates/settings-page.php:60), [`Clear Action Scheduler Logs`](templates/settings-page.php:63)
-  * Fixed button IDs to match existing JavaScript handlers: [`#run-queue-now`](templates/settings-page.php:54), [`#view-logs`](templates/settings-page.php:57), [`#clear-logs`](templates/settings-page.php:60), [`#clear-action-scheduler-logs`](templates/settings-page.php:63)
-  * Proper log display containers: [`#queue-optimizer-logs`](templates/settings-page.php:67), [`#log-display`](templates/settings-page.php:77) for JavaScript functionality
-  * Enhanced button styling with mobile-responsive design in [`assets/css/settings.css`](assets/css/settings.css)
-
-* **JavaScript & Asset Integration**
-  * Added [`wp_enqueue_script()`](admin/class-settings-page.php:98) for admin.js with proper jQuery dependency
-  * Localized script with [`queueOptimizerAdmin`](admin/class-settings-page.php:106) object including AJAX URL, nonce, and strings
-  * JavaScript handlers preserved from [`assets/js/admin.js`](assets/js/admin.js) for all button functionality
-  * Complete AJAX integration for queue management operations
-
-* **Asset Management & Styling**
-  * Added proper [`enqueue_assets()`](admin/class-settings-page.php:85) method with page-specific CSS and JS loading
-  * Created dedicated [`assets/css/settings.css`](assets/css/settings.css) with responsive two-panel layout
-  * Settings panel and status panel design with proper WordPress component styling
-  * Mobile-responsive design with flexbox layout and proper breakpoints at 782px
-
-* **Settings Page Functionality Restoration**
-  * WordPress Settings API integration maintained with proper [`register_setting()`](admin/class-settings-page.php:79) calls
-  * Field validation and sanitization methods preserved with proper error handling
-  * Settings form submission and nonce verification working correctly
-  * Real-time queue status display in sidebar panel with pending/processing/completed/failed counts
-  * Dashboard functionality fully restored with working Run Now, View Logs, and Clear Logs buttons
-
-= 1.7.5 - 2025-06-15 =
-**Architecture Cleanup - Orphaned Files Removal**
-
-* **File Structure Cleanup from Previous Architecture Changes**
-  * Removed orphaned duplicate asset files in root `assets/` directory
-  * Deleted [`assets/admin.css`](assets/admin.css) - duplicate of [`assets/css/admin.css`](assets/css/admin.css)
-  * Deleted [`assets/admin.js`](assets/admin.js) - duplicate of [`assets/js/admin.js`](assets/js/admin.js)
-  * Deleted [`assets/system-info.css`](assets/system-info.css) - duplicate of [`assets/css/system-info.css`](assets/css/system-info.css)
-  * Deleted [`assets/system-info.js`](assets/system-info.js) - duplicate of [`assets/js/system-info.js`](assets/js/system-info.js)
-
-* **Legacy PHP Class Cleanup**
-  * Removed [`admin/class-system-info-page.php`](admin/class-system-info-page.php) - replaced by [`src/System_Info_Page.php`](src/System_Info_Page.php)
-  * Cleaned up orphaned includes directory - removed entire [`includes/admin/templates/`](includes/admin/templates/) folder
-  * Template system now properly uses [`templates/`](templates/) directory with [`partials/`](templates/partials/) subdirectory
-
-* **Orphaned Template Cleanup**
-  * Removed old dashboard panel templates: [`templates/dashboard-panel-*.php`](templates/) files
-  * Removed old system info panel templates: [`templates/system-info-panel-*.php`](templates/) files
-  * Current architecture uses modular templates in [`templates/dashboard/`](templates/dashboard/) and [`templates/system-info/`](templates/system-info/) subdirectories
-
-* **Final Architecture Verification**
-  * **ACTIVE**: `src/` for PHP logic classes (Dashboard_Page.php, System_Info_Page.php, etc.)
-  * **ACTIVE**: `assets/css/` and `assets/js/` subdirectories for organized assets
-  * **ACTIVE**: `templates/` with `partials/`, `dashboard/`, and `system-info/` subdirectories
-  * **ACTIVE**: `admin/class-settings-page.php` for settings management
-  * **REMOVED**: All duplicate files and legacy template structures from previous design iterations
-
-= 1.7.4 - 2025-06-15 =
-**JavaScript Initialization & Event Handler Stabilization - Final Fix**
-
-* **JavaScript Initialization Pattern Perfected**
-  * **Root Cause Resolved**: Added [`initialized`](assets/js/admin.js:18) flag to prevent multiple initialization calls
-  * Fixed circular dependency between [`init()`](assets/js/admin.js:20) and [`bindEvents()`](assets/js/admin.js:36) methods
-  * Eliminated script loading race conditions that were causing duplicate event handler binding
-  * Single initialization pattern ensures [`QueueOptimizerAdmin.init()`](assets/js/admin.js:20) executes only once per page load
-
-* **Event Handler Architecture Stability**
-  * Removed redundant [`this.bindEvents()`](assets/js/admin.js:764) call from [`init()`](assets/js/admin.js:20) method
-  * Maintained proper event delegation using [`$(document).on()`](assets/js/admin.js:266) for reliable button handling
-  * Fixed infinite loop where multiple [`$(document).ready()`](assets/js/admin.js:37) handlers were being registered
-  * Clean separation between initialization and event binding ensures stable dashboard functionality
-
-* **Dashboard Button Functionality Verified**
-  * ✅ "View Logs" button - Perfect toggle functionality (show/hide) with single AJAX requests
-  * ✅ All buttons working without infinite loops or console spam
-  * ✅ Real Action Scheduler logs displayed with proper formatting and timestamps
-  * ✅ Clean console output with no debugging messages in production
-
-* **Production Code Cleanup**
-  * Removed all debugging [`console.log()`](assets/js/admin.js:21) statements from JavaScript
-  * Cleaned up PHP debugging [`error_log()`](365i-queue-optimizer.php:223) statements
-  * Removed temporary [`wp_add_inline_script()`](365i-queue-optimizer.php:280) debugging code
-  * Restored proper page detection logic for optimal script loading
-
-* **Performance & User Experience**
-  * Eliminated browser resource exhaustion from infinite AJAX loops
-  * Clean page loads with minimal console output
-  * Responsive dashboard interactions with proper loading states
-  * Professional user experience with reliable button functionality
-
-= 1.7.3 - 2025-06-15 =
-**Critical Infinite AJAX Loop Fix - Complete System Stability Restored**
-
-* **Infinite AJAX Loop Resolution**
-  * **Root Cause Identified**: JavaScript event handlers were being attached multiple times due to duplicate `QueueOptimizerAdmin.init()` calls
-  * Fixed duplicate initialization in [`assets/js/admin.js`](assets/js/admin.js:747) causing infinite AJAX request loops
-  * Removed redundant `$(document).ready()` call that was causing event handlers to bind twice
-  * Dashboard buttons were triggering thousands of simultaneous AJAX requests, causing system resource exhaustion (ERR_INSUFFICIENT_RESOURCES)
-  * All dashboard button functionality now works correctly with single AJAX requests per click
-
-* **System Resource Management**
-  * Eliminated thousands of rapid-fire AJAX requests that were overwhelming admin-ajax.php endpoint
-  * Fixed browser resource exhaustion and ERR_INSUFFICIENT_RESOURCES errors
-  * Restored normal AJAX behavior with proper request/response cycles and error handling
-  * System performance and stability completely restored for all dashboard operations
-
-* **Dashboard Button Functionality Verified**
-  * ✅ "Run Now" button - fully functional without infinite loops or resource exhaustion
-  * ✅ "View Logs" button - working correctly with single AJAX requests
-  * ✅ "Clear Plugin Logs" button - operating normally with proper user feedback
-  * ✅ "Clear Action Scheduler Logs" button - functioning correctly with confirmation dialogs
-  * All buttons now provide proper loading states, success messages, and error handling
-
-* **JavaScript Architecture Stability**
-  * Proper single initialization pattern ensures event handlers attach only once
-  * Clean separation between different initialization contexts (document ready vs manual init)
-  * Prevented event handler multiplication that was causing exponential AJAX request growth
-  * Robust event binding architecture now supports reliable dashboard interactions
-
-= 1.7.2 - 2025-06-15 =
-**Critical Dashboard Button Fix - Complete AJAX Functionality Restored**
-
-* **Dashboard Quick Actions Fully Functional**
-  * **Root Cause Identified**: JavaScript was using undefined `ajaxurl` variable instead of properly localized `queueOptimizerAdmin.ajax_url`
-  * Fixed critical AJAX URL bug in [`handleQuickAction()`](assets/js/dashboard.js:98) method preventing all AJAX requests from being sent
-  * Changed from `url: ajaxurl,` to `url: queueOptimizerAdmin.ajax_url,` for proper WordPress AJAX endpoint access
-  * Added AJAX URL validation to prevent silent failures when localization is missing
-  * Removed debug console logging for clean production code
-
-* **Complete Button Functionality Verification**
-  * ✅ "Run Queue Cleanup" button - fully operational with AJAX request to admin-ajax.php
-  * ✅ "Clear Failed Jobs" button - fully operational with proper Action Scheduler integration
-  * Both buttons now properly show loading states, send AJAX requests, and provide user feedback
-  * Dashboard button functionality completely restored with real-time queue management
-
-* **Class Instantiation Fix**
-  * Added missing [`Queue_Optimizer_Dashboard_Page::get_instance();`](365i-queue-optimizer.php:97) call in main plugin file
-  * Dashboard_Page class was never being instantiated, preventing AJAX handlers from being registered
-  * Fixed fundamental architecture issue that was blocking all dashboard AJAX functionality
-
-* **JavaScript Localization Enhancement**
-  * Added proper script localization with [`wp_localize_script()`](365i-queue-optimizer.php:264) for dashboard.js
-  * Ensures `queueOptimizerAdmin.ajax_url`, `queueOptimizerAdmin.nonce`, and loading text are available to JavaScript
-  * Resolves undefined variable errors that were preventing AJAX operations
-
-* **Template Variable Scope Fix**
-  * Added [`extract($data);`](src/Dashboard_Page.php:143) in dashboard template to make variables accessible to sub-templates
-  * Fixed Quick Actions template access to `$quick_actions` array data
-  * Proper variable scoping ensures dashboard components render with correct data
-
-* **Nonce Security Alignment**
-  * Synchronized nonce verification between frontend JavaScript (`queue_optimizer_admin_nonce`) and backend PHP verification
-  * Fixed nonce mismatch in [`includes/class-scheduler.php`](includes/class-scheduler.php) for consistent security token handling
-  * All AJAX requests now properly authenticated with matching nonce values
-
-= 1.7.1 - 2025-06-15 =
-**Fixed Dashboard and Activity Log JavaScript Errors**
-
-* **Dashboard AJAX Handler Fix**
-  * Fixed 400 Bad Request errors when accessing the dashboard
-  * Added missing AJAX handlers [`ajax_refresh_stats()`](src/Dashboard_Page.php:243) and [`ajax_quick_action()`](src/Dashboard_Page.php:261) to Dashboard_Page class
-  * Implemented proper nonce verification and capability checks for all AJAX endpoints
-  * Added [`run_queue_cleanup()`](src/Dashboard_Page.php:298) method for manual queue cleanup with retention day support
-  * Added [`clear_failed_jobs()`](src/Dashboard_Page.php:340) method to remove failed Action Scheduler jobs
-  * Enhanced error handling with try-catch blocks and detailed error messages
-  * Fixed dashboard JavaScript errors preventing stats refresh and quick actions
-
-* **Activity Log JavaScript Fix**
-  * Removed inline JavaScript that was causing jQuery UI errors (`tooltip` and `sortable` undefined)
-  * Fixed JavaScript errors on Activity Log page by removing unnecessary jQuery UI dependencies
-  * Removed postbox dependency from activity log script enqueue in [`365i-queue-optimizer.php`](365i-queue-optimizer.php:298)
-  * Maintained proper separation of JavaScript and PHP code following plugin standards
-
-* **Auto-Refresh Removal**
-  * Removed automatic refresh functionality from dashboard - now manual refresh only
-  * Added "Refresh Stats" button to dashboard for manual updates when needed
-  * Removed 30-second auto-refresh from both [`dashboard.js`](assets/js/dashboard.js) and [`admin.js`](assets/js/admin.js)
-  * Fixed excessive AJAX polling that was overwhelming the system
-
-* **HTML Structure Fixes**
-  * Fixed dashboard stats cards HTML structure issues causing incorrect display
-  * Removed extra closing `</div>` tags in [`stats-cards.php`](templates/dashboard/stats-cards.php)
-  * Ensured all 5 stat cards display correctly in horizontal grid layout
-
-* **jQuery UI Removal**
-  * Removed jQuery UI tooltip usage in [`admin.js`](assets/js/admin.js:62) that was causing errors
-  * Plugin now uses native browser tooltips instead of jQuery UI components
-  * Eliminated all jQuery UI dependency errors from console
-  * Note: Some jQuery UI errors may still appear from WordPress core or other plugins
-
-* **Card Header Animation Fix**
-  * Fixed continuous animation loop when clicking on card headers
-  * Removed conflicting click handler on `.components-card__header` in [`admin.js`](assets/js/admin.js:320)
-  * WordPress postbox functionality now handles card collapsing/expanding without conflicts
-
-* **Settings Page 403 Error Fix**
-  * Fixed 403 Forbidden error when clicking "Manage Settings" button
-  * Corrected incorrect menu URLs pointing to `options-general.php?page=queue-optimizer-settings`
-  * Updated URLs to correctly point to Tools menu at `admin.php?page=queue-optimizer`
-  * Fixed in [`templates/dashboard-panel-settings-overview.php`](templates/dashboard-panel-settings-overview.php:81), [`templates/dashboard/settings-overview.php`](templates/dashboard/settings-overview.php:25), and [`templates/system-info/queue-status.php`](templates/system-info/queue-status.php:131)
-
-* **Logging Status Display Fix**
-  * Fixed Activity Log page showing "Disabled" even when logging is enabled
-  * Updated [`get_log_settings()`](src/Activity_Log_Page.php:264) to properly handle checkbox values ("1" when checked)
-  * The checkbox saves "1" when checked, not boolean true/false as initially expected
-  * Logging status now correctly shows green "Enabled" badge when logging is turned on
-
-* **Retention Days Display Fix**
-  * Fixed dashboard showing incorrect retention days value (always showing 30 instead of actual setting)
-  * Updated [`get_plugin_settings()`](src/Dashboard_Page.php:198) to use correct option name `queue_optimizer_log_retention_days`
-  * Retention days now displays the actual configured value (default is 7 days)
-
-* **Dashboard Buttons JavaScript Fix**
-  * Fixed all dashboard buttons (Run Now, Clear Logs, View Logs, Clear Action Scheduler Logs) not working
-  * **Root Cause**: Discovered dual dashboard system - new system uses `data-action` buttons with [`assets/js/dashboard.js`](assets/js/dashboard.js), but actual buttons use legacy ID-based system from [`includes/admin/templates/dashboard-panel.php`](includes/admin/templates/dashboard-panel.php)
-  * **JavaScript Event Handlers**: Added comprehensive button handlers to [`assets/js/dashboard.js`](assets/js/dashboard.js) including `handleRunQueueNow()`, `handleViewLogs()`, `handleClearLogs()`, `handleClearActionSchedulerLogs()`
-  * **Nonce Mismatch Fix**: Corrected backend nonce verification in [`includes/class-scheduler.php`](includes/class-scheduler.php) from `queue_optimizer_nonce` to `queue_optimizer_admin_nonce` to match frontend localization
-  * **Variable Name Fix**: Corrected JavaScript variable name mismatch - changed `queueOptimizerAjax` to `queueOptimizerAdmin` in [`assets/admin.js`](assets/admin.js)
-  * **AJAX Integration**: Implemented complete AJAX functionality with proper error handling, loading states, and user feedback
-  * All dashboard buttons now fully functional with real-time queue processing, log management, and status updates
-
-* **UI Clarification**
-  * Dashboard shows 5 queue statistics (Total Jobs, Pending, Completed, Failed, In Progress)
-  * Activity Log shows 4 log statistics (Total Logs, Successful, Errors, Pending)
-  * This difference is intentional as they track different metrics
-
-= 1.7.0 - 2025-06-15 =
-**Enhanced Activity Log Management System with Interactive Queue Control**
-
-* **Comprehensive Activity Log Redesign**
-  * Complete Activity Log page overhaul with interactive queue management capabilities
-  * Enhanced [`get_activity_logs()`](src/Activity_Log_Page.php:45) method to display completed, failed, pending, in-progress, and canceled jobs
-  * New AJAX-powered individual actions: retry failed jobs and cancel pending jobs with real-time feedback
-  * Bulk operations system with multi-select functionality for efficient queue management
-  * Interactive message expansion with click-to-reveal full job details and error messages
-
-* **Advanced Search & Filtering System**
-  * Live search functionality across all Activity Log entries with instant filtering
-  * Status-based filtering (All, Pending, In-Progress, Completed, Failed, Canceled)
-  * Real-time row count updates showing filtered vs total entries
-  * Clear search functionality with one-click filter reset
-
-* **Interactive UI Components & User Experience**
-  * Row selection system with individual checkboxes and "Select All" functionality
-  * Bulk actions container with visual feedback for selected items count
-  * Spinning loader animations for AJAX operations with CSS [`@keyframes spin`](assets/css/activity-log.css:89)
-  * Enhanced table styling with hover effects and smooth transitions
-  * Professional action buttons with WordPress component styling
-
-* **Robust Error Handling & User Feedback**
-  * Comprehensive try-catch blocks for all AJAX operations with detailed error messages
-  * Success/failure notifications for retry and cancel operations
-  * Graceful handling of ActionScheduler edge cases and failed operations
-  * Clear user instructions in card footer explaining available actions
-
-* **CSS Styling Improvements**
-  * Fixed `.components-card__footer { margin-top: 10px; }` spacing issue in [`system-info.css`](assets/css/system-info.css:168)
-  * Enhanced Activity Log CSS with responsive design and interactive elements
-  * Professional bulk actions styling with proper spacing and visual hierarchy
-  * Consistent WordPress component design patterns throughout
-
-* **Technical Architecture Enhancements**
-  * New AJAX handlers: [`handle_retry_action()`](src/Activity_Log_Page.php:180), [`handle_cancel_action()`](src/Activity_Log_Page.php:210), [`handle_bulk_actions()`](src/Activity_Log_Page.php:240)
-  * Helper methods: [`retry_single_action()`](src/Activity_Log_Page.php:285), [`cancel_single_action()`](src/Activity_Log_Page.php:315)
-  * Enhanced JavaScript framework in [`activity-log.js`](assets/js/activity-log.js) with modular action handling
-  * Template rewrite maintaining under 300 lines with proper template structure
-  * Complete ActionScheduler integration for comprehensive queue state management
-
-= 1.6.0 - 2025-06-15 =
-**Enhanced PHP Extensions System Information**
-
-* **Complete PHP Extensions Overhaul**
-  * Replaced "Unknown" extension grid with comprehensive ReflectionExtension-powered data gathering
-  * New searchable table format displaying extension name, version, INI keys count, and functions count
-  * Real PHP extension metadata using `ReflectionExtension` API for accurate information
-  * Sortable table with professional WordPress component styling and responsive design
-
-* **Advanced Search & Export Features**
-  * Live search functionality across PHP extensions table with instant filtering
-  * Export extensions data to CSV format with timestamped filenames
-  * Copy-to-clipboard functionality for sharing extension information
-  * Search results indicator showing filtered vs total extension counts
-
-* **Enhanced User Experience**
-  * Professional table layout replacing grid of empty "Unknown" cards
-  * Extension version badges with proper styling and visual hierarchy
-  * Summary statistics showing total extensions, INI settings, and function counts
-  * Critical extensions status panel with health indicators and missing extension alerts
-
-* **Technical Improvements**
-  * Error handling for ReflectionExtension failures with graceful fallbacks
-  * Enhanced JavaScript functionality in `assets/js/system-info.js` for table interactions
-  * Proper template structure in `templates/system-info/php-extensions.php` under 123 lines
-  * Improved data structure using associative arrays with proper metadata fields
-
-= 1.5.0 - 2025-06-15 =
-**Dashboard Fixes & Activity Log Management System**
-
-* **Dashboard Layout & Navigation Fixes**
-  * Fixed 5-stat grid layout issues with proper CSS grid configuration (`repeat(5, 1fr)`)
-  * Responsive breakpoints: 5→3→2→1 columns for optimal display across all devices
-  * Corrected "View All Activity" navigation to proper Activity Log page
-  * Eliminated JavaScript console errors causing rapid logging and resource consumption
-  * Added proper variable existence checks and error handling in dashboard JavaScript
-
-* **Comprehensive Activity Log Management**
-  * New dedicated Activity Log page (`src/Activity_Log_Page.php`) with full CRUD operations
-  * Complete log viewing interface with sortable tables and status indicators
-  * Log export functionality (CSV/JSON) with timestamped downloads
-  * Clear logs functionality with granular control (all, debug, system, specific types)
-  * Real-time log statistics dashboard with visual stat cards
-  * System events tracking and display with proper categorization
-
-* **Enhanced User Interface**
-  * Professional activity log template (`templates/activity-log.php`) with WordPress component design
-  * Dedicated Activity Log CSS (`assets/css/activity-log.css`) with responsive design
-  * Interactive JavaScript (`assets/js/activity-log.js`) with AJAX operations and user feedback
-  * Click-to-expand table rows for detailed message viewing
-  * Search and filter capabilities across all log entries
-
-* **Menu Structure Improvements**
-  * Updated admin menu structure: Dashboard → Activity Log → System Info
-  * Proper submenu organization with logical navigation flow
-  * Asset enqueueing fixes for Activity Log page specific styles and scripts
-  * Consistent navigation experience across all plugin pages
-
-* **JavaScript Error Resolution**
-  * Fixed undefined variable errors in `queueOptimizerAdmin` and `queueOptimizerDashboard`
-  * Added comprehensive error handling and logging prevention mechanisms
-  * Eliminated rapid console error logging that was consuming browser resources
-  * Proper AJAX variable validation before making requests
-
-* **Log Settings & Configuration**
-  * Logging enable/disable toggle with visual status indicators
-  * Debug mode configuration with proper badge styling
-  * Log retention settings and automatic cleanup functionality
-  * Log file size management with rotation and archiving
-
-= 1.4.0 - 2025-06-15 =
-**Complete Architectural Redesign with WordPress Component System**
-
-* **Major Template System Overhaul**
-  * Complete modular template architecture with `templates/dashboard/` and `templates/system-info/` folders
-  * Shared component partials (`card-header.php`, `card-footer.php`) for consistent styling across all pages
-  * Individual template files for each panel, all under 100 lines for maximum maintainability
-  * WordPress component-based design system with proper `.components-card`, `.components-button`, `.components-badge` classes
-  * Strict separation of concerns: PHP logic in `src/`, HTML in `templates/`, CSS in `assets/css/`, JS in `assets/js/`
-
-* **WordPress Component Design System**
-  * Professional WordPress component styling with `.components-grid`, `.components-table`, `.components-badge` classes
-  * Comprehensive CSS framework at `assets/css/admin.css` with `.toplevel_page_365i-queue-optimizer` namespacing
-  * Color-coded status indicators using WordPress standard colors (#46b450 success, #ffb900 warning, #dc3232 error, #229fd8 info)
-  * Responsive design with mobile-first approach and breakpoints at 1024px, 768px, and 480px
-  * High contrast and reduced motion accessibility support with proper ARIA labels
-
-* **Advanced JavaScript Framework**
-  * Comprehensive `assets/js/admin.js` with modular `QueueOptimizerAdmin` namespace
-  * Real-time search functionality across all system information panels
-  * Advanced copy-to-clipboard functionality with fallback support for older browsers
-  * Export capabilities (JSON/CSV) with timestamped filenames and proper MIME types
-  * Auto-refresh dashboard statistics every 30 seconds with AJAX integration
-  * Interactive quick actions with loading states and user feedback notifications
-
-* **Enhanced User Experience**
-  * Professional admin interface following WordPress design standards and guidelines
-  * Consistent card-based layout with hover effects and smooth transitions
-  * Advanced search and filter capabilities for plugins, extensions, and system information
-  * Export functionality for system diagnostics with multiple format options
-  * Copy-to-clipboard for all system information sections with formatted output
-  * Mobile-optimized responsive design with proper touch targets and spacing
-
-* **Performance & Accessibility Improvements**
-  * Print-friendly styling for documentation and support purposes
-  * Screen reader support with proper semantic HTML structure and ARIA labels
-  * Keyboard navigation support and focus management throughout the interface
-  * Reduced motion support for users with vestibular motion disorders
-  * Performance optimizations for large data sets and complex table rendering
-  * Lazy loading and progressive enhancement for better perceived performance
-
-* **Developer Experience Enhancements**
-  * Modular file structure following WordPress engineering best practices
-  * PSR-4 compatible class structure with proper autoloading support
-  * Comprehensive inline documentation and code comments throughout
-  * WordPress coding standards compliance with proper sanitization and escaping
-  * Extensible architecture with filters and hooks for custom development
-  * Template inheritance system with shared partials for consistent theming
-
-= 1.3.0 - 2025-06-15 =
-**Top-Level Admin Menu & Comprehensive Dashboard**
-
-* **Top-Level WordPress Admin Menu**
-  * New dedicated "Queue Optimizer" top-level menu in WordPress admin sidebar
-  * Professional dashicons-update icon for easy recognition
-  * Dashboard and System Info organized as clean sub-pages
-  * Improved navigation and user experience for plugin management
-
-* **Comprehensive Dashboard Page**
-  * Real-time queue statistics with visual stat cards (Total, Pending, Completed, Failed, In Progress)
-  * System status overview panel with health indicators and version information
-  * Quick actions panel for common tasks (Run Cleanup, View System Info, Clear Failed Jobs)
-  * Recent activity feed showing latest queue processing events with status indicators
-  * Settings overview panel displaying current plugin configuration at a glance
-
-* **Enhanced User Interface**
-  * Responsive dashboard layout with CSS Grid for optimal viewing on all devices
-  * Professional WordPress postbox styling with collapsible panels
-  * Interactive dashboard with AJAX-powered quick actions and auto-refresh capability
-  * Mobile-optimized design with proper breakpoints (1024px, 768px, 480px)
-  * Visual status indicators with color-coded health states (good, warning, error)
-
-* **Advanced Dashboard Features**
-  * Copy-to-clipboard functionality for sharing system information
-  * Auto-refresh statistics every 30 seconds for real-time monitoring
-  * Quick action buttons with loading states and success/error feedback
-  * Animated stat cards with smooth transitions and hover effects
-  * Link integration between dashboard and detailed system information
-
-* **Modular Architecture Expansion**
-  * New `src/Admin_Menu.php` class for centralized menu management
-  * New `src/Dashboard_Page.php` class with comprehensive data gathering methods
-  * Five specialized dashboard panel templates (stats, system status, quick actions, recent activity, settings overview)
-  * Dedicated `assets/css/dashboard.css` with responsive design patterns
-  * Interactive `assets/js/dashboard.js` with AJAX functionality and user feedback
-
-= 1.2.0 - 2025-06-15 =
-**Professional System Information & Diagnostics + Refactored Architecture**
-
-* **Comprehensive System Info Page**
-  * New dedicated system information page accessible from admin menu
-  * Server environment details (PHP version, memory limits, execution time, upload limits)
-  * Database information (version, size, character set, table prefix)
-  * WordPress core details (version, debug mode, multisite status, active theme)
-  * Complete plugin listing with versions, status, and quick filtering
-  * PHP extensions grid with version numbers and importance indicators
-  * Queue system statistics and configuration overview
-
-* **Advanced Export Capabilities**
-  * Professional JSON export with complete system diagnostics
-  * CSV export option for spreadsheet analysis and reporting
-  * Copy-to-clipboard functionality for individual sections
-  * Timestamped export files for version tracking
-
-* **Enhanced User Experience**
-  * Responsive design with collapsible postbox panels
-  * Real-time search functionality across all system information
-  * Plugin-specific search and filtering capabilities
-  * Mobile-optimized interface with proper breakpoints
-  * Professional WordPress admin styling with dark mode support
-
-* **Developer & Support Features**
-  * Detailed PHP configuration and loaded extensions
-  * WordPress constants and configuration flags
-  * Database performance metrics and storage information
-  * Queue processing statistics and current settings
-  * Print-friendly formatting for documentation
-
-* **Refactored Plugin Architecture**
-  * Complete file structure reorganization following WordPress engineering standards
-  * Strict separation of concerns: classes in `src/`, templates in `templates/`, assets in `assets/js/` and `assets/css/`
-  * Modular template system with shared header/footer partials for consistent design
-  * Individual panel templates under 200 lines for maintainability
-  * Proper asset enqueueing with dependency management
-  * PSR-4 compatible class structure for future extensibility
-
-= 1.1.0 - 2025-06-15 =
-**Major Dashboard & Logging Enhancements**
-
-* **Dashboard Integration Overhaul**
-  * Fixed fake data issues - now displays real Action Scheduler counts
-  * Connected to ActionScheduler_Store API for accurate pending/processing/completed/failed counts
-  * Added fourth status box for "Failed" entries with red styling
-  * Implemented responsive 4-column → 2x2 → single column grid layout
-
-* **JSON-Lines Logging System**
-  * Complete logging rewrite using structured JSON-lines format
-  * Master log file at `wp-content/uploads/365i-queue-optimizer.log`
-  * Comprehensive Action Scheduler event coverage (run start/end, before/after execute, failures, scheduling)
-  * Performance metrics tracking (duration, memory usage, peak memory)
-  * Auto-rotation when log exceeds 10MB with timestamped backups
-  * Human-readable log viewer showing last 200 events with formatted display
-
-* **Enhanced Log Management**
-  * Fixed "Clear Plugin Logs" button to properly clear JSON-lines master log
-  * Added "Clear Action Scheduler Logs" button for removing completed/failed entries
-  * Daily automated cleanup with configurable retention period (1-365 days)
-  * WP_Filesystem integration for improved portability
-
-* **Performance & Monitoring**
-  * Unique run ID tracking for queue processing sessions
-  * Memory delta calculation for individual actions
-  * Execution time tracking in milliseconds
-  * Peak memory usage monitoring
-  * Full exception details and stack traces for failed actions
-
-* **Responsive Design Improvements**
-  * Enhanced mobile layout with better breakpoint management
-  * Improved status box animation and highlighting
-  * Better visual feedback for processing states
-
-= 1.0.0 - 2025-06-14 =
 **Initial Release**
 
-* Native WordPress scheduling integration
-* Configurable time limits (5-300 seconds)
-* Concurrent batch processing (1-10 batches)
-* Real-time status dashboard
-* Manual "Run Now" functionality
-* Optional detailed logging
-* Secure AJAX endpoints with nonce verification
-* Complete uninstall cleanup
-* Translation ready with full i18n support
-* Responsive admin interface
-* WordPress Coding Standards compliant
-* Professional 365i branding integration
+A lightweight WordPress plugin designed to optimize ActionScheduler queue processing for faster image optimization and background tasks.
+
+**Features:**
+* ActionScheduler Time Limit Optimization (10-300 seconds, default: 60)
+* Concurrent Batch Processing Control (1-10 batches, default: 4)
+* Image Processing Engine Priority (GD/ImageMagick selection)
+* Clean Settings Interface under Tools > Queue Optimizer
+* Current Status Display showing optimization health
+* Ultra-Lightweight Architecture (only 5 files)
+
+**Core Functionality:**
+* `action_scheduler_queue_runner_time_limit` filter
+* `action_scheduler_queue_runner_concurrent_batches` filter
+* `wp_image_editors` filter for engine prioritization
+
+**Technical Details:**
+* WordPress 5.8+ and PHP 7.4+ required
+* WordPress coding standards compliant
+* Singleton pattern for efficient resource usage
+* Proper settings validation and sanitization
+* Complete cleanup on uninstall
 
 == Upgrade Notice ==
 
 = 1.0.0 =
-Initial release of 365i Queue Optimizer. A lightweight, secure solution for WordPress background queue processing.
-
-== Developer Notes ==
-
-### Hooks and Filters
-
-The plugin provides several hooks for developers:
-
-**Actions:**
-* `queue_optimizer_process_job` - Fired when processing individual jobs
-* `queue_optimizer_before_batch` - Fired before processing a batch
-* `queue_optimizer_after_batch` - Fired after processing a batch
-
-**Filters:**
-* `queue_optimizer_time_limit` - Modify the processing time limit
-* `queue_optimizer_batch_size` - Modify the batch size
-* `queue_optimizer_log_message` - Modify log messages before writing
-
-### Code Structure
-
-* `365i-queue-optimizer.php` - Main plugin file and bootstrap
-* `admin/class-settings-page.php` - Admin interface and settings
-* `includes/class-scheduler.php` - Core scheduling and processing logic
-* `includes/uninstall.php` - Cleanup procedures
-* `assets/admin.css` - Admin interface styling
-* `assets/admin.js` - Admin AJAX functionality
-
-### Contributing
-
-This plugin follows WordPress Coding Standards and PSR-12 PHP standards. All contributions should include proper documentation and security measures.
+Initial release of 365i Queue Optimizer. A lightweight solution for optimizing ActionScheduler performance with minimal overhead.
 
 == Support ==
 
-For support, documentation, and hosting solutions, visit [365i WordPress Hosting](https://www.365i.co.uk/).
+For support and WordPress hosting solutions optimized for performance, visit [365i WordPress Hosting](https://www.365i.co.uk/).
 
-Professional WordPress hosting optimized for performance, security, and reliability.
+Professional WordPress hosting with ActionScheduler optimization built-in.
