@@ -124,6 +124,31 @@ class Queue_Optimizer_Activity_Log_Page {
 					$executed_time = $result->last_attempt_local ?: $result->scheduled_date_gmt;
 					$time_reference = $result->last_attempt_gmt ?: $result->scheduled_date_gmt;
 					
+					// Fix timestamp formatting issues with better validation
+					$timestamp = strtotime( $time_reference );
+					if ( false === $timestamp || $timestamp <= 0 ) {
+						$time_ago = __( 'Invalid timestamp', '365i-queue-optimizer' );
+					} else {
+						// Add current time validation to prevent "1 second ago" for all entries
+						$current_time = current_time( 'timestamp' );
+						$time_diff = $current_time - $timestamp;
+						
+						if ( $time_diff < 60 ) {
+							$time_ago = sprintf( __( '%d seconds ago', '365i-queue-optimizer' ), max( 1, $time_diff ) );
+						} else {
+							$time_ago = human_time_diff( $timestamp, $current_time ) . ' ' . __( 'ago', '365i-queue-optimizer' );
+						}
+					}
+					
+					// Decode and validate args for expand functionality
+					$decoded_args = array();
+					if ( ! empty( $result->args ) ) {
+						$decoded_args = json_decode( $result->args, true );
+						if ( json_last_error() !== JSON_ERROR_NONE ) {
+							$decoded_args = array();
+						}
+					}
+					
 					$logs[] = array(
 						'id' => $result->action_id,
 						'action' => $result->hook,
@@ -131,10 +156,13 @@ class Queue_Optimizer_Activity_Log_Page {
 						'scheduled' => $result->scheduled_date_gmt,
 						'executed' => $executed_time,
 						'message' => $result->message ?: $this->get_status_message( $result->status ),
-						'time_ago' => human_time_diff( strtotime( $time_reference ) ),
+						'time_ago' => $time_ago,
 						'args' => $result->args,
+						'decoded_args' => $decoded_args,
 						'can_retry' => in_array( $result->status, array( 'failed', 'canceled' ) ),
 						'can_cancel' => in_array( $result->status, array( 'pending', 'in-progress' ) ),
+						'raw_timestamp' => $time_reference,
+						'timestamp_valid' => ( $timestamp !== false && $timestamp > 0 ),
 					);
 				}
 			} catch ( Exception $e ) {
@@ -535,6 +563,13 @@ class Queue_Optimizer_Activity_Log_Page {
 					} else {
 						$error_count++;
 					}
+				} elseif ( 'delete' === $bulk_action ) {
+					// Delete logic for completed/cancelled actions
+					if ( $this->delete_single_action( $action_id ) ) {
+						$success_count++;
+					} else {
+						$error_count++;
+					}
 				}
 			}
 
@@ -587,16 +622,96 @@ class Queue_Optimizer_Activity_Log_Page {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'actionscheduler_actions';
 		
+		// Check if action exists and is in cancellable state
 		$action = $wpdb->get_row( $wpdb->prepare(
-			"SELECT hook, args FROM {$table_name} WHERE action_id = %d AND status IN ('pending', 'in-progress')",
+			"SELECT action_id, hook, args, status FROM {$table_name} WHERE action_id = %d",
 			$action_id
 		) );
 
-		if ( $action && class_exists( 'ActionScheduler' ) && function_exists( 'as_unschedule_action' ) ) {
-			$args = json_decode( $action->args, true ) ?: array();
-			return (bool) as_unschedule_action( $action->hook, $args );
+		if ( ! $action ) {
+			return false;
+		}
+
+		// Only cancel if in pending or in-progress state
+		if ( ! in_array( $action->status, array( 'pending', 'in-progress' ) ) ) {
+			return false;
+		}
+
+		if ( class_exists( 'ActionScheduler' ) ) {
+			try {
+				// Try direct database update as fallback if as_unschedule_action fails
+				$args = json_decode( $action->args, true ) ?: array();
+				
+				// First try ActionScheduler's method
+				if ( function_exists( 'as_unschedule_action' ) ) {
+					$result = as_unschedule_action( $action->hook, $args );
+					if ( $result ) {
+						return true;
+					}
+				}
+				
+				// Fallback to direct database update
+				$updated = $wpdb->update(
+					$table_name,
+					array( 'status' => 'canceled' ),
+					array( 'action_id' => $action_id ),
+					array( '%s' ),
+					array( '%d' )
+				);
+				
+				return $updated !== false;
+			} catch ( Exception $e ) {
+				return false;
+			}
 		}
 
 		return false;
+	}
+
+	/**
+	 * Delete a single action.
+	 *
+	 * @param int $action_id Action ID to delete.
+	 * @return bool Success status.
+	 */
+	private function delete_single_action( $action_id ) {
+		global $wpdb;
+		$actions_table = $wpdb->prefix . 'actionscheduler_actions';
+		$logs_table = $wpdb->prefix . 'actionscheduler_logs';
+		
+		// Check if action exists and is in deletable state (complete, failed, or canceled)
+		$action = $wpdb->get_row( $wpdb->prepare(
+			"SELECT action_id, status FROM {$actions_table} WHERE action_id = %d",
+			$action_id
+		) );
+
+		if ( ! $action ) {
+			return false;
+		}
+
+		// Only delete if in completed, failed, or canceled state
+		if ( ! in_array( $action->status, array( 'complete', 'failed', 'canceled' ) ) ) {
+			return false;
+		}
+
+		try {
+			// Delete related logs first
+			$wpdb->delete(
+				$logs_table,
+				array( 'action_id' => $action_id ),
+				array( '%d' )
+			);
+
+			// Delete the action itself
+			$deleted = $wpdb->delete(
+				$actions_table,
+				array( 'action_id' => $action_id ),
+				array( '%d' )
+			);
+
+			return $deleted !== false;
+		} catch ( Exception $e ) {
+			return false;
+		}
 	}
 }

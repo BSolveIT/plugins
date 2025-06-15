@@ -101,6 +101,9 @@ class Queue_Optimizer_Plugin {
 	private function include_files() {
 		require_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'includes/class-scheduler.php';
 		
+		// Include Debug Manager for all contexts (admin and frontend).
+		require_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'src/Debug_Manager.php';
+		
 		if ( is_admin() ) {
 			require_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'admin/class-settings-page.php';
 			require_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'src/System_Info_Page.php';
@@ -116,6 +119,9 @@ class Queue_Optimizer_Plugin {
 	public function init_components() {
 		// Initialize scheduler.
 		Queue_Optimizer_Scheduler::get_instance();
+
+		// Initialize debug manager (for all contexts).
+		Queue_Optimizer_Debug_Manager::get_instance();
 
 		// Initialize admin components.
 		if ( is_admin() ) {

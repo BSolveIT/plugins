@@ -166,6 +166,7 @@ $log_settings = $data['log_settings'] ?? array();
 							<option value=""><?php esc_html_e( 'Bulk Actions', '365i-queue-optimizer' ); ?></option>
 							<option value="retry"><?php esc_html_e( 'Retry Selected', '365i-queue-optimizer' ); ?></option>
 							<option value="cancel"><?php esc_html_e( 'Cancel Selected', '365i-queue-optimizer' ); ?></option>
+							<option value="delete"><?php esc_html_e( 'Delete Selected', '365i-queue-optimizer' ); ?></option>
 						</select>
 						<button type="button" class="components-button is-secondary apply-bulk-action">
 							<?php esc_html_e( 'Apply', '365i-queue-optimizer' ); ?>
@@ -222,11 +223,24 @@ $log_settings = $data['log_settings'] ?? array();
 										<?php echo esc_html( $log['executed'] ); ?>
 									</td>
 									<td>
-										<?php echo esc_html( $log['time_ago'] ); ?> ago
+										<?php echo esc_html( $log['time_ago'] ); ?>
 									</td>
 									<td>
 										<div class="log-message" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;" title="<?php echo esc_attr( $log['message'] ); ?>">
 											<?php echo esc_html( $log['message'] ); ?>
+										</div>
+										<div class="log-details" style="display: none; margin-top: 8px; padding: 8px; background: #f9f9f9; border-radius: 4px; font-size: 12px;">
+											<strong><?php esc_html_e( 'Action ID:', '365i-queue-optimizer' ); ?></strong> <?php echo esc_html( $log['id'] ); ?><br>
+											<strong><?php esc_html_e( 'Scheduled:', '365i-queue-optimizer' ); ?></strong> <?php echo esc_html( $log['scheduled'] ); ?><br>
+											<?php if ( ! empty( $log['decoded_args'] ) ) : ?>
+												<strong><?php esc_html_e( 'Arguments:', '365i-queue-optimizer' ); ?></strong><br>
+												<code style="display: block; white-space: pre-wrap; background: #fff; padding: 4px; margin-top: 4px;"><?php echo esc_html( wp_json_encode( $log['decoded_args'], JSON_PRETTY_PRINT ) ); ?></code>
+											<?php endif; ?>
+											<?php if ( isset( $log['timestamp_valid'] ) && ! $log['timestamp_valid'] ) : ?>
+												<div style="color: #dc3232; margin-top: 4px;">
+													<strong><?php esc_html_e( 'Warning:', '365i-queue-optimizer' ); ?></strong> <?php esc_html_e( 'Invalid timestamp data detected', '365i-queue-optimizer' ); ?>
+												</div>
+											<?php endif; ?>
 										</div>
 									</td>
 									<td>

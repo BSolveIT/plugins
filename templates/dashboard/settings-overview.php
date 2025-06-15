@@ -64,13 +64,13 @@ include plugin_dir_path( __FILE__ ) . '../partials/card-header.php';
 				<th scope="row"><?php esc_html_e( 'Debug Mode', '365i-queue-optimizer' ); ?></th>
 				<td>
 					<?php if ( 'yes' === ( $plugin_settings['debug_mode'] ?? 'no' ) ) : ?>
-						<span class="components-badge" style="background-color: #ffb900; color: white; padding: 4px 8px; border-radius: 4px;">
-							<span class="dashicons dashicons-warning" style="font-size: 12px; margin-right: 4px;"></span>
+						<span class="components-badge" style="background-color: #46b450; color: white; padding: 4px 8px; border-radius: 4px;">
+							<span class="dashicons dashicons-yes-alt" style="font-size: 12px; margin-right: 4px;"></span>
 							<?php esc_html_e( 'Enabled', '365i-queue-optimizer' ); ?>
 						</span>
 					<?php else : ?>
-						<span class="components-badge" style="background-color: #46b450; color: white; padding: 4px 8px; border-radius: 4px;">
-							<span class="dashicons dashicons-yes-alt" style="font-size: 12px; margin-right: 4px;"></span>
+						<span class="components-badge" style="background-color: #646970; color: white; padding: 4px 8px; border-radius: 4px;">
+							<span class="dashicons dashicons-dismiss" style="font-size: 12px; margin-right: 4px;"></span>
 							<?php esc_html_e( 'Disabled', '365i-queue-optimizer' ); ?>
 						</span>
 					<?php endif; ?>
@@ -80,8 +80,8 @@ include plugin_dir_path( __FILE__ ) . '../partials/card-header.php';
 				<th scope="row"><?php esc_html_e( 'Email Notifications', '365i-queue-optimizer' ); ?></th>
 				<td>
 					<?php if ( 'yes' === ( $plugin_settings['email_notifications'] ?? 'no' ) ) : ?>
-						<span class="components-badge" style="background-color: #229fd8; color: white; padding: 4px 8px; border-radius: 4px;">
-							<span class="dashicons dashicons-email-alt" style="font-size: 12px; margin-right: 4px;"></span>
+						<span class="components-badge" style="background-color: #46b450; color: white; padding: 4px 8px; border-radius: 4px;">
+							<span class="dashicons dashicons-yes-alt" style="font-size: 12px; margin-right: 4px;"></span>
 							<?php esc_html_e( 'Enabled', '365i-queue-optimizer' ); ?>
 						</span>
 					<?php else : ?>

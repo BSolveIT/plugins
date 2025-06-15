@@ -117,8 +117,12 @@
 				return;
 			}
 			
-			var actionText = bulkAction === 'retry' ? 'retry' : 'cancel';
+			var actionText = bulkAction === 'retry' ? 'retry' : (bulkAction === 'cancel' ? 'cancel' : 'delete');
 			var confirmMessage = 'Are you sure you want to ' + actionText + ' ' + selectedIds.length + ' selected items?';
+			
+			if (bulkAction === 'delete') {
+				confirmMessage = 'Are you sure you want to permanently delete ' + selectedIds.length + ' selected items? This action cannot be undone.';
+			}
 			
 			if (!confirm(confirmMessage)) {
 				return;
@@ -267,24 +271,32 @@
 			
 			var $row = $(this).closest('tr');
 			var $messageDiv = $row.find('.log-message');
+			var $detailsDiv = $row.find('.log-details');
 			var $icon = $(this).find('.dashicons');
 			
-			if ($messageDiv.css('white-space') === 'nowrap') {
+			// Check if currently expanded
+			var isExpanded = $row.hasClass('expanded');
+			
+			if (!isExpanded) {
+				// Expand: Show full message and details
 				$messageDiv.css({
 					'white-space': 'normal',
 					'overflow': 'visible',
 					'text-overflow': 'clip',
 					'max-width': 'none'
 				});
+				$detailsDiv.slideDown(200);
 				$icon.removeClass('dashicons-visibility').addClass('dashicons-hidden');
 				$row.addClass('expanded');
 			} else {
+				// Collapse: Hide details and truncate message
 				$messageDiv.css({
 					'white-space': 'nowrap',
 					'overflow': 'hidden',
 					'text-overflow': 'ellipsis',
 					'max-width': '300px'
 				});
+				$detailsDiv.slideUp(200);
 				$icon.removeClass('dashicons-hidden').addClass('dashicons-visibility');
 				$row.removeClass('expanded');
 			}

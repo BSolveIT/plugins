@@ -5,6 +5,43 @@ All notable changes to the 365i Queue Optimizer plugin will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Debug Mode Implementation (Phase 1 Complete)** - Full debug logging system with:
+  - WordPress option registration for `queue_optimizer_debug_mode`
+  - Settings field template with proper checkbox and descriptions
+  - Comprehensive `Debug_Manager` class with verbose logging, performance monitoring
+  - Action Scheduler integration for queue operation monitoring
+  - JSON-lines logging format with automatic log rotation
+  - Settings Overview panel now correctly shows "Debug Mode: Enabled/Disabled"
+- Email Notifications feature placeholder in Settings Overview (shows as "Disabled")
+
+### Technical Notes
+- Debug Mode now fully functional with backend WordPress option integration
+- Email Notifications feature is UI placeholder only (Phase 2 pending)
+
+### Files Added
+- `templates/settings/debug-mode-field.php` - Debug mode settings field template
+- `src/Debug_Manager.php` - Comprehensive debug logging system (278 lines)
+
+### Fixed
+- **Status Badge Colors**: Debug Mode and Email Notifications now use consistent green for "Enabled" and grey for "Disabled" (previously Debug Mode used confusing orange/green colors)
+- **Double Notifications**: Removed duplicate "Settings saved" messages that appeared when saving settings
+- **Last Run Timestamp**: Fixed raw timestamp display (e.g., "1749990099") in System Status panel - now shows formatted date/time (e.g., "June 15, 2025 12:34:56 PM")
+- **Activity Log Timestamps**: Fixed "2027 years ago" timestamp formatting issue - now shows "Unknown" for invalid timestamps with proper error handling
+- **Activity Log Time Calculation**: Fixed multiple entries showing "1 second ago" - now displays accurate relative time differences
+- **Activity Log Cancel Actions**: Fixed "Action not found or cannot be canceled" errors with enhanced validation and database fallback method
+- **Activity Log Expand Functionality**: Enhanced expand button to show detailed information including Action ID, scheduled time, arguments, and timestamp validation warnings
+- **Activity Log Time Display**: Improved "Time Ago" column formatting - changed "Unknown ago" to "Invalid timestamp" and removed redundant "ago" text
+- **Activity Log Bulk Delete**: Added bulk delete functionality for completed, failed, and cancelled actions with proper validation and confirmation dialogs
+
+### Files Modified
+- `admin/class-settings-page.php` - Added debug mode option registration and field
+- `365i-queue-optimizer.php` - Added Debug Manager inclusion and initialization
+- `templates/dashboard/settings-overview.php` - Fixed status badge color consistency
+- `templates/settings-page.php` - Removed duplicate settings error display
+- `src/Dashboard_Page.php` - Added proper timestamp formatting for last run display
 ## [1.7.6] - 2025-06-15
 
 ### Documentation

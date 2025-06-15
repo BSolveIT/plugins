@@ -17,8 +17,6 @@ include plugin_dir_path( __FILE__ ) . 'partials/header.php';
 <div class="wrap">
 	<h1><?php echo esc_html( $template_data['page_title'] ); ?></h1>
 	
-	<?php settings_errors(); ?>
-	
 	<div class="queue-optimizer-settings-container">
 		<div class="settings-panel">
 			<form method="post" action="options.php">

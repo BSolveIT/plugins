@@ -170,6 +170,16 @@ class Queue_Optimizer_Settings_Page {
 			)
 		);
 
+		register_setting(
+			'queue_optimizer_settings',
+			'queue_optimizer_debug_mode',
+			array(
+				'type'              => 'boolean',
+				'sanitize_callback' => 'rest_sanitize_boolean',
+				'default'           => false,
+			)
+		);
+
 		// Add settings section.
 		add_settings_section(
 			'queue_optimizer_main_section',
@@ -215,6 +225,14 @@ class Queue_Optimizer_Settings_Page {
 			'365i_qo_image_engine',
 			__( 'Image Processing Engine', '365i-queue-optimizer' ),
 			array( $this, 'render_image_engine_field' ),
+			'queue_optimizer_settings',
+			'queue_optimizer_main_section'
+		);
+
+		add_settings_field(
+			'queue_optimizer_debug_mode',
+			__( 'Debug Mode', '365i-queue-optimizer' ),
+			array( $this, 'render_debug_mode_field' ),
 			'queue_optimizer_settings',
 			'queue_optimizer_main_section'
 		);
@@ -283,6 +301,14 @@ class Queue_Optimizer_Settings_Page {
 	public function render_image_engine_field() {
 		$value = get_option( '365i_qo_image_engine', 'imagick' );
 		include plugin_dir_path( __FILE__ ) . '../templates/settings/image-engine-field.php';
+	}
+
+	/**
+	 * Render debug mode field.
+	 */
+	public function render_debug_mode_field() {
+		$value = get_option( 'queue_optimizer_debug_mode', false );
+		include plugin_dir_path( __FILE__ ) . '../templates/settings/debug-mode-field.php';
 	}
 
 	/**

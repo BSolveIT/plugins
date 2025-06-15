@@ -135,10 +135,29 @@ class Queue_Optimizer_Dashboard_Page {
 	 * @return array System status.
 	 */
 	private function get_system_status() {
+		// Get last run timestamp and format it properly
+		$last_run_raw = get_option( 'queue_optimizer_last_run', 0 );
+		$last_run_formatted = __( 'Never', '365i-queue-optimizer' );
+		
+		if ( ! empty( $last_run_raw ) && 'Never' !== $last_run_raw ) {
+			// Handle both timestamp and MySQL datetime formats
+			if ( is_numeric( $last_run_raw ) ) {
+				// Unix timestamp
+				$timestamp = (int) $last_run_raw;
+			} else {
+				// MySQL datetime format
+				$timestamp = strtotime( $last_run_raw );
+			}
+			
+			if ( $timestamp && $timestamp > 0 ) {
+				$last_run_formatted = date( 'F j, Y g:i:s A', $timestamp );
+			}
+		}
+		
 		$status = array(
 			'overall_status' => 'good',
 			'queue_status' => 'running',
-			'last_run' => get_option( 'queue_optimizer_last_run', __( 'Never', '365i-queue-optimizer' ) ),
+			'last_run' => $last_run_formatted,
 			'php_version' => PHP_VERSION,
 			'wp_version' => get_bloginfo( 'version' ),
 			'plugin_version' => QUEUE_OPTIMIZER_VERSION,
