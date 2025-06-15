@@ -108,7 +108,6 @@ class Queue_Optimizer_Plugin {
 			require_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'admin/class-settings-page.php';
 			require_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'src/System_Info_Page.php';
 			require_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'src/Dashboard_Page.php';
-			require_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'src/Activity_Log_Page.php';
 			require_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'src/Admin_Menu.php';
 		}
 	}
@@ -225,7 +224,7 @@ class Queue_Optimizer_Plugin {
 	 * @param string $hook_suffix Current admin page hook suffix.
 	 */
 	public function enqueue_admin_assets( $hook_suffix ) {
-		$plugin_pages = array( '365i-queue-optimizer', '365i-activity-log', '365i-system-info', 'queue-optimizer' );
+		$plugin_pages = array( '365i-queue-optimizer', '365i-system-info', 'queue-optimizer' );
 		
 		// Check if we're on a plugin page
 		$is_plugin_page = false;
@@ -308,23 +307,6 @@ class Queue_Optimizer_Plugin {
 			);
 		}
 
-		// Enqueue Activity Log page specific assets.
-		if ( strpos( $hook_suffix, 'activity-log' ) !== false ) {
-			wp_enqueue_style(
-				'queue-optimizer-activity-log',
-				QUEUE_OPTIMIZER_PLUGIN_URL . 'assets/css/activity-log.css',
-				array( 'queue-optimizer-admin' ),
-				QUEUE_OPTIMIZER_VERSION
-			);
-
-			wp_enqueue_script(
-				'queue-optimizer-activity-log',
-				QUEUE_OPTIMIZER_PLUGIN_URL . 'assets/js/activity-log.js',
-				array( 'jquery', 'queue-optimizer-admin' ),
-				QUEUE_OPTIMIZER_VERSION,
-				true
-			);
-		}
 
 		// Enqueue System Info page specific assets.
 		if ( strpos( $hook_suffix, 'system-info' ) !== false ) {

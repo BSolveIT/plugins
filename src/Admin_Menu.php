@@ -38,12 +38,6 @@ class Queue_Optimizer_Admin_Menu {
 	 */
 	private $system_info_page;
 
-	/**
-	 * Activity Log page instance.
-	 *
-	 * @var Queue_Optimizer_Activity_Log_Page
-	 */
-	private $activity_log_page;
 
 	/**
 	 * Get single instance of the class.
@@ -71,7 +65,6 @@ class Queue_Optimizer_Admin_Menu {
 	private function init_page_handlers() {
 		$this->dashboard_page = Queue_Optimizer_Dashboard_Page::get_instance();
 		$this->system_info_page = Queue_Optimizer_System_Info_Page::get_instance();
-		$this->activity_log_page = Queue_Optimizer_Activity_Log_Page::get_instance();
 	}
 
 	/**
@@ -99,14 +92,14 @@ class Queue_Optimizer_Admin_Menu {
 			array( $this, 'render_dashboard_page' )
 		);
 
-		// Add Activity Log submenu.
+		// Add Queue Activity submenu - Redirect to ActionScheduler.
 		add_submenu_page(
 			'365i-queue-optimizer',
-			__( 'Queue Optimizer - Activity Log', '365i-queue-optimizer' ),
-			__( 'Activity Log', '365i-queue-optimizer' ),
+			__( 'Queue Optimizer - Queue Activity', '365i-queue-optimizer' ),
+			__( 'Queue Activity', '365i-queue-optimizer' ),
 			'manage_options',
-			'365i-activity-log',
-			array( $this, 'render_activity_log_page' )
+			'365i-queue-activity',
+			array( $this, 'redirect_to_action_scheduler' )
 		);
 
 		// Add System Info submenu.
@@ -136,15 +129,18 @@ class Queue_Optimizer_Admin_Menu {
 	}
 
 	/**
-	 * Render activity log page.
+	 * Redirect to ActionScheduler interface.
 	 */
-	public function render_activity_log_page() {
+	public function redirect_to_action_scheduler() {
 		// Check user capabilities.
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', '365i-queue-optimizer' ) );
 		}
 
-		$this->activity_log_page->render_page();
+		// Redirect to ActionScheduler interface.
+		$redirect_url = admin_url( 'tools.php?page=action-scheduler' );
+		wp_redirect( $redirect_url );
+		exit;
 	}
 
 	/**
@@ -177,7 +173,7 @@ class Queue_Optimizer_Admin_Menu {
 		$page = $this->get_current_page();
 		$plugin_pages = array(
 			'365i-queue-optimizer',
-			'365i-activity-log',
+			'365i-queue-activity',
 			'365i-system-info',
 		);
 

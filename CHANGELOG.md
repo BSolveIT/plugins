@@ -8,6 +8,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Email Notifications feature placeholder in Settings Overview (shows as "Disabled")
+
+### Technical Notes
+- Email Notifications feature is UI placeholder only (Phase 2 pending)
+
+## [1.7.7] - 2025-06-15
+
+### Removed
+- **Activity Log Page**: Removed redundant Activity Log interface in favor of native ActionScheduler
+- **Activity Log Files**: Cleaned up unused Activity Log related templates and assets
+- **Duplicate Queue Monitoring**: Eliminated redundant ActionScheduler data display
+
+### Changed
+- **Queue Activity Menu**: "Activity Log" menu item renamed to "Queue Activity" and now redirects to `Tools > Scheduled Actions`
+- **User Experience**: Users now access comprehensive queue monitoring through native WordPress ActionScheduler interface
+
+### Technical
+- **Menu Structure Optimization**: Streamlined admin menu by removing duplicate interfaces
+- **Code Cleanup**: Removed Activity Log dependencies from main plugin file and admin menu
+- **ActionScheduler Integration**: Direct users to superior native queue monitoring interface
+
+### Files Removed
+- Activity Log page logic and template dependencies from plugin initialization
+
+### Files Modified
+- `365i-queue-optimizer.php` - Removed Activity Log file includes and asset enqueuing
+- `src/Admin_Menu.php` - Replaced Activity Log menu with Queue Activity redirect to ActionScheduler
+
+## [1.7.6] - 2025-06-15
+
+### Added
 - **Debug Mode Implementation (Phase 1 Complete)** - Full debug logging system with:
   - WordPress option registration for `queue_optimizer_debug_mode`
   - Settings field template with proper checkbox and descriptions
@@ -15,11 +46,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Action Scheduler integration for queue operation monitoring
   - JSON-lines logging format with automatic log rotation
   - Settings Overview panel now correctly shows "Debug Mode: Enabled/Disabled"
-- Email Notifications feature placeholder in Settings Overview (shows as "Disabled")
 
 ### Technical Notes
 - Debug Mode now fully functional with backend WordPress option integration
-- Email Notifications feature is UI placeholder only (Phase 2 pending)
 
 ### Files Added
 - `templates/settings/debug-mode-field.php` - Debug mode settings field template
@@ -42,7 +71,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `templates/dashboard/settings-overview.php` - Fixed status badge color consistency
 - `templates/settings-page.php` - Removed duplicate settings error display
 - `src/Dashboard_Page.php` - Added proper timestamp formatting for last run display
-## [1.7.6] - 2025-06-15
+## [1.7.5] - 2025-06-15
 
 ### Documentation
 - **Missing Features Analysis**: Added comprehensive documentation to [`readme.txt`](readme.txt:35-56) explaining **Debug Mode** and **Email Notifications** placeholder status
@@ -62,7 +91,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implementation would require WordPress option registration, settings field templates, backend logic, and dashboard integration
 - Clear development path identified for implementing these valuable debugging and monitoring capabilities
 
-## [1.7.5] - 2025-06-15
+## [1.7.4] - 2025-06-15
 
 ### Fixed
 - **CRITICAL**: Fixed PHP Fatal error in Settings page (`templates/settings-page.php:52`) where `date()` function was receiving string timestamp instead of integer
