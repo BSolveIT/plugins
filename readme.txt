@@ -3,7 +3,7 @@ Contributors: 365i
 Tags: queue, scheduler, background-jobs, optimization, performance
 Requires at least: 5.8
 Tested up to: 6.4
-Stable tag: 1.7.4
+Stable tag: 1.7.5
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -153,6 +153,33 @@ No. The plugin uses WordPress options for data storage, keeping your database cl
 3. **Admin Interface** - Clean, responsive design that works on all devices
 
 == Changelog ==
+
+= 1.7.5 - 2025-06-15 =
+**Architecture Cleanup - Orphaned Files Removal**
+
+* **File Structure Cleanup from Previous Architecture Changes**
+  * Removed orphaned duplicate asset files in root `assets/` directory
+  * Deleted [`assets/admin.css`](assets/admin.css) - duplicate of [`assets/css/admin.css`](assets/css/admin.css)
+  * Deleted [`assets/admin.js`](assets/admin.js) - duplicate of [`assets/js/admin.js`](assets/js/admin.js)
+  * Deleted [`assets/system-info.css`](assets/system-info.css) - duplicate of [`assets/css/system-info.css`](assets/css/system-info.css)
+  * Deleted [`assets/system-info.js`](assets/system-info.js) - duplicate of [`assets/js/system-info.js`](assets/js/system-info.js)
+
+* **Legacy PHP Class Cleanup**
+  * Removed [`admin/class-system-info-page.php`](admin/class-system-info-page.php) - replaced by [`src/System_Info_Page.php`](src/System_Info_Page.php)
+  * Cleaned up orphaned includes directory - removed entire [`includes/admin/templates/`](includes/admin/templates/) folder
+  * Template system now properly uses [`templates/`](templates/) directory with [`partials/`](templates/partials/) subdirectory
+
+* **Orphaned Template Cleanup**
+  * Removed old dashboard panel templates: [`templates/dashboard-panel-*.php`](templates/) files
+  * Removed old system info panel templates: [`templates/system-info-panel-*.php`](templates/) files
+  * Current architecture uses modular templates in [`templates/dashboard/`](templates/dashboard/) and [`templates/system-info/`](templates/system-info/) subdirectories
+
+* **Final Architecture Verification**
+  * **ACTIVE**: `src/` for PHP logic classes (Dashboard_Page.php, System_Info_Page.php, etc.)
+  * **ACTIVE**: `assets/css/` and `assets/js/` subdirectories for organized assets
+  * **ACTIVE**: `templates/` with `partials/`, `dashboard/`, and `system-info/` subdirectories
+  * **ACTIVE**: `admin/class-settings-page.php` for settings management
+  * **REMOVED**: All duplicate files and legacy template structures from previous design iterations
 
 = 1.7.4 - 2025-06-15 =
 **JavaScript Initialization & Event Handler Stabilization - Final Fix**
