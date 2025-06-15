@@ -200,6 +200,16 @@ No. The plugin uses WordPress options for data storage, keeping your database cl
   * Updated URLs to correctly point to Tools menu at `admin.php?page=queue-optimizer`
   * Fixed in [`templates/dashboard-panel-settings-overview.php`](templates/dashboard-panel-settings-overview.php:81), [`templates/dashboard/settings-overview.php`](templates/dashboard/settings-overview.php:25), and [`templates/system-info/queue-status.php`](templates/system-info/queue-status.php:131)
 
+* **Logging Status Display Fix**
+  * Fixed Activity Log page showing "Disabled" even when logging is enabled
+  * Updated [`get_log_settings()`](src/Activity_Log_Page.php:264) to properly convert boolean option values to 'yes'/'no' strings
+  * Logging status now correctly reflects the actual setting from the database
+
+* **Retention Days Display Fix**
+  * Fixed dashboard showing incorrect retention days value (always showing 30 instead of actual setting)
+  * Updated [`get_plugin_settings()`](src/Dashboard_Page.php:198) to use correct option name `queue_optimizer_log_retention_days`
+  * Retention days now displays the actual configured value (default is 7 days)
+
 * **UI Clarification**
   * Dashboard shows 5 queue statistics (Total Jobs, Pending, Completed, Failed, In Progress)
   * Activity Log shows 4 log statistics (Total Logs, Successful, Errors, Pending)

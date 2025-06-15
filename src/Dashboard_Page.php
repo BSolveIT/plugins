@@ -197,9 +197,9 @@ class Queue_Optimizer_Dashboard_Page {
 	 */
 	private function get_plugin_settings() {
 		return array(
-			'retention_days' => get_option( 'queue_optimizer_retention_days', 30 ),
+			'retention_days' => get_option( 'queue_optimizer_log_retention_days', 7 ),
 			'auto_cleanup' => get_option( 'queue_optimizer_auto_cleanup', 'yes' ),
-			'debug_mode' => get_option( 'queue_optimizer_debug_mode', 'no' ),
+			'debug_mode' => get_option( 'queue_optimizer_debug_mode', false ) ? 'yes' : 'no',
 			'email_notifications' => get_option( 'queue_optimizer_email_notifications', 'no' ),
 		);
 	}
