@@ -73,6 +73,7 @@ class Queue_Optimizer_Main {
 	public function display_version_notice() {
 		echo '<div class="error"><p>' .
 			sprintf(
+/* translators: %s: minimum required WordPress version */
 				esc_html__( '365i Queue Optimizer requires WordPress version %s or higher.', '365i-queue-optimizer' ),
 				esc_html( QUEUE_OPTIMIZER_MIN_WP_VERSION )
 			) .
