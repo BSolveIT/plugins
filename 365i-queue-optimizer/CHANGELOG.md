@@ -14,6 +14,7 @@ Major restructuring to make the plugin ready for WordPress repository submission
 - **Template System**: Separated HTML from PHP with dedicated template files
 - **JavaScript Enhancement**: Added assets/js/admin.js for form validation and UX
 - **Filter Hooks**: Added extensibility filters around data arrays
+- **Screenshots**: Added screenshot-1.png and screenshot-2.png for WordPress repository visual documentation
 
 #### Changed
 - **Directory Structure**: Reorganized to use src/ for PHP logic, templates/ for HTML

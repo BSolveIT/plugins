@@ -3,7 +3,7 @@ Contributors: 365i
 Tags: actionscheduler, queue, optimization, performance, background-tasks
 Requires at least: 5.8
 Tested up to: 6.4
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -55,6 +55,11 @@ Simple, fast, and effective. This plugin does one thing well: optimize ActionSch
 
 1. Download the plugin zip file
 2. Extract to `/wp-content/plugins/365i-queue-optimizer/`
+3. Activate through the **Plugins** menu in WordPress
+### GitHub Installation
+
+1. Clone from GitHub: `git clone https://github.com/BSolveIT/plugins.git`
+2. Copy the `365i-queue-optimizer` folder to `/wp-content/plugins/`
 3. Activate through the **Plugins** menu in WordPress
 
 ### Configuration
@@ -122,6 +127,35 @@ After activation, image processing and background tasks should be noticeably fas
 
 1. **Settings Page** - Simple configuration interface under Tools > Queue Optimizer
 2. **Current Status** - Shows your optimization settings and ActionScheduler status
+= 1.1.0 - 2025-06-15 =
+
+**WordPress Repository Preparation**
+
+Major restructuring to make the plugin ready for WordPress repository submission.
+
+**Added:**
+* Security files: index.php protection in all directories
+* LICENSE.txt: Full GPL v2 license text for repository compliance
+* uninstall.php: Proper WordPress uninstall script
+* Translation support: languages/365i-queue-optimizer.pot template file
+* Template system: Separated HTML from PHP with dedicated template files
+* JavaScript enhancement: assets/js/admin.js for form validation and UX
+* Filter hooks: Added extensibility filters around data arrays
+* Screenshots: Added screenshot-1.png and screenshot-2.png for WordPress repository
+
+**Changed:**
+* Directory structure: Reorganized to use src/ for PHP logic, templates/ for HTML
+* Code separation: Moved main class to src/class-queue-optimizer-main.php
+* Template architecture: Created templates/admin/ and templates/partials/ structure
+* Asset management: Enhanced CSS with form validation styles
+* Extensibility: Added filters for time_limit, concurrent_batches, and image_editors
+
+**Technical Improvements:**
+* WordPress standards: Full compliance with WordPress coding standards
+* PSR-4 structure: Proper autoloading-ready file organization
+* Template partials: Reusable header.php and footer.php components
+* Enhanced security: Directory protection and proper file structure
+* Repository ready: All WordPress.org plugin directory requirements met
 
 == Changelog ==
 
@@ -143,6 +177,8 @@ A lightweight WordPress plugin designed to optimize ActionScheduler queue proces
 * `action_scheduler_queue_runner_time_limit` filter
 * `action_scheduler_queue_runner_concurrent_batches` filter
 * `wp_image_editors` filter for engine prioritization
+= 1.1.0 =
+Major update preparing the plugin for WordPress repository submission. Includes enhanced security, template separation, and better code organization while maintaining full functionality.
 
 **Technical Details:**
 * WordPress 5.8+ and PHP 7.4+ required
