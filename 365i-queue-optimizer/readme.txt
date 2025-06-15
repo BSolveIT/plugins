@@ -193,6 +193,7 @@ Major update preparing the plugin for WordPress repository submission. Includes 
 Initial release of 365i Queue Optimizer. A lightweight solution for optimizing ActionScheduler performance with minimal overhead.
 
 == Support ==
+For detailed documentation and usage examples, see the [complete plugin guide](https://www.365i.co.uk/blog/2025/04/20/fix-wordpress-6-8-slow-image-uploads-with-365i-queue-optimizer/).
 
 For support and WordPress hosting solutions optimized for performance, visit [365i WordPress Hosting](https://www.365i.co.uk/).
 

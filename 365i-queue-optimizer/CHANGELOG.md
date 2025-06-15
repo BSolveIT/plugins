@@ -1,6 +1,12 @@
 # 365i Queue Optimizer Changelog
 
 All notable changes to this project will be documented in this file.
+### [1.1.1] - 2025-06-16
+
+#### Changed
+- **Documentation**: Added reference to detailed plugin guide in readme.txt Support section
+- **Plugin Header**: Updated Plugin URI to specific blog post documentation
+- **Plugin Header**: Updated Author URI to personal profile page
 ## [1.1.0] - 2025-06-15
 
 ### WordPress Repository Preparation
