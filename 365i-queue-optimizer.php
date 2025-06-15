@@ -69,8 +69,9 @@ class Queue_Optimizer_Main {
 	 */
 	private function init_hooks() {
 		// Load admin settings page only if needed.
-		if ( is_admin() && current_user_can( 'manage_options' ) ) {
+		if ( is_admin() ) {
 			require_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'admin/class-settings-page.php';
+			Queue_Optimizer_Settings_Page::get_instance();
 		}
 
 		// Apply the three essential ActionScheduler optimization filters.
