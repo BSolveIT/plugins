@@ -39,7 +39,7 @@ class Queue_Optimizer_Main {
 	 */
 	private function __construct() {
 		// Check WordPress version compatibility.
-		if ( version_compare( $GLOBALS['wp_version'], QUEUE_OPTIMIZER_MIN_WP_VERSION, '<' ) ) {
+		if ( version_compare( $GLOBALS['wp_version'], esc_html( QUEUE_OPTIMIZER_MIN_WP_VERSION ), '<' ) ) {
 			add_action( 'admin_notices', array( $this, 'display_version_notice' ) );
 			return;
 		}
@@ -74,7 +74,7 @@ class Queue_Optimizer_Main {
 		echo '<div class="error"><p>' .
 			sprintf(
 				esc_html__( '365i Queue Optimizer requires WordPress version %s or higher.', '365i-queue-optimizer' ),
-				QUEUE_OPTIMIZER_MIN_WP_VERSION
+				esc_html( QUEUE_OPTIMIZER_MIN_WP_VERSION )
 			) .
 			'</p></div>';
 	}

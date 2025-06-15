@@ -15,6 +15,7 @@ Major restructuring to make the plugin ready for WordPress repository submission
 - **JavaScript Enhancement**: Added assets/js/admin.js for form validation and UX
 - **Filter Hooks**: Added extensibility filters around data arrays
 - **Screenshots**: Added screenshot-1.png and screenshot-2.png for WordPress repository visual documentation
+- **Plugin Check Compliance**: Fixed output escaping for QUEUE_OPTIMIZER_MIN_WP_VERSION and updated "Tested up to" version to 6.6
 
 #### Changed
 - **Directory Structure**: Reorganized to use src/ for PHP logic, templates/ for HTML
