@@ -202,8 +202,9 @@ No. The plugin uses WordPress options for data storage, keeping your database cl
 
 * **Logging Status Display Fix**
   * Fixed Activity Log page showing "Disabled" even when logging is enabled
-  * Updated [`get_log_settings()`](src/Activity_Log_Page.php:264) to properly convert boolean option values to 'yes'/'no' strings
-  * Logging status now correctly reflects the actual setting from the database
+  * Updated [`get_log_settings()`](src/Activity_Log_Page.php:264) to properly handle checkbox values ("1" when checked)
+  * The checkbox saves "1" when checked, not boolean true/false as initially expected
+  * Logging status now correctly shows green "Enabled" badge when logging is turned on
 
 * **Retention Days Display Fix**
   * Fixed dashboard showing incorrect retention days value (always showing 30 instead of actual setting)

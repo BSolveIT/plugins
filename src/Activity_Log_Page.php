@@ -262,9 +262,13 @@ class Queue_Optimizer_Activity_Log_Page {
 	 * @return array Log settings.
 	 */
 	private function get_log_settings() {
+		// The checkbox saves "1" when checked, empty when unchecked
+		$logging_enabled = get_option( 'queue_optimizer_logging_enabled', false );
+		$debug_mode = get_option( 'queue_optimizer_debug_mode', false );
+		
 		return array(
-			'logging_enabled' => get_option( 'queue_optimizer_logging_enabled', true ) ? 'yes' : 'no',
-			'debug_mode' => get_option( 'queue_optimizer_debug_mode', false ) ? 'yes' : 'no',
+			'logging_enabled' => ( $logging_enabled == '1' || $logging_enabled === true ) ? 'yes' : 'no',
+			'debug_mode' => ( $debug_mode == '1' || $debug_mode === true ) ? 'yes' : 'no',
 			'log_retention_days' => get_option( 'queue_optimizer_log_retention_days', 7 ),
 			'max_log_entries' => get_option( 'queue_optimizer_max_log_entries', 1000 ),
 		);
