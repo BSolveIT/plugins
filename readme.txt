@@ -3,7 +3,7 @@ Contributors: 365i
 Tags: queue, scheduler, background-jobs, optimization, performance
 Requires at least: 5.8
 Tested up to: 6.4
-Stable tag: 1.1.0
+Stable tag: 1.7.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -153,6 +153,284 @@ No. The plugin uses WordPress options for data storage, keeping your database cl
 3. **Admin Interface** - Clean, responsive design that works on all devices
 
 == Changelog ==
+
+= 1.7.1 - 2025-06-15 =
+**Fixed Dashboard and Activity Log JavaScript Errors**
+
+* **Dashboard AJAX Handler Fix**
+  * Fixed 400 Bad Request errors when accessing the dashboard
+  * Added missing AJAX handlers [`ajax_refresh_stats()`](src/Dashboard_Page.php:243) and [`ajax_quick_action()`](src/Dashboard_Page.php:261) to Dashboard_Page class
+  * Implemented proper nonce verification and capability checks for all AJAX endpoints
+  * Added [`run_queue_cleanup()`](src/Dashboard_Page.php:298) method for manual queue cleanup with retention day support
+  * Added [`clear_failed_jobs()`](src/Dashboard_Page.php:340) method to remove failed Action Scheduler jobs
+  * Enhanced error handling with try-catch blocks and detailed error messages
+  * Fixed dashboard JavaScript errors preventing stats refresh and quick actions
+
+* **Activity Log JavaScript Fix**
+  * Removed inline JavaScript that was causing jQuery UI errors (`tooltip` and `sortable` undefined)
+  * Fixed JavaScript errors on Activity Log page by removing unnecessary jQuery UI dependencies
+  * Removed postbox dependency from activity log script enqueue in [`365i-queue-optimizer.php`](365i-queue-optimizer.php:298)
+  * Maintained proper separation of JavaScript and PHP code following plugin standards
+
+* **Auto-Refresh Removal**
+  * Removed automatic refresh functionality from dashboard - now manual refresh only
+  * Added "Refresh Stats" button to dashboard for manual updates when needed
+  * Removed 30-second auto-refresh from both [`dashboard.js`](assets/js/dashboard.js) and [`admin.js`](assets/js/admin.js)
+  * Fixed excessive AJAX polling that was overwhelming the system
+
+* **HTML Structure Fixes**
+  * Fixed dashboard stats cards HTML structure issues causing incorrect display
+  * Removed extra closing `</div>` tags in [`stats-cards.php`](templates/dashboard/stats-cards.php)
+  * Ensured all 5 stat cards display correctly in horizontal grid layout
+
+* **jQuery UI Removal**
+  * Removed jQuery UI tooltip usage in [`admin.js`](assets/js/admin.js:62) that was causing errors
+  * Plugin now uses native browser tooltips instead of jQuery UI components
+  * Eliminated all jQuery UI dependency errors from console
+  * Note: Some jQuery UI errors may still appear from WordPress core or other plugins
+
+* **UI Clarification**
+  * Dashboard shows 5 queue statistics (Total Jobs, Pending, Completed, Failed, In Progress)
+  * Activity Log shows 4 log statistics (Total Logs, Successful, Errors, Pending)
+  * This difference is intentional as they track different metrics
+
+= 1.7.0 - 2025-06-15 =
+**Enhanced Activity Log Management System with Interactive Queue Control**
+
+* **Comprehensive Activity Log Redesign**
+  * Complete Activity Log page overhaul with interactive queue management capabilities
+  * Enhanced [`get_activity_logs()`](src/Activity_Log_Page.php:45) method to display completed, failed, pending, in-progress, and canceled jobs
+  * New AJAX-powered individual actions: retry failed jobs and cancel pending jobs with real-time feedback
+  * Bulk operations system with multi-select functionality for efficient queue management
+  * Interactive message expansion with click-to-reveal full job details and error messages
+
+* **Advanced Search & Filtering System**
+  * Live search functionality across all Activity Log entries with instant filtering
+  * Status-based filtering (All, Pending, In-Progress, Completed, Failed, Canceled)
+  * Real-time row count updates showing filtered vs total entries
+  * Clear search functionality with one-click filter reset
+
+* **Interactive UI Components & User Experience**
+  * Row selection system with individual checkboxes and "Select All" functionality
+  * Bulk actions container with visual feedback for selected items count
+  * Spinning loader animations for AJAX operations with CSS [`@keyframes spin`](assets/css/activity-log.css:89)
+  * Enhanced table styling with hover effects and smooth transitions
+  * Professional action buttons with WordPress component styling
+
+* **Robust Error Handling & User Feedback**
+  * Comprehensive try-catch blocks for all AJAX operations with detailed error messages
+  * Success/failure notifications for retry and cancel operations
+  * Graceful handling of ActionScheduler edge cases and failed operations
+  * Clear user instructions in card footer explaining available actions
+
+* **CSS Styling Improvements**
+  * Fixed `.components-card__footer { margin-top: 10px; }` spacing issue in [`system-info.css`](assets/css/system-info.css:168)
+  * Enhanced Activity Log CSS with responsive design and interactive elements
+  * Professional bulk actions styling with proper spacing and visual hierarchy
+  * Consistent WordPress component design patterns throughout
+
+* **Technical Architecture Enhancements**
+  * New AJAX handlers: [`handle_retry_action()`](src/Activity_Log_Page.php:180), [`handle_cancel_action()`](src/Activity_Log_Page.php:210), [`handle_bulk_actions()`](src/Activity_Log_Page.php:240)
+  * Helper methods: [`retry_single_action()`](src/Activity_Log_Page.php:285), [`cancel_single_action()`](src/Activity_Log_Page.php:315)
+  * Enhanced JavaScript framework in [`activity-log.js`](assets/js/activity-log.js) with modular action handling
+  * Template rewrite maintaining under 300 lines with proper template structure
+  * Complete ActionScheduler integration for comprehensive queue state management
+
+= 1.6.0 - 2025-06-15 =
+**Enhanced PHP Extensions System Information**
+
+* **Complete PHP Extensions Overhaul**
+  * Replaced "Unknown" extension grid with comprehensive ReflectionExtension-powered data gathering
+  * New searchable table format displaying extension name, version, INI keys count, and functions count
+  * Real PHP extension metadata using `ReflectionExtension` API for accurate information
+  * Sortable table with professional WordPress component styling and responsive design
+
+* **Advanced Search & Export Features**
+  * Live search functionality across PHP extensions table with instant filtering
+  * Export extensions data to CSV format with timestamped filenames
+  * Copy-to-clipboard functionality for sharing extension information
+  * Search results indicator showing filtered vs total extension counts
+
+* **Enhanced User Experience**
+  * Professional table layout replacing grid of empty "Unknown" cards
+  * Extension version badges with proper styling and visual hierarchy
+  * Summary statistics showing total extensions, INI settings, and function counts
+  * Critical extensions status panel with health indicators and missing extension alerts
+
+* **Technical Improvements**
+  * Error handling for ReflectionExtension failures with graceful fallbacks
+  * Enhanced JavaScript functionality in `assets/js/system-info.js` for table interactions
+  * Proper template structure in `templates/system-info/php-extensions.php` under 123 lines
+  * Improved data structure using associative arrays with proper metadata fields
+
+= 1.5.0 - 2025-06-15 =
+**Dashboard Fixes & Activity Log Management System**
+
+* **Dashboard Layout & Navigation Fixes**
+  * Fixed 5-stat grid layout issues with proper CSS grid configuration (`repeat(5, 1fr)`)
+  * Responsive breakpoints: 5→3→2→1 columns for optimal display across all devices
+  * Corrected "View All Activity" navigation to proper Activity Log page
+  * Eliminated JavaScript console errors causing rapid logging and resource consumption
+  * Added proper variable existence checks and error handling in dashboard JavaScript
+
+* **Comprehensive Activity Log Management**
+  * New dedicated Activity Log page (`src/Activity_Log_Page.php`) with full CRUD operations
+  * Complete log viewing interface with sortable tables and status indicators
+  * Log export functionality (CSV/JSON) with timestamped downloads
+  * Clear logs functionality with granular control (all, debug, system, specific types)
+  * Real-time log statistics dashboard with visual stat cards
+  * System events tracking and display with proper categorization
+
+* **Enhanced User Interface**
+  * Professional activity log template (`templates/activity-log.php`) with WordPress component design
+  * Dedicated Activity Log CSS (`assets/css/activity-log.css`) with responsive design
+  * Interactive JavaScript (`assets/js/activity-log.js`) with AJAX operations and user feedback
+  * Click-to-expand table rows for detailed message viewing
+  * Search and filter capabilities across all log entries
+
+* **Menu Structure Improvements**
+  * Updated admin menu structure: Dashboard → Activity Log → System Info
+  * Proper submenu organization with logical navigation flow
+  * Asset enqueueing fixes for Activity Log page specific styles and scripts
+  * Consistent navigation experience across all plugin pages
+
+* **JavaScript Error Resolution**
+  * Fixed undefined variable errors in `queueOptimizerAdmin` and `queueOptimizerDashboard`
+  * Added comprehensive error handling and logging prevention mechanisms
+  * Eliminated rapid console error logging that was consuming browser resources
+  * Proper AJAX variable validation before making requests
+
+* **Log Settings & Configuration**
+  * Logging enable/disable toggle with visual status indicators
+  * Debug mode configuration with proper badge styling
+  * Log retention settings and automatic cleanup functionality
+  * Log file size management with rotation and archiving
+
+= 1.4.0 - 2025-06-15 =
+**Complete Architectural Redesign with WordPress Component System**
+
+* **Major Template System Overhaul**
+  * Complete modular template architecture with `templates/dashboard/` and `templates/system-info/` folders
+  * Shared component partials (`card-header.php`, `card-footer.php`) for consistent styling across all pages
+  * Individual template files for each panel, all under 100 lines for maximum maintainability
+  * WordPress component-based design system with proper `.components-card`, `.components-button`, `.components-badge` classes
+  * Strict separation of concerns: PHP logic in `src/`, HTML in `templates/`, CSS in `assets/css/`, JS in `assets/js/`
+
+* **WordPress Component Design System**
+  * Professional WordPress component styling with `.components-grid`, `.components-table`, `.components-badge` classes
+  * Comprehensive CSS framework at `assets/css/admin.css` with `.toplevel_page_365i-queue-optimizer` namespacing
+  * Color-coded status indicators using WordPress standard colors (#46b450 success, #ffb900 warning, #dc3232 error, #229fd8 info)
+  * Responsive design with mobile-first approach and breakpoints at 1024px, 768px, and 480px
+  * High contrast and reduced motion accessibility support with proper ARIA labels
+
+* **Advanced JavaScript Framework**
+  * Comprehensive `assets/js/admin.js` with modular `QueueOptimizerAdmin` namespace
+  * Real-time search functionality across all system information panels
+  * Advanced copy-to-clipboard functionality with fallback support for older browsers
+  * Export capabilities (JSON/CSV) with timestamped filenames and proper MIME types
+  * Auto-refresh dashboard statistics every 30 seconds with AJAX integration
+  * Interactive quick actions with loading states and user feedback notifications
+
+* **Enhanced User Experience**
+  * Professional admin interface following WordPress design standards and guidelines
+  * Consistent card-based layout with hover effects and smooth transitions
+  * Advanced search and filter capabilities for plugins, extensions, and system information
+  * Export functionality for system diagnostics with multiple format options
+  * Copy-to-clipboard for all system information sections with formatted output
+  * Mobile-optimized responsive design with proper touch targets and spacing
+
+* **Performance & Accessibility Improvements**
+  * Print-friendly styling for documentation and support purposes
+  * Screen reader support with proper semantic HTML structure and ARIA labels
+  * Keyboard navigation support and focus management throughout the interface
+  * Reduced motion support for users with vestibular motion disorders
+  * Performance optimizations for large data sets and complex table rendering
+  * Lazy loading and progressive enhancement for better perceived performance
+
+* **Developer Experience Enhancements**
+  * Modular file structure following WordPress engineering best practices
+  * PSR-4 compatible class structure with proper autoloading support
+  * Comprehensive inline documentation and code comments throughout
+  * WordPress coding standards compliance with proper sanitization and escaping
+  * Extensible architecture with filters and hooks for custom development
+  * Template inheritance system with shared partials for consistent theming
+
+= 1.3.0 - 2025-06-15 =
+**Top-Level Admin Menu & Comprehensive Dashboard**
+
+* **Top-Level WordPress Admin Menu**
+  * New dedicated "Queue Optimizer" top-level menu in WordPress admin sidebar
+  * Professional dashicons-update icon for easy recognition
+  * Dashboard and System Info organized as clean sub-pages
+  * Improved navigation and user experience for plugin management
+
+* **Comprehensive Dashboard Page**
+  * Real-time queue statistics with visual stat cards (Total, Pending, Completed, Failed, In Progress)
+  * System status overview panel with health indicators and version information
+  * Quick actions panel for common tasks (Run Cleanup, View System Info, Clear Failed Jobs)
+  * Recent activity feed showing latest queue processing events with status indicators
+  * Settings overview panel displaying current plugin configuration at a glance
+
+* **Enhanced User Interface**
+  * Responsive dashboard layout with CSS Grid for optimal viewing on all devices
+  * Professional WordPress postbox styling with collapsible panels
+  * Interactive dashboard with AJAX-powered quick actions and auto-refresh capability
+  * Mobile-optimized design with proper breakpoints (1024px, 768px, 480px)
+  * Visual status indicators with color-coded health states (good, warning, error)
+
+* **Advanced Dashboard Features**
+  * Copy-to-clipboard functionality for sharing system information
+  * Auto-refresh statistics every 30 seconds for real-time monitoring
+  * Quick action buttons with loading states and success/error feedback
+  * Animated stat cards with smooth transitions and hover effects
+  * Link integration between dashboard and detailed system information
+
+* **Modular Architecture Expansion**
+  * New `src/Admin_Menu.php` class for centralized menu management
+  * New `src/Dashboard_Page.php` class with comprehensive data gathering methods
+  * Five specialized dashboard panel templates (stats, system status, quick actions, recent activity, settings overview)
+  * Dedicated `assets/css/dashboard.css` with responsive design patterns
+  * Interactive `assets/js/dashboard.js` with AJAX functionality and user feedback
+
+= 1.2.0 - 2025-06-15 =
+**Professional System Information & Diagnostics + Refactored Architecture**
+
+* **Comprehensive System Info Page**
+  * New dedicated system information page accessible from admin menu
+  * Server environment details (PHP version, memory limits, execution time, upload limits)
+  * Database information (version, size, character set, table prefix)
+  * WordPress core details (version, debug mode, multisite status, active theme)
+  * Complete plugin listing with versions, status, and quick filtering
+  * PHP extensions grid with version numbers and importance indicators
+  * Queue system statistics and configuration overview
+
+* **Advanced Export Capabilities**
+  * Professional JSON export with complete system diagnostics
+  * CSV export option for spreadsheet analysis and reporting
+  * Copy-to-clipboard functionality for individual sections
+  * Timestamped export files for version tracking
+
+* **Enhanced User Experience**
+  * Responsive design with collapsible postbox panels
+  * Real-time search functionality across all system information
+  * Plugin-specific search and filtering capabilities
+  * Mobile-optimized interface with proper breakpoints
+  * Professional WordPress admin styling with dark mode support
+
+* **Developer & Support Features**
+  * Detailed PHP configuration and loaded extensions
+  * WordPress constants and configuration flags
+  * Database performance metrics and storage information
+  * Queue processing statistics and current settings
+  * Print-friendly formatting for documentation
+
+* **Refactored Plugin Architecture**
+  * Complete file structure reorganization following WordPress engineering standards
+  * Strict separation of concerns: classes in `src/`, templates in `templates/`, assets in `assets/js/` and `assets/css/`
+  * Modular template system with shared header/footer partials for consistent design
+  * Individual panel templates under 200 lines for maintainability
+  * Proper asset enqueueing with dependency management
+  * PSR-4 compatible class structure for future extensibility
 
 = 1.1.0 - 2025-06-15 =
 **Major Dashboard & Logging Enhancements**

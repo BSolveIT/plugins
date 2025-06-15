@@ -1,0 +1,261 @@
+/**
+ * Dashboard JavaScript
+ *
+ * Handles interactive functionality for the Queue Optimizer dashboard page.
+ *
+ * @package QueueOptimizer
+ */
+
+(function($) {
+	'use strict';
+
+	/**
+	 * Dashboard functionality
+	 */
+	var Dashboard = {
+		
+		// Flag to prevent repeated error logging
+		errorLogged: false,
+		
+		/**
+		 * Initialize dashboard
+		 */
+		init: function() {
+			this.bindEvents();
+			this.initPostboxes();
+			// Don't refresh stats on load - they're already loaded server-side
+		},
+
+		/**
+		 * Bind event listeners
+		 */
+		bindEvents: function() {
+			// Quick action buttons
+			$(document).on('click', '[data-action]', this.handleQuickAction);
+			
+			// Refresh button
+			$(document).on('click', '.refresh-dashboard', this.refreshDashboard);
+			
+			// Manual refresh stats button
+			$(document).on('click', '.refresh-stats', this.handleRefreshStats.bind(this));
+		},
+
+		/**
+		 * Initialize WordPress postboxes
+		 */
+		initPostboxes: function() {
+			if (typeof postboxes !== 'undefined') {
+				postboxes.add_postbox_toggles('queue-optimizer-dashboard');
+			}
+		},
+
+		/**
+		 * Handle quick action button clicks
+		 */
+		handleQuickAction: function(e) {
+			e.preventDefault();
+			
+			var $button = $(this);
+			var action = $button.data('action');
+			var originalText = $button.text();
+			
+			// Check if admin variables exist
+			if (typeof queueOptimizerAdmin === 'undefined') {
+				console.error('Queue Optimizer admin variables not loaded');
+				return;
+			}
+
+			// Disable button and show loading state
+			$button.prop('disabled', true)
+				   .addClass('updating-message')
+				   .text(queueOptimizerAdmin.loading_text || 'Processing...');
+
+			// Send AJAX request
+			$.ajax({
+				url: ajaxurl,
+				type: 'POST',
+				data: {
+					action: 'queue_optimizer_quick_action',
+					quick_action: action,
+					nonce: queueOptimizerAdmin.nonce
+				},
+				success: function(response) {
+					if (response.success) {
+						Dashboard.showNotice(response.data.message || 'Action completed successfully.', 'success');
+						
+						// Refresh relevant sections
+						if (action === 'run_cleanup' || action === 'clear_failed') {
+							Dashboard.refreshStats();
+						}
+					} else {
+						Dashboard.showNotice(response.data.message || 'Action failed.', 'error');
+					}
+				},
+				error: function() {
+					Dashboard.showNotice('An error occurred while processing the action.', 'error');
+				},
+				complete: function() {
+					// Restore button state
+					$button.prop('disabled', false)
+						   .removeClass('updating-message')
+						   .text(originalText);
+				}
+			});
+		},
+
+		/**
+		 * Refresh dashboard data
+		 */
+		refreshDashboard: function(e) {
+			if (e) {
+				e.preventDefault();
+			}
+			
+			var $button = $('.refresh-dashboard');
+			var originalText = $button.text();
+			
+			$button.prop('disabled', true)
+				   .addClass('updating-message')
+				   .text('Refreshing...');
+
+			// Reload the page to refresh all data
+			window.location.reload();
+		},
+
+		/**
+		 * Handle manual refresh stats
+		 */
+		handleRefreshStats: function(e) {
+			if (e) {
+				e.preventDefault();
+			}
+
+			var $button = $(e.currentTarget);
+			var originalHtml = $button.html();
+			
+			// Show loading state
+			$button.prop('disabled', true)
+				   .html('<span class="dashicons dashicons-update-alt spin"></span> Refreshing...');
+
+			// Call refresh stats
+			this.refreshStats(function() {
+				// Restore button state
+				$button.prop('disabled', false).html(originalHtml);
+			});
+		},
+
+		/**
+		 * Refresh statistics only
+		 */
+		refreshStats: function(callback) {
+			// Check if admin variables exist
+			if (typeof queueOptimizerAdmin === 'undefined' || typeof ajaxurl === 'undefined') {
+				if (callback) callback();
+				return;
+			}
+
+			// Prevent multiple simultaneous requests
+			if (this.refreshing) {
+				if (callback) callback();
+				return;
+			}
+
+			this.refreshing = true;
+
+			$.ajax({
+				url: ajaxurl,
+				type: 'POST',
+				data: {
+					action: 'queue_optimizer_refresh_stats',
+					nonce: queueOptimizerAdmin.nonce
+				},
+				success: function(response) {
+					if (response.success && response.data.stats) {
+						Dashboard.updateStatsDisplay(response.data.stats);
+						Dashboard.showNotice('Statistics refreshed successfully.', 'success');
+					}
+				},
+				error: function(xhr, status, error) {
+					console.error('Failed to refresh dashboard stats:', error);
+					Dashboard.showNotice('Failed to refresh statistics. Please try again.', 'error');
+				},
+				complete: function() {
+					Dashboard.refreshing = false;
+					if (callback) callback();
+				}
+			});
+		},
+
+		/**
+		 * Update stats display
+		 */
+		updateStatsDisplay: function(stats) {
+			// Update stat cards
+			$('.stat-card.total-jobs h3').text(Dashboard.formatNumber(stats.total_jobs || 0));
+			$('.stat-card.pending-jobs h3').text(Dashboard.formatNumber(stats.pending_jobs || 0));
+			$('.stat-card.completed-jobs h3').text(Dashboard.formatNumber(stats.completed_jobs || 0));
+			$('.stat-card.failed-jobs h3').text(Dashboard.formatNumber(stats.failed_jobs || 0));
+			$('.stat-card.in-progress-jobs h3').text(Dashboard.formatNumber(stats.in_progress_jobs || 0));
+			
+			// Add visual feedback
+			$('.stat-card').addClass('updated');
+			setTimeout(function() {
+				$('.stat-card').removeClass('updated');
+			}, 1000);
+		},
+
+		/**
+		 * Show admin notice
+		 */
+		showNotice: function(message, type) {
+			var noticeClass = type === 'error' ? 'notice-error' : 'notice-success';
+			var $notice = $('<div class="notice ' + noticeClass + ' is-dismissible"><p>' + message + '</p></div>');
+			
+			$('.queue-optimizer-dashboard').before($notice);
+			
+			// Auto-dismiss after 5 seconds
+			setTimeout(function() {
+				$notice.fadeOut(function() {
+					$(this).remove();
+				});
+			}, 5000);
+		},
+
+		/**
+		 * Format number with localization
+		 */
+		formatNumber: function(number) {
+			if (typeof Intl !== 'undefined' && Intl.NumberFormat) {
+				return new Intl.NumberFormat().format(number);
+			}
+			return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+		},
+
+		/**
+		 * Animate stats cards on load
+		 */
+		animateStatsCards: function() {
+			$('.stat-card').each(function(index) {
+				var $card = $(this);
+				setTimeout(function() {
+					$card.addClass('animate-in');
+				}, index * 100);
+			});
+		}
+	};
+
+	/**
+	 * Initialize when document is ready
+	 */
+	$(document).ready(function() {
+		// Only run on dashboard page
+		if ($('.queue-optimizer-dashboard').length) {
+			Dashboard.init();
+			Dashboard.animateStatsCards();
+		}
+	});
+
+	// Export for potential external use
+	window.QueueOptimizerDashboard = Dashboard;
+
+})(jQuery);

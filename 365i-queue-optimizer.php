@@ -3,7 +3,7 @@
  * Plugin Name: 365i Queue Optimizer
  * Plugin URI: https://www.365i.co.uk/
  * Description: A lightweight WordPress plugin to manage and optimize background queue processing with native WP scheduling.
- * Version: 1.1.0
+ * Version: 1.7.1
  * Author: 365i
  * Author URI: https://www.365i.co.uk/
  * Text Domain: 365i-queue-optimizer
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants.
-define( 'QUEUE_OPTIMIZER_VERSION', '1.1.0' );
+define( 'QUEUE_OPTIMIZER_VERSION', '1.7.1' );
 define( 'QUEUE_OPTIMIZER_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'QUEUE_OPTIMIZER_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'QUEUE_OPTIMIZER_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
@@ -103,6 +103,10 @@ class Queue_Optimizer_Plugin {
 		
 		if ( is_admin() ) {
 			require_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'admin/class-settings-page.php';
+			require_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'src/System_Info_Page.php';
+			require_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'src/Dashboard_Page.php';
+			require_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'src/Activity_Log_Page.php';
+			require_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'src/Admin_Menu.php';
 		}
 	}
 
@@ -113,8 +117,9 @@ class Queue_Optimizer_Plugin {
 		// Initialize scheduler.
 		Queue_Optimizer_Scheduler::get_instance();
 
-		// Initialize admin settings page.
+		// Initialize admin components.
 		if ( is_admin() ) {
+			Queue_Optimizer_Admin_Menu::get_instance();
 			Queue_Optimizer_Settings_Page::get_instance();
 		}
 	}
@@ -213,21 +218,32 @@ class Queue_Optimizer_Plugin {
 	 * @param string $hook_suffix Current admin page hook suffix.
 	 */
 	public function enqueue_admin_assets( $hook_suffix ) {
-		// Only enqueue on plugin admin pages.
-		if ( false === strpos( $hook_suffix, 'queue-optimizer' ) ) {
+		// Check if we're on a plugin admin page.
+		$plugin_pages = array( '365i-queue-optimizer', '365i-activity-log', '365i-system-info' );
+		$is_plugin_page = false;
+		
+		foreach ( $plugin_pages as $page_slug ) {
+			if ( strpos( $hook_suffix, $page_slug ) !== false ) {
+				$is_plugin_page = true;
+				break;
+			}
+		}
+		
+		if ( ! $is_plugin_page ) {
 			return;
 		}
 
+		// Enqueue shared admin styles and scripts.
 		wp_enqueue_style(
 			'queue-optimizer-admin',
-			QUEUE_OPTIMIZER_PLUGIN_URL . 'assets/admin.css',
+			QUEUE_OPTIMIZER_PLUGIN_URL . 'assets/css/admin.css',
 			array(),
 			QUEUE_OPTIMIZER_VERSION
 		);
 
 		wp_enqueue_script(
 			'queue-optimizer-admin',
-			QUEUE_OPTIMIZER_PLUGIN_URL . 'assets/admin.js',
+			QUEUE_OPTIMIZER_PLUGIN_URL . 'assets/js/admin.js',
 			array( 'jquery' ),
 			QUEUE_OPTIMIZER_VERSION,
 			true
@@ -236,10 +252,11 @@ class Queue_Optimizer_Plugin {
 		// Localize script for AJAX.
 		wp_localize_script(
 			'queue-optimizer-admin',
-			'queueOptimizerAjax',
+			'queueOptimizerAdmin',
 			array(
 				'ajax_url' => admin_url( 'admin-ajax.php' ),
-				'nonce'    => wp_create_nonce( 'queue_optimizer_nonce' ),
+				'nonce'    => wp_create_nonce( 'queue_optimizer_admin_nonce' ),
+				'loading_text' => __( 'Processing...', '365i-queue-optimizer' ),
 				'strings'  => array(
 					'processing' => __( 'Processing...', '365i-queue-optimizer' ),
 					'error'      => __( 'Error occurred. Please try again.', '365i-queue-optimizer' ),
@@ -247,6 +264,77 @@ class Queue_Optimizer_Plugin {
 				),
 			)
 		);
+
+		// Enqueue Dashboard page specific assets.
+		if ( strpos( $hook_suffix, '365i-queue-optimizer' ) !== false && strpos( $hook_suffix, 'system-info' ) === false ) {
+			wp_enqueue_style(
+				'queue-optimizer-dashboard',
+				QUEUE_OPTIMIZER_PLUGIN_URL . 'assets/css/dashboard.css',
+				array( 'queue-optimizer-admin' ),
+				QUEUE_OPTIMIZER_VERSION
+			);
+
+			wp_enqueue_script(
+				'queue-optimizer-dashboard',
+				QUEUE_OPTIMIZER_PLUGIN_URL . 'assets/js/dashboard.js',
+				array( 'jquery', 'postbox', 'queue-optimizer-admin' ),
+				QUEUE_OPTIMIZER_VERSION,
+				true
+			);
+		}
+
+		// Enqueue Activity Log page specific assets.
+		if ( strpos( $hook_suffix, 'activity-log' ) !== false ) {
+			wp_enqueue_style(
+				'queue-optimizer-activity-log',
+				QUEUE_OPTIMIZER_PLUGIN_URL . 'assets/css/activity-log.css',
+				array( 'queue-optimizer-admin' ),
+				QUEUE_OPTIMIZER_VERSION
+			);
+
+			wp_enqueue_script(
+				'queue-optimizer-activity-log',
+				QUEUE_OPTIMIZER_PLUGIN_URL . 'assets/js/activity-log.js',
+				array( 'jquery', 'queue-optimizer-admin' ),
+				QUEUE_OPTIMIZER_VERSION,
+				true
+			);
+		}
+
+		// Enqueue System Info page specific assets.
+		if ( strpos( $hook_suffix, 'system-info' ) !== false ) {
+			wp_enqueue_style(
+				'queue-optimizer-system-info',
+				QUEUE_OPTIMIZER_PLUGIN_URL . 'assets/css/system-info.css',
+				array( 'queue-optimizer-admin' ),
+				QUEUE_OPTIMIZER_VERSION
+			);
+
+			wp_enqueue_script(
+				'queue-optimizer-system-info',
+				QUEUE_OPTIMIZER_PLUGIN_URL . 'assets/js/system-info.js',
+				array( 'jquery', 'postbox', 'queue-optimizer-admin' ),
+				QUEUE_OPTIMIZER_VERSION,
+				true
+			);
+
+			// Localize System Info script.
+			wp_localize_script(
+				'queue-optimizer-system-info',
+				'queueOptimizerSystemInfo',
+				array(
+					'ajax_url' => admin_url( 'admin-ajax.php' ),
+					'nonce'    => wp_create_nonce( 'queue_optimizer_system_info_nonce' ),
+					'strings'  => array(
+						'copied'        => __( 'Copied to clipboard!', '365i-queue-optimizer' ),
+						'copy_error'    => __( 'Failed to copy to clipboard.', '365i-queue-optimizer' ),
+						'exporting'     => __( 'Exporting...', '365i-queue-optimizer' ),
+						'export_error'  => __( 'Export failed. Please try again.', '365i-queue-optimizer' ),
+						'no_results'    => __( 'No Results Found', '365i-queue-optimizer' ),
+					),
+				)
+			);
+		}
 	}
 }
 

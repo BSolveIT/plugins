@@ -1,0 +1,517 @@
+/**
+ * Activity Log Styles
+ *
+ * Styles specific to the Queue Optimizer activity log page.
+ *
+ * @package QueueOptimizer
+ */
+
+/* Activity Log Layout */
+.queue-optimizer-activity-log {
+	max-width: 1200px;
+	margin: 0;
+	padding: 0;
+}
+
+/* Log Statistics Grid */
+.activity-log-stats-grid {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 16px;
+	margin-bottom: 24px;
+}
+
+.activity-log-stats-grid .components-card {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 6px;
+	transition: all 0.2s ease;
+	position: relative;
+	overflow: hidden;
+}
+
+.activity-log-stats-grid .components-card:hover {
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	border-color: #a7aaad;
+	transform: translateY(-1px);
+}
+
+.activity-log-stats-grid .components-card__body {
+	text-align: center;
+	padding: 24px 16px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+}
+
+.activity-log-stats-grid .stat-icon {
+	margin-bottom: 8px;
+}
+
+.activity-log-stats-grid .stat-number {
+	font-size: 32px;
+	font-weight: 600;
+	line-height: 1;
+	margin-bottom: 4px;
+	color: #1d2327;
+}
+
+.activity-log-stats-grid .stat-label {
+	color: #646970;
+	font-size: 14px;
+	font-weight: 500;
+	margin: 0;
+}
+
+/* Log Management Controls */
+.log-controls {
+	display: flex;
+	gap: 16px;
+	align-items: center;
+	flex-wrap: wrap;
+	padding: 16px 0;
+}
+
+.log-control-group {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.log-control-group label {
+	font-weight: 500;
+	font-size: 13px;
+	margin: 0;
+}
+
+.log-actions {
+	margin-left: auto;
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.log-actions .components-button {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 13px;
+	padding: 6px 12px;
+	height: auto;
+}
+
+.log-actions .components-button .dashicons {
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+}
+
+/* Activity Log Table */
+.activity-log-table {
+	overflow-x: auto;
+	margin: 16px 0;
+}
+
+.activity-log-table table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.activity-log-table th {
+	background: #f9f9f9;
+	font-weight: 600;
+	padding: 12px;
+	text-align: left;
+	border-bottom: 2px solid #e0e0e0;
+}
+
+.activity-log-table td {
+	padding: 12px;
+	border-bottom: 1px solid #f0f0f1;
+	vertical-align: top;
+}
+
+.activity-log-table tbody tr {
+	cursor: pointer;
+	transition: background-color 0.2s ease;
+}
+
+.activity-log-table tbody tr:hover {
+	background-color: #f9f9f9;
+}
+
+.activity-log-table tbody tr.expanded {
+	background-color: #f0f6fc;
+}
+
+.activity-log-table tbody tr:last-child td {
+	border-bottom: none;
+}
+
+/* Message cell truncation */
+.activity-log-table td div[title] {
+	max-width: 300px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+.activity-log-table tr.expanded td div[title] {
+	max-width: none;
+	overflow: visible;
+	text-overflow: clip;
+	white-space: normal;
+}
+
+/* Status badges */
+.activity-log-table .components-badge {
+	font-size: 11px;
+	font-weight: 500;
+	padding: 2px 6px;
+	border-radius: 3px;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+/* System Events */
+.system-events-list {
+	max-height: 400px;
+	overflow-y: auto;
+}
+
+.system-event-item {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	padding: 12px 0;
+	border-bottom: 1px solid #f0f0f1;
+}
+
+.system-event-item:last-child {
+	border-bottom: none;
+}
+
+.event-type {
+	margin-top: 4px;
+	flex-shrink: 0;
+}
+
+.event-type .dashicons {
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+}
+
+.event-details {
+	flex: 1;
+}
+
+.event-title {
+	font-weight: 500;
+	margin-bottom: 4px;
+	font-size: 14px;
+}
+
+.event-meta {
+	font-size: 12px;
+	color: #646970;
+	line-height: 1.4;
+}
+
+/* No logs state */
+.no-logs {
+	text-align: center;
+	padding: 40px;
+	color: #646970;
+}
+
+.no-logs p {
+	margin: 0 0 8px 0;
+	font-size: 16px;
+}
+
+.no-logs .components-base-control__help {
+	font-size: 13px;
+	color: #787c82;
+}
+
+/* Search and filter controls */
+.log-search-filter-controls {
+	display: flex;
+	gap: 16px;
+	align-items: center;
+	margin-bottom: 16px;
+	padding: 16px;
+	background: #f9f9f9;
+	border-radius: 4px;
+}
+
+.log-search-input {
+	flex: 1;
+	padding: 8px 12px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	font-size: 14px;
+}
+
+.log-filter-select {
+	padding: 8px 12px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	font-size: 14px;
+	background: white;
+}
+
+.refresh-logs {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 8px 12px;
+	background: #0073aa;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 13px;
+	text-decoration: none;
+}
+
+.refresh-logs:hover {
+	background: #005a87;
+	color: white;
+}
+
+.refresh-logs .dashicons {
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+}
+
+/* Loading states */
+.updating-message {
+	opacity: 0.6;
+	pointer-events: none;
+}
+
+/* Spinning animation */
+.spin {
+	animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+/* Row selection styles */
+.activity-log-table tr.selected {
+	background-color: #e8f4fd !important;
+}
+
+.activity-log-table input[type="checkbox"] {
+	margin: 0;
+}
+
+/* Bulk actions container */
+.bulk-actions-container {
+	background: #f0f6fc;
+	border: 1px solid #c3dcf3;
+	border-radius: 4px;
+	padding: 12px;
+	margin-bottom: 16px;
+}
+
+.bulk-actions-container .selected-count {
+	font-weight: 500;
+	color: #0073aa;
+}
+
+/* Row actions */
+.row-actions {
+	display: flex;
+	gap: 4px;
+	justify-content: flex-start;
+}
+
+.row-actions .components-button {
+	min-width: auto;
+	padding: 4px;
+	height: auto;
+}
+
+.row-actions .components-button .dashicons {
+	margin: 0;
+}
+
+/* Message expansion */
+.log-message {
+	transition: all 0.3s ease;
+}
+
+.activity-log-table tr.expanded .log-message {
+	background-color: #f9f9f9;
+	padding: 8px;
+	border-radius: 4px;
+	border-left: 3px solid #0073aa;
+}
+
+/* Toggle controls */
+.components-toggle-control {
+	display: inline-block;
+}
+
+.components-toggle-control .components-badge {
+	font-size: 11px;
+	font-weight: 500;
+	padding: 4px 8px;
+	border-radius: 4px;
+	text-transform: uppercase;
+	letter-spacing: 0.3px;
+}
+
+/* Component Cards */
+.components-card {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.components-card__header {
+	padding: 16px 20px;
+	border-bottom: 1px solid #f0f0f1;
+	background: #fafafa;
+}
+
+.components-card__header h2 {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.components-card__body {
+	padding: 20px;
+}
+
+.components-card__footer {
+	padding: 12px 20px;
+	border-top: 1px solid #f0f0f1;
+	background: #fafafa;
+	margin-top: 10px;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+	.activity-log-stats-grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
+	
+	.log-controls {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 16px;
+	}
+	
+	.log-actions {
+		margin-left: 0;
+		width: 100%;
+		justify-content: flex-start;
+	}
+}
+
+@media (max-width: 768px) {
+	.activity-log-stats-grid {
+		grid-template-columns: 1fr;
+	}
+	
+	.activity-log-stats-grid .components-card__body {
+		padding: 20px 12px;
+	}
+	
+	.activity-log-stats-grid .stat-number {
+		font-size: 28px;
+	}
+	
+	.activity-log-table {
+		font-size: 14px;
+	}
+	
+	.activity-log-table th,
+	.activity-log-table td {
+		padding: 8px;
+	}
+	
+	.log-search-filter-controls {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 12px;
+	}
+	
+	.log-actions {
+		flex-direction: column;
+		gap: 8px;
+	}
+	
+	.log-actions .components-button {
+		width: 100%;
+		justify-content: center;
+	}
+}
+
+@media (max-width: 480px) {
+	.activity-log-table th:nth-child(3),
+	.activity-log-table td:nth-child(3),
+	.activity-log-table th:nth-child(4),
+	.activity-log-table td:nth-child(4) {
+		display: none;
+	}
+	
+	.system-event-item {
+		flex-direction: column;
+		gap: 8px;
+	}
+	
+	.event-type {
+		margin-top: 0;
+	}
+}
+
+/* Animation for expanding rows */
+@keyframes expandRow {
+	from {
+		max-height: 0;
+		opacity: 0;
+	}
+	to {
+		max-height: 200px;
+		opacity: 1;
+	}
+}
+
+.activity-log-table tr.expanded td {
+	animation: expandRow 0.3s ease-out;
+}
+
+/* Print styles */
+@media print {
+	.log-controls,
+	.log-search-filter-controls,
+	.log-actions {
+		display: none !important;
+	}
+	
+	.activity-log-table {
+		overflow: visible;
+	}
+	
+	.activity-log-table tbody tr {
+		break-inside: avoid;
+	}
+}

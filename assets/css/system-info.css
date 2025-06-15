@@ -1,0 +1,395 @@
+/**
+ * System Info Page Styles
+ *
+ * Specific styles for the system information page.
+ * Extends the shared admin styles in admin.css.
+ *
+ * @package QueueOptimizer
+ */
+
+/* ==========================================================================
+   SYSTEM INFO PAGE STYLES
+   ========================================================================== */
+
+/* Controls Section */
+.system-info-controls {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px;
+	padding: 15px;
+	background: #fff;
+	border: 1px solid #ccd0d4;
+	border-radius: 4px;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.system-info-search-container {
+	flex: 1;
+	margin-right: 20px;
+}
+
+.system-info-search-container input {
+	width: 100%;
+	max-width: 400px;
+}
+
+.system-info-export-container {
+	display: flex;
+	gap: 10px;
+}
+
+.system-info-export-container .button {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+}
+
+/* Postbox Customizations */
+.system-info-table {
+	margin: 0;
+}
+
+.system-info-table th {
+	width: 200px;
+	font-weight: 600;
+}
+
+.system-info-table td code {
+	background: #f6f7f7;
+	padding: 2px 6px;
+	border-radius: 3px;
+	font-size: 12px;
+	word-break: break-all;
+}
+
+.postbox-header .handle-actions {
+	display: flex;
+	align-items: center;
+}
+
+.copy-section {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 4px 8px;
+	font-size: 12px;
+	text-decoration: none;
+}
+
+.copy-section:hover {
+	color: #2271b1;
+}
+
+/* Plugin Table */
+.plugin-search-container {
+	margin-bottom: 15px;
+}
+
+.plugin-search-container input {
+	width: 100%;
+	max-width: 300px;
+}
+
+.plugins-table-container {
+	overflow-x: auto;
+}
+
+.plugins table {
+	width: 100%;
+	margin: 0;
+}
+
+.plugin-row.hidden {
+	display: none;
+}
+
+.plugin-title {
+	max-width: 250px;
+}
+
+.plugin-description {
+	font-size: 13px;
+	color: #646970;
+	margin-top: 5px;
+	line-height: 1.4;
+}
+
+.plugin-status .status-active {
+	color: #00a32a;
+	font-weight: 600;
+}
+
+.plugin-status .status-inactive {
+	color: #646970;
+}
+
+.plugin-count {
+	font-size: 12px;
+	color: #646970;
+	margin-left: 5px;
+}
+
+.plugin-count {
+	background: #f0f0f1;
+	padding: 2px 6px;
+	border-radius: 3px;
+	font-size: 11px;
+	margin-top: 10px;
+	display: inline-block;
+}
+
+/* PHP Extensions Grid */
+.extensions-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+	gap: 10px;
+	margin-bottom: 15px;
+}
+
+.extension-item {
+	padding: 10px;
+	background: #f9f9f9;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	transition: all 0.2s ease;
+}
+
+.extension-item.important {
+	background: #fff7e6;
+	border-color: #d1b894;
+}
+
+.extension-item:hover {
+	background: #f0f0f1;
+	border-color: #999;
+}
+
+.extension-name {
+	font-weight: 600;
+	font-size: 13px;
+	margin-bottom: 4px;
+	display: flex;
+	align-items: center;
+	gap: 5px;
+}
+
+.extension-version {
+	font-size: 11px;
+}
+
+.extension-version code {
+	background: #fff;
+	padding: 1px 4px;
+	border-radius: 2px;
+}
+
+.important-badge {
+	color: #d1b894;
+	font-size: 14px;
+}
+
+.extensions-legend {
+	margin-top: 15px;
+	padding-top: 10px;
+	border-top: 1px solid #ddd;
+	font-size: 13px;
+	color: #646970;
+}
+
+/* Queue Stats */
+.queue-stats-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+	gap: 15px;
+	margin-bottom: 20px;
+}
+
+.queue-stat-item {
+	text-align: center;
+	padding: 15px;
+	background: #f9f9f9;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	transition: all 0.2s ease;
+}
+
+.queue-stat-item:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stat-number {
+	font-size: 24px;
+	font-weight: 700;
+	line-height: 1;
+	margin-bottom: 5px;
+}
+
+.stat-label {
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: #646970;
+}
+
+.queue-stat-item.status-pending .stat-number { color: #d63638; }
+.queue-stat-item.status-processing .stat-number { color: #dba617; }
+.queue-stat-item.status-completed .stat-number { color: #00a32a; }
+.queue-stat-item.status-failed .stat-number { color: #d63638; }
+
+/* Search Highlighting */
+.search-highlight {
+	background: #fff3cd;
+	padding: 1px 2px;
+	border-radius: 2px;
+	font-weight: 600;
+}
+
+/* Status Indicators */
+.status-warning,
+.status-info,
+.status-success {
+	font-size: 16px;
+	margin-left: 5px;
+	cursor: help;
+}
+
+/* Copy Success Notice */
+#copy-success {
+	position: fixed;
+	top: 32px;
+	right: 20px;
+	z-index: 999999;
+	max-width: 300px;
+}
+
+/* Mobile Responsiveness */
+@media screen and (max-width: 782px) {
+	.system-info-controls {
+		flex-direction: column;
+		gap: 15px;
+		align-items: stretch;
+	}
+	
+	.system-info-search-container {
+		margin-right: 0;
+	}
+	
+	.system-info-export-container {
+		justify-content: center;
+	}
+	
+	.extensions-grid {
+		grid-template-columns: 1fr;
+	}
+	
+	.queue-stats-grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
+	
+	.system-info-table th,
+	.system-info-table td {
+		display: block;
+		width: 100%;
+		text-align: left;
+		padding: 8px 0;
+		border: none;
+	}
+	
+	.system-info-table th {
+		font-weight: 600;
+		margin-top: 15px;
+	}
+	
+	.plugins-table-container {
+		overflow-x: scroll;
+	}
+}
+
+@media screen and (max-width: 480px) {
+	.queue-stats-grid {
+		grid-template-columns: 1fr;
+	}
+	
+	.system-info-export-container {
+		flex-direction: column;
+	}
+}
+
+/* Print Styles */
+@media print {
+	.system-info-controls,
+	.postbox-header .handle-actions,
+	.plugin-search-container,
+	#copy-success {
+		display: none !important;
+	}
+	
+	.postbox {
+		border: 1px solid #000;
+		margin-bottom: 20px;
+		break-inside: avoid;
+	}
+	
+	.postbox-header {
+		background: #f0f0f0;
+		border-bottom: 1px solid #000;
+	}
+	
+	.system-info-table {
+		width: 100%;
+	}
+	
+	.system-info-table th,
+	.system-info-table td {
+		border: 1px solid #ccc;
+		padding: 8px;
+	}
+	
+	.extensions-grid {
+		grid-template-columns: repeat(3, 1fr);
+		gap: 5px;
+	}
+	
+	.extension-item {
+		border: 1px solid #000;
+		font-size: 12px;
+		padding: 5px;
+	}
+}
+
+/* Components Card Footer */
+.components-card__footer {
+	margin-top: 10px;
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+	.extension-item {
+		background: #2c3338;
+		border-color: #50575e;
+		color: #f0f0f1;
+	}
+	
+	.extension-item.important {
+		background: #3c2e1f;
+		border-color: #8a7556;
+	}
+	
+	.queue-stat-item {
+		background: #2c3338;
+		border-color: #50575e;
+		color: #f0f0f1;
+	}
+	
+	.system-info-table td code {
+		background: #2c3338;
+		color: #f0f0f1;
+	}
+	
+	.search-highlight {
+		background: #5a4a1f;
+		color: #f0f0f1;
+	}
+}
