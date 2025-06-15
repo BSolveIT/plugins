@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## Version 1.8.1 - June 15, 2025
+### Fixed
+- **CRITICAL FIX**: Implemented proper ActionScheduler optimization matching user's working functions.php code
+- **Image Processing**: Fixed images getting stuck in "Pending" status - now process correctly with plugin active
+- **ActionScheduler Integration**: Added three essential filters that were missing:
+  - `action_scheduler_queue_runner_time_limit` - Sets 60-second processing limit (configurable 30-300)
+  - `action_scheduler_queue_runner_concurrent_batches` - Sets 4 concurrent batches (configurable 1-10)
+  - `wp_image_editors` - Prioritizes GD over Imagick for reliable image processing
+- **Plugin Architecture**: Removed problematic conditional filter logic - all optimizations now apply automatically
+- **Settings Interface**: Updated to reflect new automatic optimization approach
+- **User Experience**: Plugin now works like the user's successful functions.php code but with a proper settings interface
+
+### Changed
+- **Default Values**: Time limit default changed from 30 to 60 seconds, concurrent batches from 3 to 4
+- **Settings Labels**: Updated to "ActionScheduler Optimization Settings" for clarity
+- **UI Description**: Added explanation that optimizations apply automatically without enabling/disabling filters
+
 ## Version 1.8.0 - June 15, 2025
 ### Fixed
 - Image Processing: Fixed critical issue with images getting stuck in "Optimizing..." state

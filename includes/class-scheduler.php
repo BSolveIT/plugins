@@ -105,12 +105,11 @@ class Queue_Optimizer_Scheduler {
 			$this->init_logging_hooks();
 		}
 		
-		// Apply our concurrent batches setting to Action Scheduler
-		// We use a setting to toggle this functionality - DISABLED by default to avoid interference
-		$enable_concurrent_batches = (bool) get_option( 'queue_optimizer_enable_concurrency_filter', false );
-		if ( $enable_concurrent_batches ) {
-			add_filter( 'action_scheduler_queue_runner_concurrent_batches', array( $this, 'set_concurrent_batches' ), 10, 1 );
-		}
+		// Apply ActionScheduler optimizations - these are the core functionality
+		// Based on user's working functions.php code
+		add_filter( 'action_scheduler_queue_runner_time_limit', array( $this, 'set_time_limit' ), 10, 1 );
+		add_filter( 'action_scheduler_queue_runner_concurrent_batches', array( $this, 'set_concurrent_batches' ), 10, 1 );
+		add_filter( 'wp_image_editors', array( $this, 'set_image_editor_priority' ), 10, 1 );
 		
 		// Initialize tracking variables
 		$this->current_run_id = null;
@@ -124,13 +123,34 @@ class Queue_Optimizer_Scheduler {
 	}
 	
 	/**
+	 * Set the time limit for Action Scheduler queue processing.
+	 *
+	 * @param int $time_limit The default time limit.
+	 * @return int Modified time limit (60 seconds).
+	 */
+	public function set_time_limit( $time_limit ) {
+		// Get custom time limit from settings, default to 60 seconds (user's working value)
+		$custom_time_limit = (int) get_option( 'queue_optimizer_time_limit', 60 );
+		
+		// Validate the value is within acceptable range (30-300 seconds)
+		if ( $custom_time_limit < 30 ) {
+			$custom_time_limit = 30;
+		} elseif ( $custom_time_limit > 300 ) {
+			$custom_time_limit = 300;
+		}
+		
+		return $custom_time_limit;
+	}
+	
+	/**
 	 * Set the number of concurrent batches for Action Scheduler.
 	 *
 	 * @param int $concurrent_batches The default number of concurrent batches.
-	 * @return int Modified number of concurrent batches.
+	 * @return int Modified number of concurrent batches (4 by default).
 	 */
 	public function set_concurrent_batches( $concurrent_batches ) {
-		$custom_batches = (int) get_option( 'queue_optimizer_concurrent_batches', 3 );
+		// Get custom batches from settings, default to 4 (user's working value)
+		$custom_batches = (int) get_option( 'queue_optimizer_concurrent_batches', 4 );
 		
 		// Validate the value is within acceptable range
 		if ( $custom_batches < 1 ) {
@@ -140,6 +160,17 @@ class Queue_Optimizer_Scheduler {
 		}
 		
 		return $custom_batches;
+	}
+	
+	/**
+	 * Set image editor priority to optimize image processing.
+	 *
+	 * @param array $editors Default image editors array.
+	 * @return array Modified image editors with GD prioritized over Imagick.
+	 */
+	public function set_image_editor_priority( $editors ) {
+		// Return GD first, then Imagick (user's working configuration)
+		return array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
 	}
 	
 	/**

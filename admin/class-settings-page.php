@@ -126,7 +126,7 @@ class Queue_Optimizer_Settings_Page {
 			array(
 				'type'              => 'integer',
 				'sanitize_callback' => array( $this, 'sanitize_time_limit' ),
-				'default'           => 30,
+				'default'           => 60,
 			)
 		);
 
@@ -136,17 +136,7 @@ class Queue_Optimizer_Settings_Page {
 			array(
 				'type'              => 'integer',
 				'sanitize_callback' => array( $this, 'sanitize_concurrent_batches' ),
-				'default'           => 3,
-			)
-		);
-
-		register_setting(
-			'queue_optimizer_settings',
-			'queue_optimizer_enable_concurrency_filter',
-			array(
-				'type'              => 'boolean',
-				'sanitize_callback' => 'rest_sanitize_boolean',
-				'default'           => true,
+				'default'           => 4,
 			)
 		);
 
@@ -193,7 +183,7 @@ class Queue_Optimizer_Settings_Page {
 		// Add settings section.
 		add_settings_section(
 			'queue_optimizer_main_section',
-			__( 'Queue Processing Settings', '365i-queue-optimizer' ),
+			__( 'ActionScheduler Optimization Settings', '365i-queue-optimizer' ),
 			array( $this, 'render_section_description' ),
 			'queue_optimizer_settings'
 		);
@@ -201,7 +191,7 @@ class Queue_Optimizer_Settings_Page {
 		// Add settings fields.
 		add_settings_field(
 			'queue_optimizer_time_limit',
-			__( 'Time Limit (seconds)', '365i-queue-optimizer' ),
+			__( 'Queue Processing Time Limit (seconds)', '365i-queue-optimizer' ),
 			array( $this, 'render_time_limit_field' ),
 			'queue_optimizer_settings',
 			'queue_optimizer_main_section'
@@ -209,16 +199,8 @@ class Queue_Optimizer_Settings_Page {
 
 		add_settings_field(
 			'queue_optimizer_concurrent_batches',
-			__( 'Concurrent Batches', '365i-queue-optimizer' ),
+			__( 'Concurrent Processing Batches', '365i-queue-optimizer' ),
 			array( $this, 'render_concurrent_batches_field' ),
-			'queue_optimizer_settings',
-			'queue_optimizer_main_section'
-		);
-
-		add_settings_field(
-			'queue_optimizer_enable_concurrency_filter',
-			__( 'Apply Concurrent Batches to Action Scheduler', '365i-queue-optimizer' ),
-			array( $this, 'render_enable_concurrency_field' ),
 			'queue_optimizer_settings',
 			'queue_optimizer_main_section'
 		);
@@ -278,14 +260,14 @@ class Queue_Optimizer_Settings_Page {
 	 * Render section description.
 	 */
 	public function render_section_description() {
-		echo '<p>' . esc_html__( 'Configure how the queue optimizer processes background jobs.', '365i-queue-optimizer' ) . '</p>';
+		echo '<p>' . esc_html__( 'These settings optimize ActionScheduler performance for image processing and other background tasks. All optimizations are applied automatically - no need to enable/disable individual filters.', '365i-queue-optimizer' ) . '</p>';
 	}
 
 	/**
 	 * Render time limit field.
 	 */
 	public function render_time_limit_field() {
-		$value = get_option( 'queue_optimizer_time_limit', 30 );
+		$value = get_option( 'queue_optimizer_time_limit', 60 );
 		include plugin_dir_path( __FILE__ ) . '../templates/settings/time-limit-field.php';
 	}
 
@@ -293,16 +275,8 @@ class Queue_Optimizer_Settings_Page {
 	 * Render concurrent batches field.
 	 */
 	public function render_concurrent_batches_field() {
-		$value = get_option( 'queue_optimizer_concurrent_batches', 3 );
+		$value = get_option( 'queue_optimizer_concurrent_batches', 4 );
 		include plugin_dir_path( __FILE__ ) . '../templates/settings/concurrent-batches-field.php';
-	}
-
-	/**
-	 * Render enable concurrency filter field.
-	 */
-	public function render_enable_concurrency_field() {
-		$value = get_option( 'queue_optimizer_enable_concurrency_filter', true );
-		include plugin_dir_path( __FILE__ ) . '../templates/settings/enable-concurrency-field.php';
 	}
 
 	/**
@@ -346,13 +320,13 @@ class Queue_Optimizer_Settings_Page {
 	public function sanitize_time_limit( $value ) {
 		$value = absint( $value );
 		
-		if ( $value < 5 ) {
+		if ( $value < 30 ) {
 			add_settings_error(
 				'queue_optimizer_time_limit',
 				'time_limit_too_low',
-				__( 'Time limit must be at least 5 seconds.', '365i-queue-optimizer' )
+				__( 'Time limit must be at least 30 seconds for reliable processing.', '365i-queue-optimizer' )
 			);
-			return 5;
+			return 30;
 		}
 		
 		if ( $value > 300 ) {
