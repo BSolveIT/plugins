@@ -78,7 +78,7 @@ $plugin_settings = $data['plugin_settings'] ?? array();
 		</div>
 
 		<div class="settings-footer">
-			<a href="<?php echo esc_url( admin_url( 'admin.php?page=queue-optimizer' ) ); ?>"
+			<a href="<?php echo esc_url( admin_url( 'tools.php?page=queue-optimizer' ) ); ?>"
 			   class="button button-secondary">
 				<?php esc_html_e( 'Manage Settings', '365i-queue-optimizer' ); ?>
 			</a>

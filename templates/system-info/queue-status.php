@@ -128,7 +128,7 @@ $footer_actions = array(
 	),
 	array(
 		'text' => 'View Queue Details',
-		'url' => admin_url( 'admin.php?page=365i-queue-optimizer' ),
+		'url' => admin_url( 'tools.php?page=queue-optimizer' ),
 		'class' => 'is-primary',
 		'icon' => 'dashicons-external'
 	)

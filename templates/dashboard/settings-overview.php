@@ -22,7 +22,7 @@ $card_icon = 'dashicons-admin-generic';
 $footer_actions = array(
 	array(
 		'label' => __( 'Manage Settings', '365i-queue-optimizer' ),
-		'url' => admin_url( 'admin.php?page=queue-optimizer' ),
+		'url' => admin_url( 'tools.php?page=queue-optimizer' ),
 		'type' => 'is-secondary',
 	),
 );
