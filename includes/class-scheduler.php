@@ -108,6 +108,9 @@ class Queue_Optimizer_Scheduler {
 		add_action( 'action_scheduler_failed_execution', array( $this, 'log_action_failed' ), 10, 3 );
 		add_action( 'action_scheduler_canceled_action', array( $this, 'log_action_canceled' ), 10, 2 );
 		
+		// Apply our concurrent batches setting to Action Scheduler
+		add_filter( 'action_scheduler_queue_runner_concurrent_batches', array( $this, 'set_concurrent_batches' ) );
+		
 		// Initialize tracking variables
 		$this->current_run_id = null;
 		$this->run_start_time = null;
@@ -117,6 +120,25 @@ class Queue_Optimizer_Scheduler {
 
 		// Schedule daily cleanup
 		$this->schedule_daily_cleanup();
+	}
+
+	/**
+	 * Set the number of concurrent batches for Action Scheduler.
+	 *
+	 * @param int $concurrent_batches Default concurrent batches value.
+	 * @return int Modified concurrent batches value.
+	 */
+	public function set_concurrent_batches( $concurrent_batches ) {
+		// Get our custom setting
+		$custom_batches = (int) get_option( 'queue_optimizer_concurrent_batches', 3 );
+		
+		// Ensure it's within valid range
+		if ( $custom_batches >= 1 && $custom_batches <= 10 ) {
+			return $custom_batches;
+		}
+		
+		// Fall back to default if invalid
+		return $concurrent_batches;
 	}
 
 	/**

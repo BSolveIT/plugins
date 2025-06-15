@@ -13,6 +13,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Technical Notes
 - Email Notifications feature is UI placeholder only (Phase 2 pending)
 
+## [1.7.8] - 2025-06-15
+
+### Fixed
+- **Concurrent Batches Setting**: Fixed issue where changing the Concurrent Batches value didn't affect ActionScheduler's queue processing
+- **Queue Processing**: Applied custom concurrent batches setting to ActionScheduler's queue runner through WordPress filter hook
+- **ActionScheduler Integration**: Added proper hook to apply `queue_optimizer_concurrent_batches` option to ActionScheduler's concurrent processing limit
+
+### Technical
+- Added `action_scheduler_queue_runner_concurrent_batches` filter implementation
+- Ensured batches setting respects valid range (1-10) with fallback to default
+- Enhanced scheduler initialization with better ActionScheduler integration
+
+### Files Modified
+- `includes/class-scheduler.php` - Added method to apply concurrent batches setting to ActionScheduler
+
 ## [1.7.7] - 2025-06-15
 
 ### Removed
