@@ -3,7 +3,7 @@
  * Plugin Name: 365i Queue Optimizer
  * Plugin URI: https://www.365i.co.uk/
  * Description: A lightweight WordPress plugin to manage and optimize background queue processing with native WP scheduling.
- * Version:           1.7.5
+ * Version:           1.8.0
  * Author: 365i
  * Author URI: https://www.365i.co.uk/
  * Text Domain: 365i-queue-optimizer
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants.
-define( 'QUEUE_OPTIMIZER_VERSION', '1.7.5' );
+define( 'QUEUE_OPTIMIZER_VERSION', '1.8.0' );
 define( 'QUEUE_OPTIMIZER_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'QUEUE_OPTIMIZER_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'QUEUE_OPTIMIZER_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );

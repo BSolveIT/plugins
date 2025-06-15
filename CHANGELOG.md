@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## Version 1.8.0 - June 15, 2025
+### Fixed
+- Image Processing: Fixed critical issue with images getting stuck in "Optimizing..." state
+- Queue Processing: Enhanced ActionScheduler integration to properly process image optimization tasks
+- Concurrent Processing: Added new "Apply Concurrent Batches to Action Scheduler" setting (enabled by default)
+- Performance: Improved concurrency handling with higher ActionScheduler hook priority (999)
+- Compatibility: Ensured proper communication between WordPress media library and ActionScheduler
+
 ## Version 1.7.9 - June 15, 2025
 ### Fixed
 - ActionScheduler Compatibility: Fixed critical issue where our plugin was blocking other plugins (particularly Elementor Image Optimizer) from processing their Action Scheduler tasks

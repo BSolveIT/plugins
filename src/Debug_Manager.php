@@ -71,9 +71,21 @@ class Queue_Optimizer_Debug_Manager {
 		add_action( 'action_scheduler_before_execute', array( $this, 'log_action_start' ), 10, 2 );
 		add_action( 'action_scheduler_after_execute', array( $this, 'log_action_end' ), 10, 3 );
 		add_action( 'action_scheduler_failed_execution', array( $this, 'log_action_failure' ), 10, 3 );
+		add_action( 'action_scheduler_stored_action', array( $this, 'log_action_scheduled' ), 10, 1 );
+		
+		// Additional Action Scheduler hooks for more comprehensive logging
+		add_action( 'action_scheduler_canceled_action', array( $this, 'log_action_canceled' ), 10, 1 );
+		add_action( 'action_scheduler_begin_execute', array( $this, 'log_queue_processing_start' ), 10, 2 );
+		add_action( 'action_scheduler_completed_execution', array( $this, 'log_queue_processing_end' ), 10, 2 );
 
 		// WordPress cron debug hooks.
 		add_action( 'wp_cron_api_init', array( $this, 'log_cron_init' ) );
+		
+		// System status logging
+		add_action( 'shutdown', array( $this, 'log_system_status' ) );
+		
+		// Log detailed debug information at plugin load
+		$this->log_plugin_initialization();
 	}
 
 	/**
@@ -83,6 +95,57 @@ class Queue_Optimizer_Debug_Manager {
 	 */
 	public function is_debug_enabled() {
 		return (bool) get_option( 'queue_optimizer_debug_mode', false );
+	}
+	
+	/**
+	 * Log initial plugin information upon debug mode activation.
+	 */
+	private function log_plugin_initialization() {
+		global $wpdb;
+		
+		// Get WordPress and PHP versions
+		$wp_version = get_bloginfo( 'version' );
+		$php_version = phpversion();
+		
+		// Get server information
+		$server_info = array(
+			'software' => $_SERVER['SERVER_SOFTWARE'] ?? 'unknown',
+			'memory_limit' => ini_get( 'memory_limit' ),
+			'max_execution_time' => ini_get( 'max_execution_time' ),
+		);
+		
+		// Get plugin settings
+		$settings = array(
+			'time_limit' => get_option( 'queue_optimizer_time_limit', 30 ),
+			'concurrent_batches' => get_option( 'queue_optimizer_concurrent_batches', 3 ),
+			'logging_enabled' => get_option( 'queue_optimizer_logging_enabled', false ) ? 'Yes' : 'No',
+			'log_retention_days' => get_option( 'queue_optimizer_log_retention_days', 7 ),
+			'image_engine' => get_option( '365i_qo_image_engine', 'imagick' ),
+			'debug_mode' => get_option( 'queue_optimizer_debug_mode', false ) ? 'Enabled' : 'Disabled',
+		);
+		
+		// Get Action Scheduler information
+		$as_version = defined( 'ACTION_SCHEDULER_VERSION' ) ? ACTION_SCHEDULER_VERSION : 'unknown';
+		
+		// Count pending actions
+		$pending_count = 0;
+		$action_table = $wpdb->prefix . 'actionscheduler_actions';
+		if ( $wpdb->get_var( "SHOW TABLES LIKE '$action_table'" ) === $action_table ) {
+			$pending_count = $wpdb->get_var( "SELECT COUNT(*) FROM $action_table WHERE status = 'pending'" );
+		}
+		
+		$this->log(
+			'Queue Optimizer Debug Mode Initialized',
+			'info',
+			array(
+				'wordpress_version' => $wp_version,
+				'php_version' => $php_version,
+				'server_info' => $server_info,
+				'plugin_settings' => $settings,
+				'action_scheduler_version' => $as_version,
+				'pending_actions' => $pending_count,
+			)
+		);
 	}
 
 	/**
@@ -112,6 +175,126 @@ class Queue_Optimizer_Debug_Manager {
 
 		$this->write_log_entry( $log_entry );
 	}
+	
+	/**
+	 * Log action scheduled event.
+	 *
+	 * @param int $action_id Action ID.
+	 */
+	public function log_action_scheduled( $action_id ) {
+		if ( ! class_exists( 'ActionScheduler_Store' ) ) {
+			return;
+		}
+		
+		$store = ActionScheduler_Store::instance();
+		$action = $store->fetch_action( $action_id );
+		
+		if ( ! $action ) {
+			return;
+		}
+		
+		// Get schedule information
+		$schedule = $action->get_schedule();
+		$schedule_info = 'Unknown schedule';
+		
+		if ( $schedule ) {
+			if ( method_exists( $schedule, 'is_recurring' ) && $schedule->is_recurring() ) {
+				$schedule_info = 'Recurring';
+			} else {
+				$schedule_info = 'One-time';
+			}
+			
+			if ( method_exists( $schedule, 'get_date' ) ) {
+				$next_run_date = $schedule->get_date();
+				if ( $next_run_date ) {
+					$schedule_info .= ', Next run: ' . $next_run_date->format( 'Y-m-d H:i:s' );
+				}
+			}
+		}
+		
+		$this->log(
+			sprintf( 'Action Scheduler: Action scheduled - ID: %d, Hook: %s', $action_id, $action->get_hook() ),
+			'info',
+			array(
+				'action_id' => $action_id,
+				'hook' => $action->get_hook(),
+				'args' => $this->format_action_args( $action->get_args() ),
+				'schedule' => $schedule_info,
+				'group' => method_exists( $action, 'get_group' ) ? $action->get_group() : 'default',
+			)
+		);
+	}
+	
+	/**
+	 * Log when an action is canceled.
+	 *
+	 * @param int $action_id Action ID.
+	 */
+	public function log_action_canceled( $action_id ) {
+		if ( ! class_exists( 'ActionScheduler_Store' ) ) {
+			return;
+		}
+		
+		$store = ActionScheduler_Store::instance();
+		$action = $store->fetch_action( $action_id );
+		
+		if ( ! $action ) {
+			$this->log(
+				sprintf( 'Action Scheduler: Action canceled - ID: %d (action details not available)', $action_id ),
+				'info',
+				array(
+					'action_id' => $action_id,
+				)
+			);
+			return;
+		}
+		
+		$this->log(
+			sprintf( 'Action Scheduler: Action canceled - ID: %d, Hook: %s', $action_id, $action->get_hook() ),
+			'info',
+			array(
+				'action_id' => $action_id,
+				'hook' => $action->get_hook(),
+				'args' => $this->format_action_args( $action->get_args() ),
+				'group' => method_exists( $action, 'get_group' ) ? $action->get_group() : 'default',
+			)
+		);
+	}
+	
+	/**
+	 * Log the start of queue processing.
+	 *
+	 * @param int $count Number of actions to process.
+	 * @param int $batch_size Batch size.
+	 */
+	public function log_queue_processing_start( $count, $batch_size ) {
+		$this->log(
+			sprintf( 'Action Scheduler: Queue processing started - Processing %d actions (batch size: %d)', $count, $batch_size ),
+			'info',
+			array(
+				'action_count' => $count,
+				'batch_size' => $batch_size,
+				'concurrent_batches' => apply_filters( 'action_scheduler_queue_runner_concurrent_batches', 1 ),
+			)
+		);
+	}
+	
+	/**
+	 * Log the end of queue processing.
+	 *
+	 * @param int $processed_actions Number of actions processed.
+	 * @param int $time_limit Time limit.
+	 */
+	public function log_queue_processing_end( $processed_actions, $time_limit ) {
+		$this->log(
+			sprintf( 'Action Scheduler: Queue processing completed - Processed %d actions (time limit: %d seconds)', $processed_actions, $time_limit ),
+			'info',
+			array(
+				'processed_actions' => $processed_actions,
+				'time_limit' => $time_limit,
+			)
+		);
+	}
 
 	/**
 	 * Log action scheduler start.
@@ -131,7 +314,8 @@ class Queue_Optimizer_Debug_Manager {
 			array(
 				'action_id' => $action_id,
 				'hook' => $action->get_hook(),
-				'args' => $action->get_args(),
+				'args' => $this->format_action_args( $action->get_args() ),
+				'group' => method_exists( $action, 'get_group' ) ? $action->get_group() : 'default',
 			)
 		);
 	}
@@ -158,8 +342,9 @@ class Queue_Optimizer_Debug_Manager {
 			array(
 				'action_id' => $action_id,
 				'hook' => $action->get_hook(),
-				'result' => $result,
+				'result' => $this->format_result( $result ),
 				'performance' => $performance,
+				'group' => method_exists( $action, 'get_group' ) ? $action->get_group() : 'default',
 			)
 		);
 	}
@@ -190,6 +375,7 @@ class Queue_Optimizer_Debug_Manager {
 				'line' => $exception->getLine(),
 				'trace' => $exception->getTraceAsString(),
 				'performance' => $performance,
+				'group' => method_exists( $action, 'get_group' ) ? $action->get_group() : 'default',
 			)
 		);
 	}
@@ -204,6 +390,61 @@ class Queue_Optimizer_Debug_Manager {
 			array(
 				'doing_cron' => defined( 'DOING_CRON' ) && DOING_CRON,
 				'cron_lock' => get_transient( 'doing_cron' ),
+			)
+		);
+	}
+	
+	/**
+	 * Log system status information.
+	 */
+	public function log_system_status() {
+		// Only log on admin pages to prevent excessive logging
+		if ( ! is_admin() || ! $this->is_debug_enabled() ) {
+			return;
+		}
+		
+		// Log once per session
+		static $logged = false;
+		if ( $logged ) {
+			return;
+		}
+		$logged = true;
+		
+		global $wpdb;
+		
+		// Get database status
+		$actions_table = $wpdb->prefix . 'actionscheduler_actions';
+		$logs_table = $wpdb->prefix . 'actionscheduler_logs';
+		
+		$db_status = array();
+		
+		if ( $wpdb->get_var( "SHOW TABLES LIKE '$actions_table'" ) === $actions_table ) {
+			$db_status['pending_actions'] = $wpdb->get_var( "SELECT COUNT(*) FROM $actions_table WHERE status = 'pending'" );
+			$db_status['running_actions'] = $wpdb->get_var( "SELECT COUNT(*) FROM $actions_table WHERE status = 'running'" );
+			$db_status['completed_actions'] = $wpdb->get_var( "SELECT COUNT(*) FROM $actions_table WHERE status = 'complete'" );
+			$db_status['failed_actions'] = $wpdb->get_var( "SELECT COUNT(*) FROM $actions_table WHERE status = 'failed'" );
+			$db_status['canceled_actions'] = $wpdb->get_var( "SELECT COUNT(*) FROM $actions_table WHERE status = 'canceled'" );
+		}
+		
+		if ( $wpdb->get_var( "SHOW TABLES LIKE '$logs_table'" ) === $logs_table ) {
+			$db_status['log_entries'] = $wpdb->get_var( "SELECT COUNT(*) FROM $logs_table" );
+		}
+		
+		// Performance information
+		$memory_usage = memory_get_usage( true );
+		$peak_memory = memory_get_peak_usage( true );
+		
+		$this->log(
+			'System Status Report',
+			'info',
+			array(
+				'database_status' => $db_status,
+				'current_memory_usage' => $this->format_bytes( $memory_usage ),
+				'peak_memory_usage' => $this->format_bytes( $peak_memory ),
+				'memory_limit' => ini_get( 'memory_limit' ),
+				'concurrent_batches' => get_option( 'queue_optimizer_concurrent_batches', 3 ),
+				'debug_mode' => get_option( 'queue_optimizer_debug_mode', false ) ? 'Enabled' : 'Disabled',
+				'time_limit' => get_option( 'queue_optimizer_time_limit', 30 ),
 			)
 		);
 	}
@@ -291,6 +532,57 @@ class Queue_Optimizer_Debug_Manager {
 		$bytes /= pow( 1024, $pow );
 
 		return round( $bytes, 2 ) . ' ' . $units[ $pow ];
+	}
+
+	/**
+	 * Format action arguments for logging.
+	 *
+	 * @param array $args Action arguments.
+	 * @return array|string Formatted arguments.
+	 */
+	private function format_action_args( $args ) {
+		if ( ! is_array( $args ) ) {
+			return is_scalar( $args ) ? (string) $args : gettype( $args );
+		}
+
+		$formatted = array();
+		foreach ( $args as $key => $value ) {
+			if ( is_array( $value ) ) {
+				$count = count( $value );
+				$formatted[ $key ] = "[array($count)]";
+			} elseif ( is_object( $value ) ) {
+				$formatted[ $key ] = '[object:' . get_class( $value ) . ']';
+			} elseif ( is_resource( $value ) ) {
+				$formatted[ $key ] = '[resource]';
+			} elseif ( is_string( $value ) && strlen( $value ) > 50 ) {
+				$formatted[ $key ] = substr( $value, 0, 50 ) . '...';
+			} else {
+				$formatted[ $key ] = $value;
+			}
+		}
+
+		return $formatted;
+	}
+
+	/**
+	 * Format action result for logging.
+	 *
+	 * @param mixed $result Action result.
+	 * @return mixed Formatted result.
+	 */
+	private function format_result( $result ) {
+		if ( is_array( $result ) ) {
+			$count = count( $result );
+			return "[array($count)]";
+		} elseif ( is_object( $result ) ) {
+			return '[object:' . get_class( $result ) . ']';
+		} elseif ( is_resource( $result ) ) {
+			return '[resource]';
+		} elseif ( is_string( $result ) && strlen( $result ) > 100 ) {
+			return substr( $result, 0, 100 ) . '...';
+		}
+
+		return $result;
 	}
 
 	/**

@@ -142,6 +142,16 @@ class Queue_Optimizer_Settings_Page {
 
 		register_setting(
 			'queue_optimizer_settings',
+			'queue_optimizer_enable_concurrency_filter',
+			array(
+				'type'              => 'boolean',
+				'sanitize_callback' => 'rest_sanitize_boolean',
+				'default'           => true,
+			)
+		);
+
+		register_setting(
+			'queue_optimizer_settings',
 			'queue_optimizer_logging_enabled',
 			array(
 				'type'              => 'boolean',
@@ -201,6 +211,14 @@ class Queue_Optimizer_Settings_Page {
 			'queue_optimizer_concurrent_batches',
 			__( 'Concurrent Batches', '365i-queue-optimizer' ),
 			array( $this, 'render_concurrent_batches_field' ),
+			'queue_optimizer_settings',
+			'queue_optimizer_main_section'
+		);
+
+		add_settings_field(
+			'queue_optimizer_enable_concurrency_filter',
+			__( 'Apply Concurrent Batches to Action Scheduler', '365i-queue-optimizer' ),
+			array( $this, 'render_enable_concurrency_field' ),
 			'queue_optimizer_settings',
 			'queue_optimizer_main_section'
 		);
@@ -277,6 +295,14 @@ class Queue_Optimizer_Settings_Page {
 	public function render_concurrent_batches_field() {
 		$value = get_option( 'queue_optimizer_concurrent_batches', 3 );
 		include plugin_dir_path( __FILE__ ) . '../templates/settings/concurrent-batches-field.php';
+	}
+
+	/**
+	 * Render enable concurrency filter field.
+	 */
+	public function render_enable_concurrency_field() {
+		$value = get_option( 'queue_optimizer_enable_concurrency_filter', true );
+		include plugin_dir_path( __FILE__ ) . '../templates/settings/enable-concurrency-field.php';
 	}
 
 	/**
