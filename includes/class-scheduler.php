@@ -106,10 +106,10 @@ class Queue_Optimizer_Scheduler {
 		}
 		
 		// Apply our concurrent batches setting to Action Scheduler
-		// We use a setting to toggle this functionality
-		$enable_concurrent_batches = (bool) get_option( 'queue_optimizer_enable_concurrency_filter', true );
+		// We use a setting to toggle this functionality - DISABLED by default to avoid interference
+		$enable_concurrent_batches = (bool) get_option( 'queue_optimizer_enable_concurrency_filter', false );
 		if ( $enable_concurrent_batches ) {
-			add_filter( 'action_scheduler_queue_runner_concurrent_batches', array( $this, 'set_concurrent_batches' ), 999, 1 );
+			add_filter( 'action_scheduler_queue_runner_concurrent_batches', array( $this, 'set_concurrent_batches' ), 10, 1 );
 		}
 		
 		// Initialize tracking variables
