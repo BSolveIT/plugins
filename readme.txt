@@ -154,6 +154,47 @@ No. The plugin uses WordPress options for data storage, keeping your database cl
 
 == Changelog ==
 
+= 1.7.6 - 2025-06-15 =
+**Settings Page Architecture Fix - Template System Restructure + Dashboard Buttons Restoration**
+
+* **Settings Page Class Restructuring**
+  * Fixed "hanging" issue with [`admin/class-settings-page.php`](admin/class-settings-page.php) that was preventing proper template loading
+  * Restructured oversized settings class (362 lines) into modular template system following 300-line rule
+  * Fixed broken template paths pointing to non-existent [`includes/admin/templates/`](includes/admin/templates/) directory
+  * Updated render methods to use proper template paths in [`templates/settings/`](templates/settings/) subdirectory
+
+* **Complete Settings Template System**
+  * Created main [`templates/settings-page.php`](templates/settings-page.php) template with proper header/footer partial integration
+  * Individual field templates: [`time-limit-field.php`](templates/settings/time-limit-field.php), [`concurrent-batches-field.php`](templates/settings/concurrent-batches-field.php), [`logging-field.php`](templates/settings/logging-field.php), [`retention-days-field.php`](templates/settings/retention-days-field.php), [`image-engine-field.php`](templates/settings/image-engine-field.php)
+  * All field templates under 25 lines with proper escaping and validation
+  * Template data filtering with [`apply_filters('queue_optimizer_settings_data')`](admin/class-settings-page.php:192) for extensibility
+
+* **Dashboard Buttons Functionality Restoration**
+  * **CRITICAL FIX**: Restored missing dashboard buttons that were accidentally removed during template restructure
+  * Added working buttons: [`Run Now`](templates/settings-page.php:54), [`View Logs`](templates/settings-page.php:57), [`Clear Plugin Logs`](templates/settings-page.php:60), [`Clear Action Scheduler Logs`](templates/settings-page.php:63)
+  * Fixed button IDs to match existing JavaScript handlers: [`#run-queue-now`](templates/settings-page.php:54), [`#view-logs`](templates/settings-page.php:57), [`#clear-logs`](templates/settings-page.php:60), [`#clear-action-scheduler-logs`](templates/settings-page.php:63)
+  * Proper log display containers: [`#queue-optimizer-logs`](templates/settings-page.php:67), [`#log-display`](templates/settings-page.php:77) for JavaScript functionality
+  * Enhanced button styling with mobile-responsive design in [`assets/css/settings.css`](assets/css/settings.css)
+
+* **JavaScript & Asset Integration**
+  * Added [`wp_enqueue_script()`](admin/class-settings-page.php:98) for admin.js with proper jQuery dependency
+  * Localized script with [`queueOptimizerAdmin`](admin/class-settings-page.php:106) object including AJAX URL, nonce, and strings
+  * JavaScript handlers preserved from [`assets/js/admin.js`](assets/js/admin.js) for all button functionality
+  * Complete AJAX integration for queue management operations
+
+* **Asset Management & Styling**
+  * Added proper [`enqueue_assets()`](admin/class-settings-page.php:85) method with page-specific CSS and JS loading
+  * Created dedicated [`assets/css/settings.css`](assets/css/settings.css) with responsive two-panel layout
+  * Settings panel and status panel design with proper WordPress component styling
+  * Mobile-responsive design with flexbox layout and proper breakpoints at 782px
+
+* **Settings Page Functionality Restoration**
+  * WordPress Settings API integration maintained with proper [`register_setting()`](admin/class-settings-page.php:79) calls
+  * Field validation and sanitization methods preserved with proper error handling
+  * Settings form submission and nonce verification working correctly
+  * Real-time queue status display in sidebar panel with pending/processing/completed/failed counts
+  * Dashboard functionality fully restored with working Run Now, View Logs, and Clear Logs buttons
+
 = 1.7.5 - 2025-06-15 =
 **Architecture Cleanup - Orphaned Files Removal**
 

@@ -56,6 +56,7 @@ class Queue_Optimizer_Settings_Page {
 	private function init() {
 		add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 	}
 
 	/**
@@ -68,6 +69,49 @@ class Queue_Optimizer_Settings_Page {
 			'manage_options',
 			'queue-optimizer',
 			array( $this, 'render_settings_page' )
+		);
+	}
+
+	/**
+	 * Enqueue CSS and JS assets for the settings page.
+	 *
+	 * @param string $hook_suffix The current admin page hook suffix.
+	 */
+	public function enqueue_assets( $hook_suffix ) {
+		// Only load on our settings page.
+		if ( $this->page_hook !== $hook_suffix ) {
+			return;
+		}
+
+		// Enqueue settings CSS.
+		wp_enqueue_style(
+			'queue-optimizer-settings',
+			plugin_dir_url( __FILE__ ) . '../assets/css/settings.css',
+			array(),
+			filemtime( plugin_dir_path( __FILE__ ) . '../assets/css/settings.css' )
+		);
+
+		// Enqueue admin JavaScript.
+		wp_enqueue_script(
+			'queue-optimizer-admin',
+			plugin_dir_url( __FILE__ ) . '../assets/js/admin.js',
+			array( 'jquery' ),
+			filemtime( plugin_dir_path( __FILE__ ) . '../assets/js/admin.js' ),
+			true
+		);
+
+		// Localize script for AJAX.
+		wp_localize_script(
+			'queue-optimizer-admin',
+			'queueOptimizerAdmin',
+			array(
+				'ajax_url' => admin_url( 'admin-ajax.php' ),
+				'nonce'    => wp_create_nonce( 'queue_optimizer_admin_nonce' ),
+				'strings'  => array(
+					'processing' => __( 'Processing...', '365i-queue-optimizer' ),
+					'error'      => __( 'An error occurred.', '365i-queue-optimizer' ),
+				),
+			)
 		);
 	}
 
@@ -184,16 +228,14 @@ class Queue_Optimizer_Settings_Page {
 		$scheduler = Queue_Optimizer_Scheduler::get_instance();
 		$status = $scheduler->get_queue_status();
 		
-		// Include header template.
-		require_once plugin_dir_path( __FILE__ ) . '../includes/admin/templates/header.php';
+		// Pass data to template.
+		$template_data = apply_filters( 'queue_optimizer_settings_data', array(
+			'status' => $status,
+			'page_title' => __( '365i Queue Optimizer Settings', '365i-queue-optimizer' ),
+		) );
 		
-		// Include settings form template.
-		require_once plugin_dir_path( __FILE__ ) . '../includes/admin/templates/settings-form.php';
-		
-		// Include dashboard panel template.
-		require_once plugin_dir_path( __FILE__ ) . '../includes/admin/templates/dashboard-panel.php';
-		
-		echo '</div>'; // Close the wrap div from header.php.
+		// Include settings page template.
+		include plugin_dir_path( __FILE__ ) . '../templates/settings-page.php';
 	}
 
 	/**
@@ -207,35 +249,40 @@ class Queue_Optimizer_Settings_Page {
 	 * Render time limit field.
 	 */
 	public function render_time_limit_field() {
-		require_once plugin_dir_path( __FILE__ ) . '../includes/admin/templates/render-time-limit-field.php';
+		$value = get_option( 'queue_optimizer_time_limit', 30 );
+		include plugin_dir_path( __FILE__ ) . '../templates/settings/time-limit-field.php';
 	}
 
 	/**
 	 * Render concurrent batches field.
 	 */
 	public function render_concurrent_batches_field() {
-		require_once plugin_dir_path( __FILE__ ) . '../includes/admin/templates/render-concurrent-batches-field.php';
+		$value = get_option( 'queue_optimizer_concurrent_batches', 3 );
+		include plugin_dir_path( __FILE__ ) . '../templates/settings/concurrent-batches-field.php';
 	}
 
 	/**
 	 * Render logging field.
 	 */
 	public function render_logging_field() {
-		require_once plugin_dir_path( __FILE__ ) . '../includes/admin/templates/render-logging-field.php';
+		$value = get_option( 'queue_optimizer_logging_enabled', false );
+		include plugin_dir_path( __FILE__ ) . '../templates/settings/logging-field.php';
 	}
 
 	/**
 	 * Render retention days field.
 	 */
 	public function render_retention_days_field() {
-		require_once plugin_dir_path( __FILE__ ) . '../includes/admin/templates/render-retention-days-field.php';
+		$value = get_option( 'queue_optimizer_log_retention_days', 7 );
+		include plugin_dir_path( __FILE__ ) . '../templates/settings/retention-days-field.php';
 	}
 
 	/**
 	 * Render image engine field.
 	 */
 	public function render_image_engine_field() {
-		require_once plugin_dir_path( __FILE__ ) . '../includes/admin/templates/render-image-engine-field.php';
+		$value = get_option( '365i_qo_image_engine', 'imagick' );
+		include plugin_dir_path( __FILE__ ) . '../templates/settings/image-engine-field.php';
 	}
 
 	/**

@@ -1,0 +1,123 @@
+/**
+ * Settings Page Styles
+ *
+ * @package QueueOptimizer
+ */
+
+.queue-optimizer-settings-container {
+	display: flex;
+	gap: 20px;
+	margin-top: 20px;
+}
+
+.settings-panel {
+	flex: 2;
+	background: #fff;
+	padding: 20px;
+	border: 1px solid #ccd0d4;
+	border-radius: 4px;
+	box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.status-panel {
+	flex: 1;
+	background: #fff;
+	padding: 20px;
+	border: 1px solid #ccd0d4;
+	border-radius: 4px;
+	box-shadow: 0 1px 1px rgba(0,0,0,.04);
+	max-height: 300px;
+}
+
+.status-panel h2 {
+	margin-top: 0;
+	margin-bottom: 15px;
+	font-size: 16px;
+	font-weight: 600;
+	color: #23282d;
+}
+
+.status-info p {
+	margin: 10px 0;
+	font-size: 14px;
+	line-height: 1.4;
+}
+
+.status-info strong {
+	color: #23282d;
+	font-weight: 600;
+}
+
+.form-table th {
+	width: 200px;
+	font-weight: 600;
+}
+
+.form-table td {
+	padding: 15px 10px;
+}
+
+.form-table input[type="number"],
+.form-table select {
+	width: 100px;
+}
+
+.form-table .description {
+	margin-top: 5px;
+	color: #646970;
+	font-style: italic;
+}
+
+.dashboard-buttons {
+	border-top: 1px solid #dcdcde;
+	padding-top: 15px;
+	margin-top: 15px;
+}
+
+.dashboard-buttons .button {
+	margin-right: 8px;
+	margin-bottom: 5px;
+}
+
+.dashboard-buttons .button:last-child {
+	margin-right: 0;
+}
+
+#queue-optimizer-logs {
+	background: #f9f9f9;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	padding: 15px;
+	margin-top: 15px;
+}
+
+#log-display {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 3px;
+	padding: 10px;
+	font-size: 12px;
+	font-family: Consolas, Monaco, 'Courier New', monospace;
+	white-space: pre-wrap;
+	max-height: 300px;
+	overflow-y: auto;
+	line-height: 1.4;
+}
+
+@media screen and (max-width: 782px) {
+	.queue-optimizer-settings-container {
+		flex-direction: column;
+	}
+	
+	.settings-panel,
+	.status-panel {
+		flex: none;
+	}
+	
+	.dashboard-buttons .button {
+		display: block;
+		width: 100%;
+		margin-right: 0;
+		margin-bottom: 8px;
+	}
+}
