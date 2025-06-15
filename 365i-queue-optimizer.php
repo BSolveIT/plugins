@@ -2,8 +2,8 @@
 /**
  * Plugin Name: 365i Queue Optimizer
  * Plugin URI: https://www.365i.co.uk/
- * Description: A lightweight WordPress plugin to manage and optimize background queue processing with native WP scheduling.
- * Version:           1.8.1
+ * Description: A lightweight WordPress plugin to optimize ActionScheduler queue processing for faster image optimization and background tasks.
+ * Version: 1.8.2
  * Author: 365i
  * Author URI: https://www.365i.co.uk/
  * Text Domain: 365i-queue-optimizer
@@ -21,27 +21,28 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants.
-define( 'QUEUE_OPTIMIZER_VERSION', '1.8.1' );
+define( 'QUEUE_OPTIMIZER_VERSION', '1.8.2' );
 define( 'QUEUE_OPTIMIZER_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'QUEUE_OPTIMIZER_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'QUEUE_OPTIMIZER_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
+define( 'QUEUE_OPTIMIZER_MIN_WP_VERSION', '5.8' );
 
 /**
- * Main plugin class.
+ * Main plugin class - simplified approach based on user's working plugin.
  */
-class Queue_Optimizer_Plugin {
+class Queue_Optimizer_Main {
 
 	/**
 	 * Single instance of the plugin.
 	 *
-	 * @var Queue_Optimizer_Plugin
+	 * @var Queue_Optimizer_Main
 	 */
 	private static $instance = null;
 
 	/**
 	 * Get single instance of the plugin.
 	 *
-	 * @return Queue_Optimizer_Plugin
+	 * @return Queue_Optimizer_Main
 	 */
 	public static function get_instance() {
 		if ( null === self::$instance ) {
@@ -54,296 +55,134 @@ class Queue_Optimizer_Plugin {
 	 * Constructor.
 	 */
 	private function __construct() {
-		$this->init();
+		// Check WordPress version compatibility.
+		if ( version_compare( $GLOBALS['wp_version'], QUEUE_OPTIMIZER_MIN_WP_VERSION, '<' ) ) {
+			add_action( 'admin_notices', array( $this, 'display_version_notice' ) );
+			return;
+		}
+
+		$this->init_hooks();
 	}
 
 	/**
-	 * Initialize the plugin.
+	 * Initialize hooks - simplified approach.
 	 */
-	private function init() {
-		// Load plugin textdomain.
-		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
-
-		// Include required files.
-		$this->include_files();
-
-		// Initialize components.
-		add_action( 'init', array( $this, 'init_components' ) );
-
-		// Activation and deactivation hooks.
-		register_activation_hook( __FILE__, array( $this, 'activate' ) );
-		register_deactivation_hook( __FILE__, array( $this, 'deactivate' ) );
-		
-		// Uninstall hook.
-		register_uninstall_hook( __FILE__, array( 'Queue_Optimizer_Plugin', 'uninstall' ) );
-
-		// Enqueue admin assets.
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
-
-		// Apply image processor preference.
-		add_action( 'init', array( $this, 'set_image_processor_preference' ) );
-	}
-
-	/**
-	 * Load plugin textdomain.
-	 */
-	public function load_textdomain() {
-		load_plugin_textdomain(
-			'365i-queue-optimizer',
-			false,
-			dirname( QUEUE_OPTIMIZER_PLUGIN_BASENAME ) . '/languages'
-		);
-	}
-
-	/**
-	 * Include required files.
-	 */
-	private function include_files() {
-		require_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'includes/class-scheduler.php';
-		
-		// Include Debug Manager for all contexts (admin and frontend).
-		require_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'src/Debug_Manager.php';
-		
-		if ( is_admin() ) {
+	private function init_hooks() {
+		// Load admin settings page only if needed.
+		if ( is_admin() && current_user_can( 'manage_options' ) ) {
 			require_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'admin/class-settings-page.php';
-			require_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'src/System_Info_Page.php';
-			require_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'src/Dashboard_Page.php';
-			require_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'src/Admin_Menu.php';
 		}
+
+		// Apply the three essential ActionScheduler optimization filters.
+		// This is the core functionality that makes image processing fast.
+		add_filter( 'action_scheduler_queue_runner_time_limit', array( $this, 'set_time_limit' ) );
+		add_filter( 'action_scheduler_queue_runner_concurrent_batches', array( $this, 'set_concurrent_batches' ) );
+		add_filter( 'wp_image_editors', array( $this, 'set_image_editor' ) );
+
+		// Plugin activation/uninstall hooks.
+		register_activation_hook( __FILE__, array( __CLASS__, 'activate' ) );
+		register_uninstall_hook( __FILE__, array( __CLASS__, 'uninstall' ) );
 	}
 
 	/**
-	 * Initialize plugin components.
+	 * Display WordPress version compatibility notice.
 	 */
-	public function init_components() {
-		// Initialize scheduler.
-		Queue_Optimizer_Scheduler::get_instance();
+	public function display_version_notice() {
+		echo '<div class="error"><p>' .
+			sprintf(
+				esc_html__( '365i Queue Optimizer requires WordPress version %s or higher.', '365i-queue-optimizer' ),
+				QUEUE_OPTIMIZER_MIN_WP_VERSION
+			) .
+			'</p></div>';
+	}
 
-		// Initialize debug manager (for all contexts).
-		Queue_Optimizer_Debug_Manager::get_instance();
+	/**
+	 * Set ActionScheduler time limit.
+	 *
+	 * @param int $time_limit The default time limit.
+	 * @return int Modified time limit.
+	 */
+	public function set_time_limit( $time_limit ) {
+		$value = get_option( 'queue_optimizer_time_limit', 60 );
+		return $this->validate_int_option( $value, 10, 300, 60 );
+	}
 
-		// Initialize admin components.
-		if ( is_admin() ) {
-			Queue_Optimizer_Admin_Menu::get_instance();
-			Queue_Optimizer_Settings_Page::get_instance();
-			Queue_Optimizer_Dashboard_Page::get_instance();
+	/**
+	 * Set ActionScheduler concurrent batches.
+	 *
+	 * @param int $batches The default number of concurrent batches.
+	 * @return int Modified number of concurrent batches.
+	 */
+	public function set_concurrent_batches( $batches ) {
+		$value = get_option( 'queue_optimizer_concurrent_batches', 4 );
+		return $this->validate_int_option( $value, 1, 10, 4 );
+	}
+
+	/**
+	 * Set image editor priority.
+	 *
+	 * @param array $editors Array of image editor class names.
+	 * @return array Modified array with preferred editor prioritized.
+	 */
+	public function set_image_editor( $editors ) {
+		$allowed = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
+		$preferred = get_option( 'queue_optimizer_image_engine', 'WP_Image_Editor_GD' );
+		
+		if ( ! in_array( $preferred, $allowed, true ) ) {
+			$preferred = 'WP_Image_Editor_GD';
 		}
+		
+		// Return array with preferred editor first, others after.
+		return array_merge( array( $preferred ), array_diff( $editors, array( $preferred ) ) );
+	}
+
+	/**
+	 * Validate integer option within range.
+	 *
+	 * @param mixed $value   The value to validate.
+	 * @param int   $min     Minimum allowed value.
+	 * @param int   $max     Maximum allowed value.
+	 * @param int   $default Default value if validation fails.
+	 * @return int Validated value.
+	 */
+	private function validate_int_option( $value, $min, $max, $default ) {
+		$value = intval( $value );
+		return ( $value < $min || $value > $max ) ? $default : $value;
 	}
 
 	/**
 	 * Plugin activation.
 	 */
-	public function activate() {
+	public static function activate() {
 		// Set default options.
-		$default_options = array(
-			'time_limit'        => 60,
-			'concurrent_batches' => 4,
-			'logging_enabled'   => true,
-			'log_retention_days' => 7,
-		);
-
-		foreach ( $default_options as $option => $value ) {
-			add_option( 'queue_optimizer_' . $option, $value );
-		}
-
-		// Initialize last run timestamp.
-		add_option( 'queue_optimizer_last_run', 0 );
-
-		// Schedule the main queue processing event.
-		if ( ! wp_next_scheduled( 'queue_optimizer_process_queue' ) ) {
-			wp_schedule_event( time(), 'hourly', 'queue_optimizer_process_queue' );
-		}
-
-		// Flush rewrite rules.
-		flush_rewrite_rules();
-	}
-
-	/**
-	 * Plugin deactivation.
-	 */
-	public function deactivate() {
-		// Clear scheduled events.
-		wp_clear_scheduled_hook( 'queue_optimizer_process_queue' );
+		add_option( 'queue_optimizer_time_limit', 60 );
+		add_option( 'queue_optimizer_concurrent_batches', 4 );
+		add_option( 'queue_optimizer_image_engine', 'WP_Image_Editor_GD' );
+		add_option( 'queue_optimizer_activated', time() );
 		
-		// Flush rewrite rules.
-		flush_rewrite_rules();
+		// Clear any caches.
+		wp_cache_flush();
 	}
 
 	/**
 	 * Plugin uninstall.
 	 */
 	public static function uninstall() {
-		// Include and run uninstall script.
-		include_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'includes/uninstall.php';
-	}
-
-	/**
-	 * Set image processor preference to override WordPress default selection.
-	 */
-	public function set_image_processor_preference() {
-		$preferred_engine = get_option( '365i_qo_image_engine', 'gd' );
+		// Clean up options.
+		delete_option( 'queue_optimizer_time_limit' );
+		delete_option( 'queue_optimizer_concurrent_batches' );
+		delete_option( 'queue_optimizer_image_engine' );
+		delete_option( 'queue_optimizer_activated' );
 		
-		if ( 'gd' === $preferred_engine ) {
-			// Force GD Library usage.
-			add_filter( 'wp_image_editors', array( $this, 'force_gd_image_editor' ), 999 );
-		} elseif ( 'imagick' === $preferred_engine ) {
-			// Force ImageMagick usage (if available).
-			add_filter( 'wp_image_editors', array( $this, 'force_imagick_image_editor' ), 999 );
-		}
-	}
-
-	/**
-	 * Force WordPress to use GD Library for image processing.
-	 *
-	 * @param array $editors Array of image editor class names.
-	 * @return array Modified array with GD editor prioritized.
-	 */
-	public function force_gd_image_editor( $editors ) {
-		return array( 'WP_Image_Editor_GD' );
-	}
-
-	/**
-	 * Force WordPress to use ImageMagick for image processing.
-	 *
-	 * @param array $editors Array of image editor class names.
-	 * @return array Modified array with ImageMagick editor prioritized.
-	 */
-	public function force_imagick_image_editor( $editors ) {
-		// Only use ImageMagick if it's available.
-		if ( class_exists( 'Imagick' ) ) {
-			return array( 'WP_Image_Editor_Imagick' );
-		}
-		
-		// Fallback to default editors if ImageMagick is not available.
-		return $editors;
-	}
-
-	/**
-	 * Enqueue admin assets.
-	 *
-	 * @param string $hook_suffix Current admin page hook suffix.
-	 */
-	public function enqueue_admin_assets( $hook_suffix ) {
-		$plugin_pages = array( '365i-queue-optimizer', '365i-system-info', 'queue-optimizer' );
-		
-		// Check if we're on a plugin page
-		$is_plugin_page = false;
-		if ( isset( $_GET['page'] ) && in_array( $_GET['page'], $plugin_pages, true ) ) {
-			$is_plugin_page = true;
-		}
-		
-		// Also check hook suffix for tools page
-		if ( strpos( $hook_suffix, 'tools_page_queue-optimizer' ) !== false ) {
-			$is_plugin_page = true;
-		}
-		
-		if ( ! $is_plugin_page ) {
-			return;
-		}
-
-		// Enqueue shared admin styles and scripts.
-		wp_enqueue_style(
-			'queue-optimizer-admin',
-			QUEUE_OPTIMIZER_PLUGIN_URL . 'assets/css/admin.css',
-			array(),
-			QUEUE_OPTIMIZER_VERSION
-		);
-
-		wp_enqueue_script(
-			'queue-optimizer-admin',
-			QUEUE_OPTIMIZER_PLUGIN_URL . 'assets/js/admin.js',
-			array( 'jquery' ),
-			QUEUE_OPTIMIZER_VERSION,
-			true
-		);
-
-		// Localize script for AJAX.
-		wp_localize_script(
-			'queue-optimizer-admin',
-			'queueOptimizerAdmin',
-			array(
-				'ajax_url' => admin_url( 'admin-ajax.php' ),
-				'nonce'    => wp_create_nonce( 'queue_optimizer_admin_nonce' ),
-				'loading_text' => __( 'Processing...', '365i-queue-optimizer' ),
-				'strings'  => array(
-					'processing' => __( 'Processing...', '365i-queue-optimizer' ),
-					'error'      => __( 'Error occurred. Please try again.', '365i-queue-optimizer' ),
-					'success'    => __( 'Operation completed successfully.', '365i-queue-optimizer' ),
-				),
-			)
-		);
-
-		// Enqueue Dashboard page specific assets.
-		if ( strpos( $hook_suffix, '365i-queue-optimizer' ) !== false && strpos( $hook_suffix, 'system-info' ) === false ) {
-			wp_enqueue_style(
-				'queue-optimizer-dashboard',
-				QUEUE_OPTIMIZER_PLUGIN_URL . 'assets/css/dashboard.css',
-				array( 'queue-optimizer-admin' ),
-				QUEUE_OPTIMIZER_VERSION
-			);
-
-			wp_enqueue_script(
-				'queue-optimizer-dashboard',
-				QUEUE_OPTIMIZER_PLUGIN_URL . 'assets/js/dashboard.js',
-				array( 'jquery', 'postbox', 'queue-optimizer-admin' ),
-				QUEUE_OPTIMIZER_VERSION,
-				true
-			);
-
-			// Localize dashboard script with same variables
-			wp_localize_script(
-				'queue-optimizer-dashboard',
-				'queueOptimizerAdmin',
-				array(
-					'ajax_url' => admin_url( 'admin-ajax.php' ),
-					'nonce'    => wp_create_nonce( 'queue_optimizer_admin_nonce' ),
-					'loading_text' => __( 'Processing...', '365i-queue-optimizer' ),
-					'strings'  => array(
-						'processing' => __( 'Processing...', '365i-queue-optimizer' ),
-						'error'      => __( 'Error occurred. Please try again.', '365i-queue-optimizer' ),
-						'success'    => __( 'Operation completed successfully.', '365i-queue-optimizer' ),
-					),
-				)
-			);
-		}
-
-
-		// Enqueue System Info page specific assets.
-		if ( strpos( $hook_suffix, 'system-info' ) !== false ) {
-			wp_enqueue_style(
-				'queue-optimizer-system-info',
-				QUEUE_OPTIMIZER_PLUGIN_URL . 'assets/css/system-info.css',
-				array( 'queue-optimizer-admin' ),
-				QUEUE_OPTIMIZER_VERSION
-			);
-
-			wp_enqueue_script(
-				'queue-optimizer-system-info',
-				QUEUE_OPTIMIZER_PLUGIN_URL . 'assets/js/system-info.js',
-				array( 'jquery', 'postbox', 'queue-optimizer-admin' ),
-				QUEUE_OPTIMIZER_VERSION,
-				true
-			);
-
-			// Localize System Info script.
-			wp_localize_script(
-				'queue-optimizer-system-info',
-				'queueOptimizerSystemInfo',
-				array(
-					'ajax_url' => admin_url( 'admin-ajax.php' ),
-					'nonce'    => wp_create_nonce( 'queue_optimizer_system_info_nonce' ),
-					'strings'  => array(
-						'copied'        => __( 'Copied to clipboard!', '365i-queue-optimizer' ),
-						'copy_error'    => __( 'Failed to copy to clipboard.', '365i-queue-optimizer' ),
-						'exporting'     => __( 'Exporting...', '365i-queue-optimizer' ),
-						'export_error'  => __( 'Export failed. Please try again.', '365i-queue-optimizer' ),
-						'no_results'    => __( 'No Results Found', '365i-queue-optimizer' ),
-					),
-				)
-			);
-		}
+		// Clean up any legacy options.
+		delete_option( 'queue_optimizer_logging_enabled' );
+		delete_option( 'queue_optimizer_log_retention_days' );
+		delete_option( 'queue_optimizer_last_run' );
+		delete_option( 'queue_optimizer_debug_mode' );
+		delete_option( 'queue_optimizer_enable_concurrency_filter' );
+		delete_option( '365i_qo_image_engine' );
 	}
 }
 
 // Initialize the plugin.
-Queue_Optimizer_Plugin::get_instance();
+Queue_Optimizer_Main::get_instance();

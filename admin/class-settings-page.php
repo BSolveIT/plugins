@@ -1,8 +1,8 @@
 <?php
 /**
- * Queue Optimizer Settings Page Class
+ * Settings Page Class
  *
- * Handles the admin settings page and dashboard.
+ * Handles the admin settings interface for Queue Optimizer.
  *
  * @package QueueOptimizer
  */
@@ -23,13 +23,6 @@ class Queue_Optimizer_Settings_Page {
 	 * @var Queue_Optimizer_Settings_Page
 	 */
 	private static $instance = null;
-
-	/**
-	 * Page hook suffix.
-	 *
-	 * @var string
-	 */
-	private $page_hook;
 
 	/**
 	 * Get single instance of the settings page.
@@ -63,7 +56,7 @@ class Queue_Optimizer_Settings_Page {
 	 * Add admin menu page.
 	 */
 	public function add_admin_menu() {
-		$this->page_hook = add_management_page(
+		add_management_page(
 			__( '365i Queue Optimizer', '365i-queue-optimizer' ),
 			__( 'Queue Optimizer', '365i-queue-optimizer' ),
 			'manage_options',
@@ -73,116 +66,31 @@ class Queue_Optimizer_Settings_Page {
 	}
 
 	/**
-	 * Enqueue CSS and JS assets for the settings page.
-	 *
-	 * @param string $hook_suffix The current admin page hook suffix.
-	 */
-	public function enqueue_assets( $hook_suffix ) {
-		// Only load on our settings page.
-		if ( $this->page_hook !== $hook_suffix ) {
-			return;
-		}
-
-		// Enqueue settings CSS.
-		wp_enqueue_style(
-			'queue-optimizer-settings',
-			plugin_dir_url( __FILE__ ) . '../assets/css/settings.css',
-			array(),
-			filemtime( plugin_dir_path( __FILE__ ) . '../assets/css/settings.css' )
-		);
-
-		// Enqueue admin JavaScript.
-		wp_enqueue_script(
-			'queue-optimizer-admin',
-			plugin_dir_url( __FILE__ ) . '../assets/js/admin.js',
-			array( 'jquery' ),
-			filemtime( plugin_dir_path( __FILE__ ) . '../assets/js/admin.js' ),
-			true
-		);
-
-		// Localize script for AJAX.
-		wp_localize_script(
-			'queue-optimizer-admin',
-			'queueOptimizerAdmin',
-			array(
-				'ajax_url' => admin_url( 'admin-ajax.php' ),
-				'nonce'    => wp_create_nonce( 'queue_optimizer_admin_nonce' ),
-				'strings'  => array(
-					'processing' => __( 'Processing...', '365i-queue-optimizer' ),
-					'error'      => __( 'An error occurred.', '365i-queue-optimizer' ),
-				),
-			)
-		);
-	}
-
-	/**
 	 * Register plugin settings.
 	 */
 	public function register_settings() {
 		// Register settings.
-		register_setting(
-			'queue_optimizer_settings',
-			'queue_optimizer_time_limit',
-			array(
-				'type'              => 'integer',
-				'sanitize_callback' => array( $this, 'sanitize_time_limit' ),
-				'default'           => 60,
-			)
-		);
+		register_setting( 'queue_optimizer_settings', 'queue_optimizer_time_limit', array(
+			'type'              => 'integer',
+			'sanitize_callback' => array( $this, 'sanitize_time_limit' ),
+			'default'           => 60,
+		) );
 
-		register_setting(
-			'queue_optimizer_settings',
-			'queue_optimizer_concurrent_batches',
-			array(
-				'type'              => 'integer',
-				'sanitize_callback' => array( $this, 'sanitize_concurrent_batches' ),
-				'default'           => 4,
-			)
-		);
+		register_setting( 'queue_optimizer_settings', 'queue_optimizer_concurrent_batches', array(
+			'type'              => 'integer',
+			'sanitize_callback' => array( $this, 'sanitize_concurrent_batches' ),
+			'default'           => 4,
+		) );
 
-		register_setting(
-			'queue_optimizer_settings',
-			'queue_optimizer_logging_enabled',
-			array(
-				'type'              => 'boolean',
-				'sanitize_callback' => 'rest_sanitize_boolean',
-				'default'           => false,
-			)
-		);
-
-		register_setting(
-			'queue_optimizer_settings',
-			'365i_qo_image_engine',
-			array(
-				'type'              => 'string',
-				'sanitize_callback' => array( $this, 'sanitize_image_engine' ),
-				'default'           => 'gd',
-			)
-		);
-
-		register_setting(
-			'queue_optimizer_settings',
-			'queue_optimizer_log_retention_days',
-			array(
-				'type'              => 'integer',
-				'sanitize_callback' => array( $this, 'sanitize_retention_days' ),
-				'default'           => 7,
-			)
-		);
-
-		register_setting(
-			'queue_optimizer_settings',
-			'queue_optimizer_debug_mode',
-			array(
-				'type'              => 'boolean',
-				'sanitize_callback' => 'rest_sanitize_boolean',
-				'default'           => false,
-			)
-		);
+		register_setting( 'queue_optimizer_settings', 'queue_optimizer_image_engine', array(
+			'type'              => 'string',
+			'sanitize_callback' => array( $this, 'sanitize_image_engine' ),
+			'default'           => 'WP_Image_Editor_GD',
+		) );
 
 		// Add settings section.
 		add_settings_section(
-			'queue_optimizer_main_section',
+			'queue_optimizer_main',
 			__( 'ActionScheduler Optimization Settings', '365i-queue-optimizer' ),
 			array( $this, 'render_section_description' ),
 			'queue_optimizer_settings'
@@ -191,76 +99,114 @@ class Queue_Optimizer_Settings_Page {
 		// Add settings fields.
 		add_settings_field(
 			'queue_optimizer_time_limit',
-			__( 'Queue Processing Time Limit (seconds)', '365i-queue-optimizer' ),
+			__( 'Time Limit', '365i-queue-optimizer' ),
 			array( $this, 'render_time_limit_field' ),
 			'queue_optimizer_settings',
-			'queue_optimizer_main_section'
+			'queue_optimizer_main'
 		);
 
 		add_settings_field(
 			'queue_optimizer_concurrent_batches',
-			__( 'Concurrent Processing Batches', '365i-queue-optimizer' ),
+			__( 'Concurrent Batches', '365i-queue-optimizer' ),
 			array( $this, 'render_concurrent_batches_field' ),
 			'queue_optimizer_settings',
-			'queue_optimizer_main_section'
+			'queue_optimizer_main'
 		);
 
 		add_settings_field(
-			'queue_optimizer_logging_enabled',
-			__( 'Enable Logging', '365i-queue-optimizer' ),
-			array( $this, 'render_logging_field' ),
-			'queue_optimizer_settings',
-			'queue_optimizer_main_section'
-		);
-
-		add_settings_field(
-			'queue_optimizer_log_retention_days',
-			__( 'Retention Period (days)', '365i-queue-optimizer' ),
-			array( $this, 'render_retention_days_field' ),
-			'queue_optimizer_settings',
-			'queue_optimizer_main_section'
-		);
-
-		add_settings_field(
-			'365i_qo_image_engine',
+			'queue_optimizer_image_engine',
 			__( 'Image Processing Engine', '365i-queue-optimizer' ),
 			array( $this, 'render_image_engine_field' ),
 			'queue_optimizer_settings',
-			'queue_optimizer_main_section'
-		);
-
-		add_settings_field(
-			'queue_optimizer_debug_mode',
-			__( 'Debug Mode', '365i-queue-optimizer' ),
-			array( $this, 'render_debug_mode_field' ),
-			'queue_optimizer_settings',
-			'queue_optimizer_main_section'
+			'queue_optimizer_main'
 		);
 	}
 
 	/**
-	 * Render the main settings page.
+	 * Enqueue admin assets.
+	 *
+	 * @param string $hook_suffix Current admin page hook suffix.
+	 */
+	public function enqueue_assets( $hook_suffix ) {
+		if ( 'tools_page_queue-optimizer' !== $hook_suffix ) {
+			return;
+		}
+
+		wp_enqueue_style(
+			'queue-optimizer-admin',
+			QUEUE_OPTIMIZER_PLUGIN_URL . 'assets/css/admin.css',
+			array(),
+			QUEUE_OPTIMIZER_VERSION
+		);
+	}
+
+	/**
+	 * Render the settings page.
 	 */
 	public function render_settings_page() {
-		// Get queue status for dashboard.
-		$scheduler = Queue_Optimizer_Scheduler::get_instance();
-		$status = $scheduler->get_queue_status();
-		
-		// Pass data to template.
-		$template_data = apply_filters( 'queue_optimizer_settings_data', array(
-			'status' => $status,
-			'page_title' => __( '365i Queue Optimizer Settings', '365i-queue-optimizer' ),
-		) );
-		
-		// Include settings page template.
-		include plugin_dir_path( __FILE__ ) . '../templates/settings-page.php';
+		?>
+		<div class="wrap">
+			<h1><?php esc_html_e( '365i Queue Optimizer Settings', '365i-queue-optimizer' ); ?></h1>
+			
+			<div class="notice notice-info">
+				<p><strong><?php esc_html_e( 'Simple & Fast', '365i-queue-optimizer' ); ?></strong></p>
+				<p><?php esc_html_e( 'This plugin applies three essential optimizations to ActionScheduler for faster image processing and background tasks. No complex configuration needed - just set your preferences below.', '365i-queue-optimizer' ); ?></p>
+			</div>
+
+			<form method="post" action="options.php">
+				<?php
+				settings_fields( 'queue_optimizer_settings' );
+				do_settings_sections( 'queue_optimizer_settings' );
+				submit_button();
+				?>
+			</form>
+
+			<div class="card">
+				<h2><?php esc_html_e( 'Current Status', '365i-queue-optimizer' ); ?></h2>
+				<table class="widefat striped">
+					<tbody>
+						<tr>
+							<td><strong><?php esc_html_e( 'Time Limit', '365i-queue-optimizer' ); ?></strong></td>
+							<td><?php echo esc_html( get_option( 'queue_optimizer_time_limit', 60 ) ); ?> <?php esc_html_e( 'seconds', '365i-queue-optimizer' ); ?></td>
+						</tr>
+						<tr>
+							<td><strong><?php esc_html_e( 'Concurrent Batches', '365i-queue-optimizer' ); ?></strong></td>
+							<td><?php echo esc_html( get_option( 'queue_optimizer_concurrent_batches', 4 ) ); ?></td>
+						</tr>
+						<tr>
+							<td><strong><?php esc_html_e( 'Image Engine', '365i-queue-optimizer' ); ?></strong></td>
+							<td><?php echo esc_html( str_replace( 'WP_Image_Editor_', '', get_option( 'queue_optimizer_image_engine', 'WP_Image_Editor_GD' ) ) ); ?></td>
+						</tr>
+						<tr>
+							<td><strong><?php esc_html_e( 'ActionScheduler Status', '365i-queue-optimizer' ); ?></strong></td>
+							<td>
+								<?php if ( class_exists( 'ActionScheduler' ) ) : ?>
+									<span style="color: green;">✓ <?php esc_html_e( 'Active & Optimized', '365i-queue-optimizer' ); ?></span>
+								<?php else : ?>
+									<span style="color: orange;">⚠ <?php esc_html_e( 'ActionScheduler not detected', '365i-queue-optimizer' ); ?></span>
+								<?php endif; ?>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				
+				<?php if ( class_exists( 'ActionScheduler' ) ) : ?>
+					<p style="margin-top: 15px;">
+						<a href="<?php echo esc_url( admin_url( 'tools.php?page=action-scheduler' ) ); ?>" class="button button-secondary">
+							<?php esc_html_e( 'View ActionScheduler Status', '365i-queue-optimizer' ); ?>
+						</a>
+					</p>
+				<?php endif; ?>
+			</div>
+		</div>
+		<?php
 	}
 
 	/**
 	 * Render section description.
 	 */
 	public function render_section_description() {
-		echo '<p>' . esc_html__( 'These settings optimize ActionScheduler performance for image processing and other background tasks. All optimizations are applied automatically - no need to enable/disable individual filters.', '365i-queue-optimizer' ) . '</p>';
+		echo '<p>' . esc_html__( 'Configure ActionScheduler optimization settings to improve background task processing speed.', '365i-queue-optimizer' ) . '</p>';
 	}
 
 	/**
@@ -268,7 +214,18 @@ class Queue_Optimizer_Settings_Page {
 	 */
 	public function render_time_limit_field() {
 		$value = get_option( 'queue_optimizer_time_limit', 60 );
-		include plugin_dir_path( __FILE__ ) . '../templates/settings/time-limit-field.php';
+		?>
+		<input type="number" 
+			   id="queue_optimizer_time_limit" 
+			   name="queue_optimizer_time_limit" 
+			   value="<?php echo esc_attr( $value ); ?>" 
+			   min="10" 
+			   max="300" 
+			   step="1" />
+		<span class="description">
+			<?php esc_html_e( 'Maximum time (in seconds) for ActionScheduler queue processing. Default: 60 seconds.', '365i-queue-optimizer' ); ?>
+		</span>
+		<?php
 	}
 
 	/**
@@ -276,160 +233,70 @@ class Queue_Optimizer_Settings_Page {
 	 */
 	public function render_concurrent_batches_field() {
 		$value = get_option( 'queue_optimizer_concurrent_batches', 4 );
-		include plugin_dir_path( __FILE__ ) . '../templates/settings/concurrent-batches-field.php';
-	}
-
-	/**
-	 * Render logging field.
-	 */
-	public function render_logging_field() {
-		$value = get_option( 'queue_optimizer_logging_enabled', false );
-		include plugin_dir_path( __FILE__ ) . '../templates/settings/logging-field.php';
-	}
-
-	/**
-	 * Render retention days field.
-	 */
-	public function render_retention_days_field() {
-		$value = get_option( 'queue_optimizer_log_retention_days', 7 );
-		include plugin_dir_path( __FILE__ ) . '../templates/settings/retention-days-field.php';
+		?>
+		<input type="number" 
+			   id="queue_optimizer_concurrent_batches" 
+			   name="queue_optimizer_concurrent_batches" 
+			   value="<?php echo esc_attr( $value ); ?>" 
+			   min="1" 
+			   max="10" 
+			   step="1" />
+		<span class="description">
+			<?php esc_html_e( 'Number of concurrent batches ActionScheduler can process. Higher values = faster processing. Default: 4 batches.', '365i-queue-optimizer' ); ?>
+		</span>
+		<?php
 	}
 
 	/**
 	 * Render image engine field.
 	 */
 	public function render_image_engine_field() {
-		$value = get_option( '365i_qo_image_engine', 'gd' );
-		include plugin_dir_path( __FILE__ ) . '../templates/settings/image-engine-field.php';
-	}
-
-	/**
-	 * Render debug mode field.
-	 */
-	public function render_debug_mode_field() {
-		$value = get_option( 'queue_optimizer_debug_mode', false );
-		include plugin_dir_path( __FILE__ ) . '../templates/settings/debug-mode-field.php';
+		$value = get_option( 'queue_optimizer_image_engine', 'WP_Image_Editor_GD' );
+		?>
+		<select id="queue_optimizer_image_engine" name="queue_optimizer_image_engine">
+			<option value="WP_Image_Editor_GD" <?php selected( $value, 'WP_Image_Editor_GD' ); ?>>
+				<?php esc_html_e( 'GD Library (Recommended)', '365i-queue-optimizer' ); ?>
+			</option>
+			<option value="WP_Image_Editor_Imagick" <?php selected( $value, 'WP_Image_Editor_Imagick' ); ?>>
+				<?php esc_html_e( 'ImageMagick', '365i-queue-optimizer' ); ?>
+			</option>
+		</select>
+		<span class="description">
+			<?php esc_html_e( 'Image processing engine to prioritize. GD is usually faster for basic operations.', '365i-queue-optimizer' ); ?>
+		</span>
+		<?php
 	}
 
 	/**
 	 * Sanitize time limit setting.
 	 *
-	 * @param mixed $value Input value to sanitize.
-	 * @return int Sanitized time limit value.
+	 * @param mixed $value The value to sanitize.
+	 * @return int Sanitized value.
 	 */
 	public function sanitize_time_limit( $value ) {
-		$value = absint( $value );
-		
-		if ( $value < 30 ) {
-			add_settings_error(
-				'queue_optimizer_time_limit',
-				'time_limit_too_low',
-				__( 'Time limit must be at least 30 seconds for reliable processing.', '365i-queue-optimizer' )
-			);
-			return 30;
-		}
-		
-		if ( $value > 300 ) {
-			add_settings_error(
-				'queue_optimizer_time_limit',
-				'time_limit_too_high',
-				__( 'Time limit cannot exceed 300 seconds.', '365i-queue-optimizer' )
-			);
-			return 300;
-		}
-		
-		return $value;
+		$value = intval( $value );
+		return ( $value < 10 || $value > 300 ) ? 60 : $value;
 	}
 
 	/**
 	 * Sanitize concurrent batches setting.
 	 *
-	 * @param mixed $value Input value to sanitize.
-	 * @return int Sanitized concurrent batches value.
+	 * @param mixed $value The value to sanitize.
+	 * @return int Sanitized value.
 	 */
 	public function sanitize_concurrent_batches( $value ) {
-		$value = absint( $value );
-		
-		if ( $value < 1 ) {
-			add_settings_error(
-				'queue_optimizer_concurrent_batches',
-				'concurrent_batches_too_low',
-				__( 'Concurrent batches must be at least 1.', '365i-queue-optimizer' )
-			);
-			return 1;
-		}
-		
-		if ( $value > 10 ) {
-			add_settings_error(
-				'queue_optimizer_concurrent_batches',
-				'concurrent_batches_too_high',
-				__( 'Concurrent batches cannot exceed 10.', '365i-queue-optimizer' )
-			);
-			return 10;
-		}
-		
-		return $value;
-	}
-
-	/**
-	 * Sanitize retention days setting.
-	 *
-	 * @param mixed $value Input value to sanitize.
-	 * @return int Sanitized retention days value.
-	 */
-	public function sanitize_retention_days( $value ) {
-		$value = absint( $value );
-		
-		if ( $value < 1 ) {
-			add_settings_error(
-				'queue_optimizer_log_retention_days',
-				'retention_days_too_low',
-				__( 'Log retention period must be at least 1 day.', '365i-queue-optimizer' )
-			);
-			return 1;
-		}
-		
-		if ( $value > 365 ) {
-			add_settings_error(
-				'queue_optimizer_log_retention_days',
-				'retention_days_too_high',
-				__( 'Log retention period cannot exceed 365 days.', '365i-queue-optimizer' )
-			);
-			return 365;
-		}
-		
-		return $value;
+		$value = intval( $value );
+		return ( $value < 1 || $value > 10 ) ? 4 : $value;
 	}
 
 	/**
 	 * Sanitize image engine setting.
 	 *
-	 * @param mixed $value Input value to sanitize.
-	 * @return string Sanitized image engine value.
+	 * @param mixed $value The value to sanitize.
+	 * @return string Sanitized value.
 	 */
 	public function sanitize_image_engine( $value ) {
-		$allowed_engines = array( 'imagick', 'gd' );
-		
-		if ( ! in_array( $value, $allowed_engines, true ) ) {
-			add_settings_error(
-				'365i_qo_image_engine',
-				'invalid_image_engine',
-				__( 'Invalid image engine selected.', '365i-queue-optimizer' )
-			);
-			return 'gd';
-		}
-		
-		// If ImageMagick is selected but not available, fallback to GD.
-		if ( 'imagick' === $value && ! class_exists( 'Imagick' ) ) {
-			add_settings_error(
-				'365i_qo_image_engine',
-				'imagick_not_available',
-				__( 'ImageMagick is not available on this server. Falling back to GD Library.', '365i-queue-optimizer' ),
-				'warning'
-			);
-			return 'gd';
-		}
-		
-		return $value;
+		$allowed = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
+		return in_array( $value, $allowed, true ) ? $value : 'WP_Image_Editor_GD';
 	}
 }

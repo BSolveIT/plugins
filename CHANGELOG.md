@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file.
 
+## Version 1.8.2 - June 15, 2025
+### MAJOR SIMPLIFICATION - Performance Fix
+- **COMPLETE REWRITE**: Simplified plugin to match user's working approach
+- **Performance**: Removed all unnecessary complexity that was causing 10x slower performance
+- **Core Focus**: Plugin now applies only the three essential ActionScheduler filters directly
+- **Architecture**: Eliminated complex scheduler class, debug manager, dashboard, and all overhead
+- **Speed**: Restored fast image processing by removing interference with ActionScheduler
+
+### Ultra-Lightweight Core (150 lines total)
+- `action_scheduler_queue_runner_time_limit` → 60 seconds (configurable 10-300)
+- `action_scheduler_queue_runner_concurrent_batches` → 4 batches (configurable 1-10)
+- `wp_image_editors` → Respects user's Image Processing Engine preference (GD/ImageMagick)
+
+### Removed Complex Features
+- ❌ Removed 453-line scheduler class with unnecessary overhead
+- ❌ Removed debug manager and extensive logging system  
+- ❌ Removed dashboard interface and activity monitoring
+- ❌ Removed AJAX handlers and complex status tracking
+- ❌ Removed all conditional logic that was slowing ActionScheduler
+- ❌ Eliminated src/ directory and unused admin components
+
+### New Simple Architecture
+- **Main Plugin**: `365i-queue-optimizer.php` (150 lines - core optimization only)
+- **Settings Page**: `admin/class-settings-page.php` (238 lines - essential config)
+- **Philosophy**: Modeled after user's working plugin - simple, fast, effective
+
+### Settings Interface
+- Clean settings page under Tools > Queue Optimizer
+- Shows current optimization status and ActionScheduler health
+- Direct link to native ActionScheduler monitoring interface
+- No dashboard overhead or debugging complexity
+
+**Expected Result**: Plugin performance should now match user's working functions.php speed while providing configurable settings.
 ## Version 1.8.1 - June 15, 2025
 ### Fixed
 - **CRITICAL FIX**: Implemented proper ActionScheduler optimization matching user's working functions.php code
