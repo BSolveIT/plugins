@@ -3,7 +3,7 @@
  * Plugin Name: 365i Queue Optimizer
  * Plugin URI: https://www.365i.co.uk/
  * Description: A lightweight WordPress plugin to manage and optimize background queue processing with native WP scheduling.
- * Version: 1.7.1
+ * Version:           1.7.4
  * Author: 365i
  * Author URI: https://www.365i.co.uk/
  * Text Domain: 365i-queue-optimizer
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants.
-define( 'QUEUE_OPTIMIZER_VERSION', '1.7.1' );
+define( 'QUEUE_OPTIMIZER_VERSION', '1.7.4' );
 define( 'QUEUE_OPTIMIZER_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'QUEUE_OPTIMIZER_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'QUEUE_OPTIMIZER_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
@@ -121,6 +121,7 @@ class Queue_Optimizer_Plugin {
 		if ( is_admin() ) {
 			Queue_Optimizer_Admin_Menu::get_instance();
 			Queue_Optimizer_Settings_Page::get_instance();
+			Queue_Optimizer_Dashboard_Page::get_instance();
 		}
 	}
 
@@ -218,15 +219,17 @@ class Queue_Optimizer_Plugin {
 	 * @param string $hook_suffix Current admin page hook suffix.
 	 */
 	public function enqueue_admin_assets( $hook_suffix ) {
-		// Check if we're on a plugin admin page.
-		$plugin_pages = array( '365i-queue-optimizer', '365i-activity-log', '365i-system-info' );
-		$is_plugin_page = false;
+		$plugin_pages = array( '365i-queue-optimizer', '365i-activity-log', '365i-system-info', 'queue-optimizer' );
 		
-		foreach ( $plugin_pages as $page_slug ) {
-			if ( strpos( $hook_suffix, $page_slug ) !== false ) {
-				$is_plugin_page = true;
-				break;
-			}
+		// Check if we're on a plugin page
+		$is_plugin_page = false;
+		if ( isset( $_GET['page'] ) && in_array( $_GET['page'], $plugin_pages, true ) ) {
+			$is_plugin_page = true;
+		}
+		
+		// Also check hook suffix for tools page
+		if ( strpos( $hook_suffix, 'tools_page_queue-optimizer' ) !== false ) {
+			$is_plugin_page = true;
 		}
 		
 		if ( ! $is_plugin_page ) {
@@ -280,6 +283,22 @@ class Queue_Optimizer_Plugin {
 				array( 'jquery', 'postbox', 'queue-optimizer-admin' ),
 				QUEUE_OPTIMIZER_VERSION,
 				true
+			);
+
+			// Localize dashboard script with same variables
+			wp_localize_script(
+				'queue-optimizer-dashboard',
+				'queueOptimizerAdmin',
+				array(
+					'ajax_url' => admin_url( 'admin-ajax.php' ),
+					'nonce'    => wp_create_nonce( 'queue_optimizer_admin_nonce' ),
+					'loading_text' => __( 'Processing...', '365i-queue-optimizer' ),
+					'strings'  => array(
+						'processing' => __( 'Processing...', '365i-queue-optimizer' ),
+						'error'      => __( 'Error occurred. Please try again.', '365i-queue-optimizer' ),
+						'success'    => __( 'Operation completed successfully.', '365i-queue-optimizer' ),
+					),
+				)
 			);
 		}
 

@@ -56,6 +56,9 @@ class Queue_Optimizer_Dashboard_Page {
 		$page_title = __( 'Queue Optimizer Dashboard', '365i-queue-optimizer' );
 		$page_description = __( 'Monitor and manage your WordPress queue optimization system.', '365i-queue-optimizer' );
 
+		// Extract data variables for template scope
+		extract( $data );
+
 		// Include the dashboard template.
 		include plugin_dir_path( __FILE__ ) . '../templates/dashboard.php';
 	}

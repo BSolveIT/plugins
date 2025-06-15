@@ -13,18 +13,28 @@
 	 * Admin functionality namespace
 	 */
 	window.QueueOptimizerAdmin = {
-		
-		/**
-		 * Initialize all admin functionality
-		 */
-		init: function() {
-			this.bindEvents();
-			this.initializeTooltips();
-			this.initializeSearch();
-			this.initializeExport();
-			this.initializeDashboard();
-			this.initializeSystemInfo();
-		},
+	 
+	 // Flag to prevent multiple initializations
+	 initialized: false,
+	 
+	 /**
+	  * Initialize all admin functionality
+	  */
+	 init: function() {
+	 	// Prevent multiple initializations
+	 	if (this.initialized) {
+	 		return;
+	 	}
+	 	
+	 	this.initializeTooltips();
+	 	this.initializeSearch();
+	 	this.initializeExport();
+	 	this.initializeDashboard();
+	 	this.initializeSystemInfo();
+	 	
+	 	// Mark as initialized
+	 	this.initialized = true;
+	 },
 
 		/**
 		 * Bind global event listeners
@@ -253,7 +263,7 @@
 				e.preventDefault();
 				QueueOptimizerAdmin.handleRunQueueNow($(this));
 			});
-
+	
 			// View Logs button
 			$(document).on('click', '#view-logs', function(e) {
 				e.preventDefault();
@@ -354,7 +364,7 @@
 						logDisplay.text('Error loading logs: ' + (response.data.message || 'Unknown error'));
 					}
 				},
-				error: function() {
+				error: function(xhr, status, error) {
 					logDisplay.text('Network error occurred while loading logs.');
 				}
 			});
@@ -743,6 +753,7 @@
 		}
 	};
 
-	// Initialization is handled in bindEvents() method above
+	// Initialize the admin functionality
+	QueueOptimizerAdmin.bindEvents();
 
 })(jQuery);

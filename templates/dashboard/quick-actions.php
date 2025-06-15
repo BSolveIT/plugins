@@ -12,7 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$quick_actions = $data['quick_actions'] ?? array();
+// Quick actions should be available via extract() in parent template
+$quick_actions = $quick_actions ?? array();
 
 // Set up card header variables
 $card_title = __( 'Quick Actions', '365i-queue-optimizer' );

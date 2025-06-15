@@ -3,7 +3,7 @@ Contributors: 365i
 Tags: queue, scheduler, background-jobs, optimization, performance
 Requires at least: 5.8
 Tested up to: 6.4
-Stable tag: 1.7.2
+Stable tag: 1.7.4
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -153,6 +153,39 @@ No. The plugin uses WordPress options for data storage, keeping your database cl
 3. **Admin Interface** - Clean, responsive design that works on all devices
 
 == Changelog ==
+
+= 1.7.4 - 2025-06-15 =
+**JavaScript Initialization & Event Handler Stabilization - Final Fix**
+
+* **JavaScript Initialization Pattern Perfected**
+  * **Root Cause Resolved**: Added [`initialized`](assets/js/admin.js:18) flag to prevent multiple initialization calls
+  * Fixed circular dependency between [`init()`](assets/js/admin.js:20) and [`bindEvents()`](assets/js/admin.js:36) methods
+  * Eliminated script loading race conditions that were causing duplicate event handler binding
+  * Single initialization pattern ensures [`QueueOptimizerAdmin.init()`](assets/js/admin.js:20) executes only once per page load
+
+* **Event Handler Architecture Stability**
+  * Removed redundant [`this.bindEvents()`](assets/js/admin.js:764) call from [`init()`](assets/js/admin.js:20) method
+  * Maintained proper event delegation using [`$(document).on()`](assets/js/admin.js:266) for reliable button handling
+  * Fixed infinite loop where multiple [`$(document).ready()`](assets/js/admin.js:37) handlers were being registered
+  * Clean separation between initialization and event binding ensures stable dashboard functionality
+
+* **Dashboard Button Functionality Verified**
+  * ✅ "View Logs" button - Perfect toggle functionality (show/hide) with single AJAX requests
+  * ✅ All buttons working without infinite loops or console spam
+  * ✅ Real Action Scheduler logs displayed with proper formatting and timestamps
+  * ✅ Clean console output with no debugging messages in production
+
+* **Production Code Cleanup**
+  * Removed all debugging [`console.log()`](assets/js/admin.js:21) statements from JavaScript
+  * Cleaned up PHP debugging [`error_log()`](365i-queue-optimizer.php:223) statements
+  * Removed temporary [`wp_add_inline_script()`](365i-queue-optimizer.php:280) debugging code
+  * Restored proper page detection logic for optimal script loading
+
+* **Performance & User Experience**
+  * Eliminated browser resource exhaustion from infinite AJAX loops
+  * Clean page loads with minimal console output
+  * Responsive dashboard interactions with proper loading states
+  * Professional user experience with reliable button functionality
 
 = 1.7.3 - 2025-06-15 =
 **Critical Infinite AJAX Loop Fix - Complete System Stability Restored**

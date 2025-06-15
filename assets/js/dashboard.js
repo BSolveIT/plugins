@@ -38,6 +38,14 @@
 			
 			// Manual refresh stats button
 			$(document).on('click', '.refresh-stats', this.handleRefreshStats.bind(this));
+			
+			// Legacy button handlers for old dashboard system
+			$(document).on('click', '#run-queue-now', this.handleRunQueueNow.bind(this));
+			$(document).on('click', '#view-logs', this.handleViewLogs.bind(this));
+			$(document).on('click', '#clear-logs', this.handleClearLogs.bind(this));
+			$(document).on('click', '#clear-action-scheduler-logs', this.handleClearActionSchedulerLogs.bind(this));
+			$(document).on('click', '#refresh-logs', this.handleRefreshLogs.bind(this));
+			$(document).on('click', '#close-logs', this.handleCloseLogs.bind(this));
 		},
 
 		/**
@@ -64,6 +72,12 @@
 				console.error('Queue Optimizer admin variables not loaded');
 				return;
 			}
+			
+			// Check if AJAX URL exists
+			if (!queueOptimizerAdmin.ajax_url) {
+				console.error('AJAX URL not available in queueOptimizerAdmin');
+				return;
+			}
 
 			// Disable button and show loading state
 			$button.prop('disabled', true)
@@ -72,7 +86,7 @@
 
 			// Send AJAX request
 			$.ajax({
-				url: ajaxurl,
+				url: queueOptimizerAdmin.ajax_url,
 				type: 'POST',
 				data: {
 					action: 'queue_optimizer_quick_action',
@@ -241,6 +255,235 @@
 					$card.addClass('animate-in');
 				}, index * 100);
 			});
+		},
+
+		/**
+		 * Handle Run Queue Now button click
+		 */
+		handleRunQueueNow: function(e) {
+			e.preventDefault();
+			
+			var $button = $(e.currentTarget);
+			var originalText = $button.text();
+			
+			// Check if admin variables exist
+			if (typeof queueOptimizerAdmin === 'undefined') {
+				console.error('Queue Optimizer admin variables not loaded');
+				return;
+			}
+
+			// Disable button and show loading state
+			$button.prop('disabled', true)
+				   .addClass('updating-message')
+				   .text(queueOptimizerAdmin.strings.processing || 'Processing...');
+
+			// Send AJAX request
+			$.ajax({
+				url: queueOptimizerAdmin.ajax_url,
+				type: 'POST',
+				data: {
+					action: 'queue_optimizer_run_now',
+					nonce: queueOptimizerAdmin.nonce
+				},
+				success: function(response) {
+					if (response.success) {
+						Dashboard.showNotice(response.data.message || 'Queue processed successfully.', 'success');
+						Dashboard.refreshStats();
+					} else {
+						Dashboard.showNotice(response.data.message || 'Failed to process queue.', 'error');
+					}
+				},
+				error: function() {
+					Dashboard.showNotice('An error occurred while processing the queue.', 'error');
+				},
+				complete: function() {
+					// Restore button state
+					$button.prop('disabled', false)
+						   .removeClass('updating-message')
+						   .text(originalText);
+				}
+			});
+		},
+
+		/**
+		 * Handle View Logs button click
+		 */
+		handleViewLogs: function(e) {
+			e.preventDefault();
+			
+			var $button = $(e.currentTarget);
+			var originalText = $button.text();
+			
+			// Check if admin variables exist
+			if (typeof queueOptimizerAdmin === 'undefined') {
+				console.error('Queue Optimizer admin variables not loaded');
+				return;
+			}
+
+			// Disable button and show loading state
+			$button.prop('disabled', true)
+				   .addClass('updating-message')
+				   .text(queueOptimizerAdmin.strings.processing || 'Loading...');
+
+			// Send AJAX request
+			$.ajax({
+				url: queueOptimizerAdmin.ajax_url,
+				type: 'POST',
+				data: {
+					action: 'queue_optimizer_get_logs',
+					nonce: queueOptimizerAdmin.nonce
+				},
+				success: function(response) {
+					if (response.success) {
+						Dashboard.displayLogs(response.data.logs);
+						$('#queue-optimizer-logs').show();
+					} else {
+						Dashboard.showNotice(response.data.message || 'Failed to load logs.', 'error');
+					}
+				},
+				error: function() {
+					Dashboard.showNotice('An error occurred while loading logs.', 'error');
+				},
+				complete: function() {
+					// Restore button state
+					$button.prop('disabled', false)
+						   .removeClass('updating-message')
+						   .text(originalText);
+				}
+			});
+		},
+
+		/**
+		 * Handle Clear Logs button click
+		 */
+		handleClearLogs: function(e) {
+			e.preventDefault();
+			
+			if (!confirm('Are you sure you want to clear all plugin logs?')) {
+				return;
+			}
+			
+			var $button = $(e.currentTarget);
+			var originalText = $button.text();
+			
+			// Check if admin variables exist
+			if (typeof queueOptimizerAdmin === 'undefined') {
+				console.error('Queue Optimizer admin variables not loaded');
+				return;
+			}
+
+			// Disable button and show loading state
+			$button.prop('disabled', true)
+				   .addClass('updating-message')
+				   .text(queueOptimizerAdmin.strings.processing || 'Clearing...');
+
+			// Send AJAX request
+			$.ajax({
+				url: queueOptimizerAdmin.ajax_url,
+				type: 'POST',
+				data: {
+					action: 'queue_optimizer_clear_logs',
+					nonce: queueOptimizerAdmin.nonce
+				},
+				success: function(response) {
+					if (response.success) {
+						Dashboard.showNotice(response.data.message || 'Logs cleared successfully.', 'success');
+						$('#queue-optimizer-logs').hide();
+						$('#log-display').empty();
+					} else {
+						Dashboard.showNotice(response.data.message || 'Failed to clear logs.', 'error');
+					}
+				},
+				error: function() {
+					Dashboard.showNotice('An error occurred while clearing logs.', 'error');
+				},
+				complete: function() {
+					// Restore button state
+					$button.prop('disabled', false)
+						   .removeClass('updating-message')
+						   .text(originalText);
+				}
+			});
+		},
+
+		/**
+		 * Handle Clear Action Scheduler Logs button click
+		 */
+		handleClearActionSchedulerLogs: function(e) {
+			e.preventDefault();
+			
+			if (!confirm('Are you sure you want to clear all Action Scheduler logs?')) {
+				return;
+			}
+			
+			var $button = $(e.currentTarget);
+			var originalText = $button.text();
+			
+			// Check if admin variables exist
+			if (typeof queueOptimizerAdmin === 'undefined') {
+				console.error('Queue Optimizer admin variables not loaded');
+				return;
+			}
+
+			// Disable button and show loading state
+			$button.prop('disabled', true)
+				   .addClass('updating-message')
+				   .text(queueOptimizerAdmin.strings.processing || 'Clearing...');
+
+			// Send AJAX request
+			$.ajax({
+				url: queueOptimizerAdmin.ajax_url,
+				type: 'POST',
+				data: {
+					action: 'queue_optimizer_clear_action_scheduler_logs',
+					nonce: queueOptimizerAdmin.nonce
+				},
+				success: function(response) {
+					if (response.success) {
+						Dashboard.showNotice(response.data.message || 'Action Scheduler logs cleared successfully.', 'success');
+						Dashboard.refreshStats();
+					} else {
+						Dashboard.showNotice(response.data.message || 'Failed to clear Action Scheduler logs.', 'error');
+					}
+				},
+				error: function() {
+					Dashboard.showNotice('An error occurred while clearing Action Scheduler logs.', 'error');
+				},
+				complete: function() {
+					// Restore button state
+					$button.prop('disabled', false)
+						   .removeClass('updating-message')
+						   .text(originalText);
+				}
+			});
+		},
+
+		/**
+		 * Handle Refresh Logs button click
+		 */
+		handleRefreshLogs: function(e) {
+			e.preventDefault();
+			this.handleViewLogs(e);
+		},
+
+		/**
+		 * Handle Close Logs button click
+		 */
+		handleCloseLogs: function(e) {
+			e.preventDefault();
+			$('#queue-optimizer-logs').hide();
+		},
+
+		/**
+		 * Display logs in the log container
+		 */
+		displayLogs: function(logs) {
+			var $logDisplay = $('#log-display');
+			if (logs && logs.trim()) {
+				$logDisplay.text(logs);
+			} else {
+				$logDisplay.text('No logs available.');
+			}
 		}
 	};
 
