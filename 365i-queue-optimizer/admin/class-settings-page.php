@@ -138,68 +138,23 @@ class Queue_Optimizer_Settings_Page {
 			array(),
 			QUEUE_OPTIMIZER_VERSION
 		);
+
+		// Enqueue JavaScript file if needed.
+		wp_enqueue_script(
+			'queue-optimizer-admin',
+			QUEUE_OPTIMIZER_PLUGIN_URL . 'assets/js/admin.js',
+			array( 'jquery' ),
+			QUEUE_OPTIMIZER_VERSION,
+			true
+		);
 	}
 
 	/**
 	 * Render the settings page.
 	 */
 	public function render_settings_page() {
-		?>
-		<div class="wrap">
-			<h1><?php esc_html_e( '365i Queue Optimizer Settings', '365i-queue-optimizer' ); ?></h1>
-			
-			<div class="notice notice-info">
-				<p><strong><?php esc_html_e( 'Simple & Fast', '365i-queue-optimizer' ); ?></strong></p>
-				<p><?php esc_html_e( 'This plugin applies three essential optimizations to ActionScheduler for faster image processing and background tasks. No complex configuration needed - just set your preferences below.', '365i-queue-optimizer' ); ?></p>
-			</div>
-
-			<form method="post" action="options.php">
-				<?php
-				settings_fields( 'queue_optimizer_settings' );
-				do_settings_sections( 'queue_optimizer_settings' );
-				submit_button();
-				?>
-			</form>
-
-			<div class="card">
-				<h2><?php esc_html_e( 'Current Status', '365i-queue-optimizer' ); ?></h2>
-				<table class="widefat striped">
-					<tbody>
-						<tr>
-							<td><strong><?php esc_html_e( 'Time Limit', '365i-queue-optimizer' ); ?></strong></td>
-							<td><?php echo esc_html( get_option( 'queue_optimizer_time_limit', 60 ) ); ?> <?php esc_html_e( 'seconds', '365i-queue-optimizer' ); ?></td>
-						</tr>
-						<tr>
-							<td><strong><?php esc_html_e( 'Concurrent Batches', '365i-queue-optimizer' ); ?></strong></td>
-							<td><?php echo esc_html( get_option( 'queue_optimizer_concurrent_batches', 4 ) ); ?></td>
-						</tr>
-						<tr>
-							<td><strong><?php esc_html_e( 'Image Engine', '365i-queue-optimizer' ); ?></strong></td>
-							<td><?php echo esc_html( str_replace( 'WP_Image_Editor_', '', get_option( 'queue_optimizer_image_engine', 'WP_Image_Editor_GD' ) ) ); ?></td>
-						</tr>
-						<tr>
-							<td><strong><?php esc_html_e( 'ActionScheduler Status', '365i-queue-optimizer' ); ?></strong></td>
-							<td>
-								<?php if ( class_exists( 'ActionScheduler' ) ) : ?>
-									<span style="color: green;">✓ <?php esc_html_e( 'Active & Optimized', '365i-queue-optimizer' ); ?></span>
-								<?php else : ?>
-									<span style="color: orange;">⚠ <?php esc_html_e( 'ActionScheduler not detected', '365i-queue-optimizer' ); ?></span>
-								<?php endif; ?>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-				
-				<?php if ( class_exists( 'ActionScheduler' ) ) : ?>
-					<p style="margin-top: 15px;">
-						<a href="<?php echo esc_url( admin_url( 'tools.php?page=action-scheduler' ) ); ?>" class="button button-secondary">
-							<?php esc_html_e( 'View ActionScheduler Status', '365i-queue-optimizer' ); ?>
-						</a>
-					</p>
-				<?php endif; ?>
-			</div>
-		</div>
-		<?php
+		// Load the settings page template.
+		require_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'templates/admin/settings-page.php';
 	}
 
 	/**

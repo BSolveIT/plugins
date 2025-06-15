@@ -1,6 +1,33 @@
 # 365i Queue Optimizer Changelog
 
 All notable changes to this project will be documented in this file.
+## [1.1.0] - 2025-06-15
+
+### WordPress Repository Preparation
+Major restructuring to make the plugin ready for WordPress repository submission.
+
+#### Added
+- **Security Files**: Added index.php files to all directories for enhanced security
+- **LICENSE.txt**: Full GPL v2 license text for repository compliance
+- **uninstall.php**: Proper WordPress uninstall script replacing static method
+- **Translation Support**: Added languages/365i-queue-optimizer.pot template file
+- **Template System**: Separated HTML from PHP with dedicated template files
+- **JavaScript Enhancement**: Added assets/js/admin.js for form validation and UX
+- **Filter Hooks**: Added extensibility filters around data arrays
+
+#### Changed
+- **Directory Structure**: Reorganized to use src/ for PHP logic, templates/ for HTML
+- **Code Separation**: Moved main class to src/class-queue-optimizer-main.php
+- **Template Architecture**: Created templates/admin/ and templates/partials/ structure
+- **Asset Management**: Enhanced CSS with form validation styles
+- **Extensibility**: Added filters for time_limit, concurrent_batches, and image_editors
+
+#### Technical Improvements
+- **WordPress Standards**: Full compliance with WordPress coding standards
+- **PSR-4 Structure**: Proper autoloading-ready file organization
+- **Template Partials**: Reusable header.php and footer.php components
+- **Enhanced Security**: Directory protection and proper file structure
+- **Repository Ready**: All WordPress.org plugin directory requirements met
 
 ## [1.0.0] - 2025-06-15
 
