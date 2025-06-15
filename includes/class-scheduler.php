@@ -99,17 +99,18 @@ class Queue_Optimizer_Scheduler {
 		add_action( 'wp_ajax_queue_optimizer_get_status', array( $this, 'ajax_get_status' ) );
 		add_action( 'wp_ajax_queue_optimizer_get_logs', array( $this, 'ajax_get_logs' ) );
 
-		// Hook into comprehensive Action Scheduler events for JSON logging.
-		add_action( 'action_scheduler_before_process_queue', array( $this, 'log_run_start' ) );
-		add_action( 'action_scheduler_after_process_queue', array( $this, 'log_run_end' ) );
-		add_action( 'action_scheduler_stored_action', array( $this, 'log_action_scheduled' ) );
-		add_action( 'action_scheduler_before_execute', array( $this, 'log_action_started' ), 10, 2 );
-		add_action( 'action_scheduler_after_execute', array( $this, 'log_action_completed' ), 10, 3 );
-		add_action( 'action_scheduler_failed_execution', array( $this, 'log_action_failed' ), 10, 3 );
-		add_action( 'action_scheduler_canceled_action', array( $this, 'log_action_canceled' ), 10, 2 );
+		// Only add logging hooks if logging is enabled - lightweight by default
+		$logging_enabled = (bool) get_option( 'queue_optimizer_logging_enabled', false );
+		if ( $logging_enabled ) {
+			$this->init_logging_hooks();
+		}
 		
 		// Apply our concurrent batches setting to Action Scheduler
-		add_filter( 'action_scheduler_queue_runner_concurrent_batches', array( $this, 'set_concurrent_batches' ) );
+		// Only if explicitly enabled to avoid conflicts with other plugins
+		$enable_concurrent_batches = (bool) get_option( 'queue_optimizer_enable_concurrency_filter', false );
+		if ( $enable_concurrent_batches ) {
+			add_filter( 'action_scheduler_queue_runner_concurrent_batches', array( $this, 'set_concurrent_batches' ), 10, 1 );
+		}
 		
 		// Initialize tracking variables
 		$this->current_run_id = null;
@@ -121,9 +122,25 @@ class Queue_Optimizer_Scheduler {
 		// Schedule daily cleanup
 		$this->schedule_daily_cleanup();
 	}
+	
+	/**
+	 * Initialize logging hooks - only called if logging is enabled
+	 */
+	private function init_logging_hooks() {
+		// Hook into comprehensive Action Scheduler events for JSON logging.
+		add_action( 'action_scheduler_before_process_queue', array( $this, 'log_run_start' ), 999 );
+		add_action( 'action_scheduler_after_process_queue', array( $this, 'log_run_end' ), 999 );
+		add_action( 'action_scheduler_stored_action', array( $this, 'log_action_scheduled' ), 999 );
+		add_action( 'action_scheduler_before_execute', array( $this, 'log_action_started' ), 999, 2 );
+		add_action( 'action_scheduler_after_execute', array( $this, 'log_action_completed' ), 999, 3 );
+		add_action( 'action_scheduler_failed_execution', array( $this, 'log_action_failed' ), 999, 3 );
+		add_action( 'action_scheduler_canceled_action', array( $this, 'log_action_canceled' ), 999, 2 );
+	}
 
 	/**
 	 * Set the number of concurrent batches for Action Scheduler.
+	 * This is now carefully applied with a very low priority to ensure
+	 * we don't interfere with other plugins.
 	 *
 	 * @param int $concurrent_batches Default concurrent batches value.
 	 * @return int Modified concurrent batches value.
@@ -132,7 +149,7 @@ class Queue_Optimizer_Scheduler {
 		// Get our custom setting
 		$custom_batches = (int) get_option( 'queue_optimizer_concurrent_batches', 3 );
 		
-		// Ensure it's within valid range
+		// Ensure it's within valid range and NEVER allow 0
 		if ( $custom_batches >= 1 && $custom_batches <= 10 ) {
 			return $custom_batches;
 		}
@@ -169,8 +186,6 @@ class Queue_Optimizer_Scheduler {
 			$this->log_json_event( 'maintenance_end', array() );
 		}
 	}
-
-
 
 	/**
 	 * Get queue status counts from Action Scheduler.
@@ -298,6 +313,12 @@ class Queue_Optimizer_Scheduler {
 
 		// Clear Action Scheduler logs (completed and failed actions).
 		$cleared_count = $this->clear_action_scheduler_logs();
+		
+		// Also clear our own log file to ensure UI is updated
+		$this->clear_logs();
+
+		// Clear Action Scheduler logs from the database directly
+		$this->clear_action_scheduler_database_logs();
 
 		wp_send_json_success( array(
 			'message' => $cleared_count > 0 ?
@@ -307,7 +328,63 @@ class Queue_Optimizer_Scheduler {
 					$cleared_count
 				) :
 				__( 'No completed or failed Action Scheduler entries found to clear.', '365i-queue-optimizer' ),
+			'reload' => true, // Tell the JS to reload the page
 		) );
+	}
+
+	/**
+	 * Clear Action Scheduler logs from the database directly.
+	 * This now explicitly only clears completed/failed/canceled actions,
+	 * being careful not to affect pending or currently running actions.
+	 */
+	private function clear_action_scheduler_database_logs() {
+		global $wpdb;
+		
+		// Check if Action Scheduler tables exist
+		$logs_table = $wpdb->prefix . 'actionscheduler_logs';
+		$actions_table = $wpdb->prefix . 'actionscheduler_actions';
+		
+		if ( $wpdb->get_var( "SHOW TABLES LIKE '$logs_table'" ) !== $logs_table ) {
+			return;
+		}
+		
+		// Delete log entries for completed, failed, and canceled actions
+		if ( $wpdb->get_var( "SHOW TABLES LIKE '$actions_table'" ) === $actions_table ) {
+			$statuses = array(
+				'complete',
+				'failed',
+				'canceled',
+			);
+			
+			$status_placeholders = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
+			
+			// Find action IDs with the specified statuses
+			$action_ids = $wpdb->get_col(
+				$wpdb->prepare(
+					"SELECT action_id FROM $actions_table WHERE status IN ($status_placeholders)",
+					$statuses
+				)
+			);
+			
+			if ( ! empty( $action_ids ) ) {
+				// Delete log entries for these actions
+				$action_id_placeholders = implode( ',', array_fill( 0, count( $action_ids ), '%d' ) );
+				$wpdb->query(
+					$wpdb->prepare(
+						"DELETE FROM $logs_table WHERE action_id IN ($action_id_placeholders)",
+						$action_ids
+					)
+				);
+				
+				// Also delete the actions themselves
+				$wpdb->query(
+					$wpdb->prepare(
+						"DELETE FROM $actions_table WHERE action_id IN ($action_id_placeholders)",
+						$action_ids
+					)
+				);
+			}
+		}
 	}
 
 	/**
@@ -340,8 +417,9 @@ class Queue_Optimizer_Scheduler {
 	 */
 	private function log_json_event( $event, $data = array() ) {
 		$logging_enabled = (bool) get_option( 'queue_optimizer_logging_enabled', false );
+		$debug_enabled = (bool) get_option( 'queue_optimizer_debug_mode', false );
 		
-		if ( ! $logging_enabled ) {
+		if ( ! $logging_enabled && ! $debug_enabled ) {
 			return;
 		}
 
@@ -425,11 +503,113 @@ class Queue_Optimizer_Scheduler {
 			);
 		}
 
-		$logs_content = $this->get_logs_content();
+		// Check if debug mode is enabled
+		$debug_enabled = (bool) get_option( 'queue_optimizer_debug_mode', false );
+		
+		// If debug mode is enabled, get the debug logs instead of action scheduler logs
+		if ( $debug_enabled && class_exists( 'Queue_Optimizer_Debug_Manager' ) ) {
+			// Get the debug logs from Debug_Manager
+			$debug_manager = Queue_Optimizer_Debug_Manager::get_instance();
+			$logs = $debug_manager->get_recent_logs( 100 ); // Get the last 100 log entries
+			
+			$logs_content = $this->format_debug_logs( $logs );
+		} else {
+			// Get the regular logs (action scheduler logs)
+			$logs_content = $this->get_logs_content();
+		}
 
 		wp_send_json_success( array(
 			'logs' => $logs_content,
 		) );
+	}
+	
+	/**
+	 * Format debug logs for display.
+	 * 
+	 * @param array $logs Array of log entries from Debug_Manager.
+	 * @return string Formatted log content.
+	 */
+	private function format_debug_logs( $logs ) {
+		if ( empty( $logs ) ) {
+			return __( 'No debug logs found.', '365i-queue-optimizer' );
+		}
+		
+		$formatted_logs = "=== Debug Log (Most Recent Entries) ===\n\n";
+		
+		foreach ( $logs as $log ) {
+			$formatted_entry = sprintf(
+				"[%s] %s: %s\n",
+				$log['timestamp'] ?? 'Unknown Time',
+				$log['level'] ?? 'INFO',
+				$log['message'] ?? 'No message'
+			);
+			
+			// Add context information if available
+			if ( isset( $log['context'] ) && ! empty( $log['context'] ) ) {
+				$formatted_entry .= "  Context: " . $this->format_log_context( $log['context'] ) . "\n";
+			}
+			
+			// Add memory usage info if available
+			if ( isset( $log['memory_usage'] ) ) {
+				$formatted_entry .= "  Memory: " . $log['memory_usage'];
+				
+				if ( isset( $log['peak_memory'] ) ) {
+					$formatted_entry .= " (Peak: " . $log['peak_memory'] . ")";
+				}
+				
+				$formatted_entry .= "\n";
+			}
+			
+			$formatted_entry .= "\n";
+			$formatted_logs .= $formatted_entry;
+		}
+		
+		return $formatted_logs;
+	}
+	
+	/**
+	 * Format log context for display.
+	 * 
+	 * @param array $context Context data from log entry.
+	 * @return string Formatted context string.
+	 */
+	private function format_log_context( $context ) {
+		if ( ! is_array( $context ) ) {
+			return print_r( $context, true );
+		}
+		
+		$context_items = array();
+		
+		foreach ( $context as $key => $value ) {
+			if ( is_array( $value ) ) {
+				if ( count( $value ) > 0 ) {
+					// For database status and similar, show in simplified format
+					if ( $key === 'database_status' || $key === 'plugin_settings' ) {
+						$items = array();
+						foreach ( $value as $subkey => $subvalue ) {
+							$items[] = "$subkey: $subvalue";
+						}
+						$context_items[] = "$key: {" . implode( ', ', $items ) . "}";
+					} else {
+						$context_items[] = "$key: [Array with " . count( $value ) . " items]";
+					}
+				} else {
+					$context_items[] = "$key: []";
+				}
+			} elseif ( is_object( $value ) ) {
+				$context_items[] = "$key: " . get_class( $value ) . " object";
+			} elseif ( is_resource( $value ) ) {
+				$context_items[] = "$key: Resource";
+			} elseif ( is_bool( $value ) ) {
+				$context_items[] = "$key: " . ( $value ? 'true' : 'false' );
+			} elseif ( is_null( $value ) ) {
+				$context_items[] = "$key: null";
+			} else {
+				$context_items[] = "$key: $value";
+			}
+		}
+		
+		return implode( ', ', $context_items );
 	}
 
 	/**
@@ -525,10 +705,42 @@ class Queue_Optimizer_Scheduler {
 		$formatted_lines = array();
 		$line_count = 0;
 		$max_lines = 200; // Show last 200 events
+		$shown_runs = array(); // Track already shown run_start/run_end pairs
+		$action_data = array(); // Track action data to enhance logging
+		$action_hooks = array(); // Cache for action hook names
 
 		// Process lines in reverse order to show most recent first
 		$lines = array_reverse( $lines );
 
+		// First pass - collect action data
+		foreach ( $lines as $line ) {
+			if ( empty( trim( $line ) ) ) {
+				continue;
+			}
+
+			$log_entry = json_decode( $line, true );
+			if ( ! $log_entry ) {
+				continue;
+			}
+
+			// Collect action data for better context
+			if ( isset( $log_entry['action_id'] ) && isset( $log_entry['hook'] ) ) {
+				$action_id = $log_entry['action_id'];
+				if ( !isset( $action_data[$action_id] ) ) {
+					$action_data[$action_id] = array(
+						'hook' => $log_entry['hook'],
+						'args' => isset( $log_entry['args'] ) ? $log_entry['args'] : array(),
+					);
+				}
+				
+				// Store hook names for easy lookup
+				if (!isset($action_hooks[$action_id])) {
+					$action_hooks[$action_id] = $log_entry['hook'];
+				}
+			}
+		}
+
+		// Second pass - format the logs
 		foreach ( $lines as $line ) {
 			if ( empty( trim( $line ) ) || $line_count >= $max_lines ) {
 				continue;
@@ -542,52 +754,160 @@ class Queue_Optimizer_Scheduler {
 				continue;
 			}
 
+			// Skip duplicate run_start/run_end logs
+			if ( ( $log_entry['event'] === 'run_start' || $log_entry['event'] === 'run_end' ) 
+				&& isset( $log_entry['run_id'] ) ) {
+				
+				if ( isset( $shown_runs[$log_entry['run_id']] ) ) {
+					continue;
+				}
+				
+				if ( $log_entry['event'] === 'run_start' ) {
+					$shown_runs[$log_entry['run_id']] = true;
+				}
+			}
+
 			// Format the JSON entry for human reading
 			$time = isset( $log_entry['time'] ) ? $log_entry['time'] : 'unknown';
 			$event = isset( $log_entry['event'] ) ? $log_entry['event'] : 'unknown';
 			
-			$formatted_line = "[$time] $event";
+			// Convert timestamp to human-readable format
+			$time = date( 'Y-m-d H:i:s', strtotime( $time ) );
 			
 			// Add relevant details based on event type
 			switch ( $event ) {
 				case 'run_start':
-					$formatted_line .= sprintf( ' (Run ID: %s, Queue Size: %d)',
-						$log_entry['run_id'] ?? 'unknown',
+					$formatted_line = sprintf( '[%s] %s: Queue processing started with %d pending actions',
+						$time,
+						'QUEUE PROCESS START',
 						$log_entry['queue_size'] ?? 0
 					);
 					break;
+					
 				case 'run_end':
-					$formatted_line .= sprintf( ' (Run ID: %s, Duration: %.3fs, Peak Memory: %dKB)',
-						$log_entry['run_id'] ?? 'unknown',
+					$formatted_line = sprintf( '[%s] %s: Queue processing completed in %.2f seconds (Memory: %s)',
+						$time,
+						'QUEUE PROCESS END',
 						$log_entry['duration_s'] ?? 0,
-						$log_entry['peak_memory_kb'] ?? 0
+						isset($log_entry['peak_memory_kb']) ? $this->format_memory_kb($log_entry['peak_memory_kb']) : '0 KB'
 					);
 					break;
+					
 				case 'before_execute':
-					$formatted_line .= sprintf( ' (Action ID: %d, Hook: %s)',
-						$log_entry['action_id'] ?? 0,
-						$log_entry['hook'] ?? 'unknown'
+					$action_id = $log_entry['action_id'] ?? 0;
+					$hook = $log_entry['hook'] ?? $action_hooks[$action_id] ?? 'unknown';
+					
+					// Create a human-readable description of the action
+					$action_description = $this->get_action_description($hook, $log_entry['args'] ?? array());
+					
+					$formatted_line = sprintf( '[%s] %s: Starting action "%s" (ID: %d)',
+						$time,
+						'ACTION START',
+						$action_description,
+						$action_id
 					);
 					break;
+					
 				case 'after_execute':
-					$formatted_line .= sprintf( ' (Action ID: %d, Duration: %dms, Memory: %dKB)',
-						$log_entry['action_id'] ?? 0,
-						$log_entry['duration_ms'] ?? 0,
-						$log_entry['memory_delta_kb'] ?? 0
+					$action_id = $log_entry['action_id'] ?? 0;
+					$hook = '';
+					
+					if (isset($action_hooks[$action_id])) {
+						$hook = $action_hooks[$action_id];
+					}
+					
+					// Create a human-readable description
+					$action_description = $this->get_action_description($hook, $action_data[$action_id]['args'] ?? array());
+					
+					$formatted_line = sprintf( '[%s] %s: Completed action "%s" (ID: %d) in %d ms',
+						$time,
+						'ACTION COMPLETE',
+						$action_description,
+						$action_id,
+						$log_entry['duration_ms'] ?? 0
 					);
 					break;
+					
 				case 'failed_execution':
-					$formatted_line .= sprintf( ' (Action ID: %d, Hook: %s, Error: %s)',
-						$log_entry['action_id'] ?? 0,
-						$log_entry['hook'] ?? 'unknown',
-						$log_entry['error'] ?? 'unknown'
+					$action_id = $log_entry['action_id'] ?? 0;
+					$hook = $log_entry['hook'] ?? $action_hooks[$action_id] ?? 'unknown';
+					
+					// Create a human-readable description
+					$action_description = $this->get_action_description($hook, $log_entry['args'] ?? array());
+					
+					$formatted_line = sprintf( '[%s] %s: Failed action "%s" (ID: %d) - Error: %s',
+						$time,
+						'ACTION FAILED',
+						$action_description,
+						$action_id,
+						$log_entry['error'] ?? 'unknown error'
 					);
 					break;
+					
 				case 'scheduled_action':
-					$formatted_line .= sprintf( ' (Action ID: %d, Hook: %s, Next Run: %s)',
-						$log_entry['action_id'] ?? 0,
-						$log_entry['hook'] ?? 'unknown',
-						$log_entry['next_run'] ?? 'unknown'
+					$action_id = $log_entry['action_id'] ?? 0;
+					$hook = $log_entry['hook'] ?? 'unknown';
+					$next_run = isset($log_entry['next_run']) ? date('Y-m-d H:i:s', strtotime($log_entry['next_run'])) : 'unknown';
+					
+					// Create a human-readable description
+					$action_description = $this->get_action_description($hook, $log_entry['args'] ?? array());
+					
+					$formatted_line = sprintf( '[%s] %s: Scheduled new action "%s" (ID: %d) to run at %s',
+						$time,
+						'ACTION SCHEDULED',
+						$action_description,
+						$action_id,
+						$next_run
+					);
+					break;
+					
+				case 'canceled_action':
+					$action_id = $log_entry['action_id'] ?? 0;
+					$hook = $log_entry['hook'] ?? $action_hooks[$action_id] ?? 'unknown';
+					
+					// Create a human-readable description
+					$action_description = $this->get_action_description($hook, $action_data[$action_id]['args'] ?? array());
+					
+					$formatted_line = sprintf( '[%s] %s: Canceled action "%s" (ID: %d)',
+						$time,
+						'ACTION CANCELED',
+						$action_description,
+						$action_id
+					);
+					break;
+					
+				case 'legacy_message':
+					$formatted_line = sprintf( '[%s] %s: %s',
+						$time,
+						'SYSTEM MESSAGE',
+						$log_entry['message'] ?? 'No message'
+					);
+					break;
+					
+				case 'maintenance_start':
+					$formatted_line = sprintf( '[%s] %s: Queue maintenance started (Pending: %d, Processing: %d, Completed: %d, Failed: %d)',
+						$time,
+						'MAINTENANCE START',
+						$log_entry['pending'] ?? 0,
+						$log_entry['processing'] ?? 0,
+						$log_entry['completed'] ?? 0,
+						$log_entry['failed'] ?? 0
+					);
+					break;
+					
+				case 'maintenance_end':
+					$formatted_line = sprintf( '[%s] %s: Queue maintenance completed',
+						$time,
+						'MAINTENANCE END'
+					);
+					break;
+					
+				default:
+					// For any other event types
+					$formatted_line = sprintf( '[%s] %s: %s',
+						$time,
+						strtoupper(str_replace('_', ' ', $event)),
+						$this->summarize_event_data($log_entry)
 					);
 					break;
 			}
@@ -600,7 +920,144 @@ class Queue_Optimizer_Scheduler {
 			return __( 'No log entries found.', '365i-queue-optimizer' );
 		}
 
-		return "=== Action Scheduler Master Log (Last $line_count events) ===\n\n" . implode( "\n", $formatted_lines );
+		return "=== Action Scheduler Log (Last $line_count events) ===\n\n" . 
+			__( 'To clear these logs, click the "Clear Action Scheduler Logs" button below. This will remove both completed and failed actions.', '365i-queue-optimizer' ) . 
+			"\n\n" . implode( "\n", $formatted_lines );
+	}
+
+	/**
+	 * Get a human-readable description of an action based on its hook and arguments.
+	 *
+	 * @param string $hook The action hook name.
+	 * @param array  $args The action arguments.
+	 * @return string Human-readable description.
+	 */
+	private function get_action_description($hook, $args) {
+		// Custom descriptions for common Action Scheduler hooks
+		switch ($hook) {
+			case 'action_scheduler/migration_hook':
+				return 'Action Scheduler Database Migration';
+				
+			case 'action_scheduler/custom_cleanup':
+				return 'Action Scheduler Cleanup';
+				
+			case 'action_scheduler/migration_status':
+				return 'Action Scheduler Migration Status Check';
+				
+			case 'woocommerce_cleanup_sessions':
+				return 'WooCommerce Session Cleanup';
+				
+			case 'woocommerce_cleanup_orders':
+				return 'WooCommerce Order Cleanup';
+				
+			case 'woocommerce_run_product_attribute_lookup_update_callback':
+				return 'WooCommerce Product Attribute Update';
+				
+			case 'woocommerce_scheduled_sales':
+				return 'WooCommerce Scheduled Sales';
+				
+			case 'elementor/images_manager/clear_cache':
+				return 'Elementor Clear Images Cache';
+				
+			case 'elementor_pro/images/optimize':
+				return 'Elementor Image Optimization';
+		}
+		
+		// Custom descriptions for Queue Optimizer hooks
+		if (strpos($hook, 'queue_optimizer_') === 0) {
+			$action_name = str_replace('queue_optimizer_', '', $hook);
+			$action_name = ucwords(str_replace('_', ' ', $action_name));
+			return '365i Queue Optimizer: ' . $action_name;
+		}
+		
+		// Elementor hooks
+		if (strpos($hook, 'elementor') === 0) {
+			return 'Elementor: ' . $hook;
+		}
+		
+		// If we can't determine a specific description, return the hook name
+		// with the first argument if available
+		if (!empty($args) && isset($args[0])) {
+			if (is_scalar($args[0])) {
+				return "$hook: " . substr((string)$args[0], 0, 30);
+			} elseif (is_array($args[0])) {
+				return "$hook with " . count($args[0]) . " items";
+			}
+		}
+		
+		return $hook;
+	}
+	
+	/**
+	 * Create a summary of event data for display in logs.
+	 *
+	 * @param array $event_data The event data array.
+	 * @return string A human-readable summary.
+	 */
+	private function summarize_event_data($event_data) {
+		$summary_parts = array();
+		
+		// Remove common fields that don't need to be in the summary
+		$ignore_keys = array('time', 'event');
+		
+		foreach ($event_data as $key => $value) {
+			if (in_array($key, $ignore_keys)) {
+				continue;
+			}
+			
+			if (is_scalar($value)) {
+				$summary_parts[] = "$key: $value";
+			} elseif (is_array($value)) {
+				$summary_parts[] = "$key: [" . count($value) . " items]";
+			} elseif (is_object($value)) {
+				$summary_parts[] = "$key: " . get_class($value);
+			}
+		}
+		
+		return implode(', ', $summary_parts);
+	}
+	
+	/**
+	 * Format memory in kilobytes to a human-readable string.
+	 *
+	 * @param int $kb Memory in kilobytes.
+	 * @return string Formatted memory string.
+	 */
+	private function format_memory_kb($kb) {
+		if ($kb < 1024) {
+			return "$kb KB";
+		} elseif ($kb < 1024 * 1024) {
+			return round($kb / 1024, 2) . " MB";
+		} else {
+			return round($kb / (1024 * 1024), 2) . " GB";
+		}
+	}
+
+	/**
+	 * Format arguments for readable display in logs.
+	 *
+	 * @param array $args Arguments array.
+	 * @return string Formatted arguments string.
+	 */
+	private function format_args( $args ) {
+		if ( ! is_array( $args ) ) {
+			return 'none';
+		}
+		
+		$formatted = array();
+		foreach ( $args as $key => $value ) {
+			if ( is_array( $value ) ) {
+				$formatted[] = "$key: [array]";
+			} elseif ( is_object( $value ) ) {
+				$formatted[] = "$key: " . get_class( $value );
+			} elseif ( is_string( $value ) && strlen( $value ) > 30 ) {
+				$formatted[] = "$key: " . substr( $value, 0, 30 ) . '...';
+			} else {
+				$formatted[] = "$key: $value";
+			}
+		}
+		
+		return implode( ', ', $formatted );
 	}
 
 	/**
@@ -952,6 +1409,7 @@ class Queue_Optimizer_Scheduler {
 
 	/**
 	 * Clear completed and failed Action Scheduler logs.
+	 * Avoids interfering with pending or running actions.
 	 *
 	 * @return int Number of actions cleared.
 	 */
