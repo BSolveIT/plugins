@@ -42,6 +42,24 @@ A lightweight WordPress plugin to manage and optimize background queue processin
 * Responsive admin interface
 * Compatible with all major WordPress admin color schemes
 
+### Planned Features (Currently UI Placeholders)
+
+**Debug Mode** - Currently displayed in Settings Overview but not yet implemented
+* Would enable verbose logging of all queue operations and processing steps
+* Detailed timing information for performance analysis and bottleneck identification
+* Enhanced error reporting with stack traces and detailed failure context
+* Debug-specific log entries for troubleshooting queue processing issues
+* Additional admin interface elements showing internal queue state information
+
+**Email Notifications** - Currently displayed in Settings Overview but not yet implemented
+* Automated email alerts when queue processing fails or encounters errors
+* Daily/weekly queue status reports with processing statistics and health metrics
+* Threshold-based notifications when queue backlogs exceed configured limits
+* Administrative alerts for critical queue failures requiring immediate attention
+* Configurable notification recipients and escalation paths for different alert types
+
+*Note: These features appear in the dashboard Settings Overview panel but are not yet functional. They serve as placeholders for future development and will always display as "Disabled" until properly implemented with backend logic and database options.*
+
 ### Professional Support
 
 This plugin is developed and maintained by [365i WordPress Hosting](https://www.365i.co.uk/), specialists in high-performance WordPress hosting solutions.
