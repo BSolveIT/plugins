@@ -1,12 +1,47 @@
 # 365i Queue Optimizer Changelog
 
 All notable changes to this project will be documented in this file.
+
+### [1.2.0] - 2025-06-16
+
+#### Added
+- **JavaScript-Based Upload Detection**: Revolutionary approach using WordPress media uploader events to detect when all uploads are complete
+- **Post-Upload Processing**: Triggers ActionScheduler immediately after bulk or single uploads finish, eliminating upload slowdowns
+- **AJAX Handler**: Clean AJAX endpoint to process upload completion notifications from the frontend
+- **Backward Compatibility**: Automatic migration from `queue_optimizer_immediate_processing` to `queue_optimizer_post_upload_processing`
+
+#### Technical Implementation
+- **New JavaScript File**: `assets/js/upload-complete-trigger.js` - Hooks into WordPress media uploader events
+- **Enhanced Main Class**: 
+  - `enqueue_admin_scripts()` - Enqueues upload detection script on relevant pages
+  - `handle_upload_complete_ajax()` - Processes AJAX requests when uploads complete
+  - `maybe_handle_option_upgrade()` - Handles backward compatibility for option names
+- **Updated Settings**: Renamed "Immediate Processing" to "Post-Upload Processing" for clarity
+- **Smart Script Loading**: Only loads JavaScript on media-related admin pages (upload, post, page)
+
+#### Performance Improvements
+- **Eliminated Upload Slowdowns**: No processing during upload, only after completion
+- **Precise Detection**: Uses WordPress's native `UploadComplete` event for accurate timing
+- **Zero Guesswork**: No delays or rate limiting needed - knows exactly when uploads finish
+- **Optimized for Bulk Uploads**: Single ActionScheduler trigger regardless of batch size
+
+#### User Interface Updates
+- **Terminology Update**: Changed "Immediate Processing" to "Post-Upload Processing" throughout UI
+- **Enhanced Status Display**: Updated admin status table to reflect new processing approach
+- **Improved Descriptions**: Clearer explanations of how the feature works
+
+#### Backward Compatibility
+- **Automatic Option Migration**: Seamlessly upgrades from old option name during plugin initialization
+- **Legacy Support**: Maintains fallback processing for edge cases
+- **Clean Uninstall**: Removes both old and new options during plugin removal
+
 ### [1.1.1] - 2025-06-16
 
 #### Changed
 - **Documentation**: Added reference to detailed plugin guide in readme.txt Support section
 - **Plugin Header**: Updated Plugin URI to specific blog post documentation
 - **Plugin Header**: Updated Author URI to personal profile page
+
 ## [1.1.0] - 2025-06-15
 
 ### WordPress Repository Preparation

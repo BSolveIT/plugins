@@ -14,6 +14,8 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 delete_option( 'queue_optimizer_time_limit' );
 delete_option( 'queue_optimizer_concurrent_batches' );
 delete_option( 'queue_optimizer_image_engine' );
+delete_option( 'queue_optimizer_post_upload_processing' );
+delete_option( 'queue_optimizer_immediate_processing' ); // Legacy option
 delete_option( 'queue_optimizer_activated' );
 
 // Clean up any legacy options.

@@ -15,10 +15,11 @@ require_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'templates/partials/header.php';
 
 // Get current status data with filters for extensibility.
 $status_data = apply_filters( 'queue_optimizer_status_data', array(
-	'time_limit'         => get_option( 'queue_optimizer_time_limit', 60 ),
-	'concurrent_batches' => get_option( 'queue_optimizer_concurrent_batches', 4 ),
-	'image_engine'       => get_option( 'queue_optimizer_image_engine', 'WP_Image_Editor_GD' ),
-	'actionscheduler_active' => class_exists( 'ActionScheduler' ),
+	'time_limit'               => get_option( 'queue_optimizer_time_limit', 60 ),
+	'concurrent_batches'       => get_option( 'queue_optimizer_concurrent_batches', 4 ),
+	'image_engine'             => get_option( 'queue_optimizer_image_engine', 'WP_Image_Editor_GD' ),
+	'post_upload_processing'   => get_option( 'queue_optimizer_post_upload_processing', true ),
+	'actionscheduler_active'   => class_exists( 'ActionScheduler' ),
 ) );
 ?>
 
@@ -45,6 +46,16 @@ $status_data = apply_filters( 'queue_optimizer_status_data', array(
 			<tr>
 				<td><strong><?php esc_html_e( 'Image Engine', '365i-queue-optimizer' ); ?></strong></td>
 				<td><?php echo esc_html( str_replace( 'WP_Image_Editor_', '', $status_data['image_engine'] ) ); ?></td>
+			</tr>
+			<tr>
+				<td><strong><?php esc_html_e( 'Post-Upload Processing', '365i-queue-optimizer' ); ?></strong></td>
+				<td>
+					<?php if ( $status_data['post_upload_processing'] ) : ?>
+						<span style="color: green;">✓ <?php esc_html_e( 'Enabled', '365i-queue-optimizer' ); ?></span>
+					<?php else : ?>
+						<span style="color: orange;">○ <?php esc_html_e( 'Disabled', '365i-queue-optimizer' ); ?></span>
+					<?php endif; ?>
+				</td>
 			</tr>
 			<tr>
 				<td><strong><?php esc_html_e( 'ActionScheduler Status', '365i-queue-optimizer' ); ?></strong></td>
