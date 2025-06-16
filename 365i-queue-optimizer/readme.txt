@@ -3,7 +3,7 @@ Contributors: 365i
 Tags: actionscheduler, queue, optimization, performance, background-tasks
 Requires at least: 5.8
 Tested up to: 6.8
-Stable tag: 1.1.0
+Stable tag: 1.2.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -12,7 +12,7 @@ A lightweight WordPress plugin to optimize ActionScheduler queue processing for 
 
 == Description ==
 
-**365i Queue Optimizer** is an ultra-lightweight WordPress plugin designed to optimize ActionScheduler performance for faster image processing and background task execution. Perfect for sites using image optimization plugins, WooCommerce, or any plugin that relies on ActionScheduler.
+**365i Queue Optimizer** is an ultra-lightweight WordPress plugin designed to optimize ActionScheduler performance for faster image processing and background task execution. Now featuring revolutionary JavaScript-based post-upload processing that eliminates upload slowdowns. Perfect for sites using image optimization plugins, WooCommerce, or any plugin that relies on ActionScheduler.
 
 ### What This Plugin Does
 
@@ -127,6 +127,35 @@ After activation, image processing and background tasks should be noticeably fas
 
 1. **Settings Page** - Simple configuration interface under Tools > Queue Optimizer
 2. **Current Status** - Shows your optimization settings and ActionScheduler status
+= 1.2.0 - 2025-06-16 =
+
+**Revolutionary JavaScript-Based Post-Upload Processing**
+
+This major update introduces a groundbreaking approach to post-upload processing that completely eliminates upload slowdowns while maintaining instant ActionScheduler optimization.
+
+**Added:**
+* JavaScript-based upload detection using WordPress media uploader events
+* Post-upload processing that triggers ActionScheduler after uploads complete
+* AJAX handler for clean upload completion notifications
+* Backward compatibility with automatic option migration
+* Enhanced security with WordPress-approved form data handling
+
+**Performance Improvements:**
+* Eliminated upload slowdowns completely
+* Precise detection using WordPress's native UploadComplete event
+* Zero guesswork - no delays or rate limiting needed
+* Optimized for both single and bulk upload scenarios
+
+**Security:**
+* Fixed WordPress Plugin Check security warnings
+* Removed direct $_POST access for enhanced security
+* Added safer AJAX action detection methods
+
+**Technical:**
+* New JavaScript file: assets/js/upload-complete-trigger.js
+* Enhanced main class with upload detection capabilities
+* Updated settings terminology from "Immediate Processing" to "Post-Upload Processing"
+* Smart script loading only on relevant admin pages
 = 1.1.0 - 2025-06-15 =
 
 **WordPress Repository Preparation**
