@@ -235,17 +235,15 @@ class Queue_Optimizer_Main {
 			return $metadata;
 		}
 
-		// Check if we're in a single upload context (not bulk).
-		// This is more of a fallback for uploads that don't use the media modal.
-		if ( defined( 'DOING_AJAX' ) && isset( $_POST['action'] ) &&
-			 'queue_optimizer_upload_complete' !== sanitize_text_field( wp_unslash( $_POST['action'] ) ) ) {
+		// Check if post-upload processing is enabled.
+		$enabled = get_option( 'queue_optimizer_post_upload_processing', true );
+		if ( ! $enabled ) {
+			return $metadata;
+		}
 
-			// Check if post-upload processing is enabled.
-			$enabled = get_option( 'queue_optimizer_post_upload_processing', true );
-			if ( ! $enabled ) {
-				return $metadata;
-			}
-
+		// Only trigger for non-AJAX contexts or when not already handled by our JavaScript.
+		// This serves as a fallback for uploads that don't use the media modal.
+		if ( ! defined( 'DOING_AJAX' ) || ! $this->is_our_ajax_action() ) {
 			// Trigger ActionScheduler for this single upload.
 			if ( class_exists( 'ActionScheduler' ) ) {
 				do_action( 'action_scheduler_run_queue', 'single-upload-trigger' );
@@ -254,6 +252,18 @@ class Queue_Optimizer_Main {
 		}
 
 		return $metadata;
+	}
+
+	/**
+	 * Check if we're in our own AJAX action context.
+	 *
+	 * @return bool True if we're in our AJAX action.
+	 */
+	private function is_our_ajax_action() {
+		// Safely check if we're in our own AJAX action without accessing $_POST directly.
+		return defined( 'DOING_AJAX' ) && 
+			   wp_doing_ajax() && 
+			   current_action() === 'wp_ajax_queue_optimizer_upload_complete';
 	}
 
 	/**

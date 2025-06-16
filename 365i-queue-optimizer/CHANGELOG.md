@@ -34,6 +34,10 @@ All notable changes to this project will be documented in this file.
 - **Automatic Option Migration**: Seamlessly upgrades from old option name during plugin initialization
 - **Legacy Support**: Maintains fallback processing for edge cases
 - **Clean Uninstall**: Removes both old and new options during plugin removal
+#### Security
+- **Fixed WordPress Security Issues**: Resolved nonce verification warnings by eliminating direct $_POST access
+- **Enhanced Form Data Handling**: Added safer method to check AJAX action context without security risks
+- **Improved Code Security**: Replaced direct superglobal access with WordPress-approved alternatives
 
 ### [1.1.1] - 2025-06-16
 
