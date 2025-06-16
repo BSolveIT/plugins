@@ -2,8 +2,8 @@
 /**
  * Admin interface class for 365i AI FAQ Generator.
  * 
- * This class handles all admin-related functionality including
- * settings pages, menu items, and admin dashboard features.
+ * This class handles minimal admin functionality for worker configuration
+ * and basic settings only. No FAQ creation functionality in admin.
  * 
  * @package AI_FAQ_Generator
  * @subpackage Admin
@@ -18,8 +18,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Admin interface class.
  * 
- * Manages WordPress admin interface including menus, settings pages,
- * and dashboard functionality.
+ * Manages minimal WordPress admin interface for worker configuration only.
+ * All FAQ generation happens on the frontend.
  * 
  * @since 2.0.0
  */
@@ -47,7 +47,7 @@ class AI_FAQ_Admin {
 	/**
 	 * Initialize the admin component.
 	 * 
-	 * Set up hooks and filters for admin functionality.
+	 * Set up hooks and filters for minimal admin functionality.
 	 * 
 	 * @since 2.0.0
 	 */
@@ -66,13 +66,12 @@ class AI_FAQ_Admin {
 		
 		// Handle activation redirect.
 		add_action( 'admin_init', array( $this, 'activation_redirect' ) );
-		
-		// Add dashboard widget.
-		add_action( 'wp_dashboard_setup', array( $this, 'add_dashboard_widget' ) );
 	}
 
 	/**
 	 * Add admin menu items.
+	 * 
+	 * Only adds worker configuration and settings - no FAQ generation.
 	 * 
 	 * @since 2.0.0
 	 */
@@ -86,26 +85,6 @@ class AI_FAQ_Admin {
 			array( $this, 'display_main_page' ),
 			'dashicons-format-chat',
 			30
-		);
-
-		// Dashboard submenu.
-		add_submenu_page(
-			'ai-faq-generator',
-			__( 'Dashboard', '365i-ai-faq-generator' ),
-			__( 'Dashboard', '365i-ai-faq-generator' ),
-			'manage_options',
-			'ai-faq-generator',
-			array( $this, 'display_main_page' )
-		);
-
-		// Generator submenu.
-		add_submenu_page(
-			'ai-faq-generator',
-			__( 'FAQ Generator', '365i-ai-faq-generator' ),
-			__( 'Generator', '365i-ai-faq-generator' ),
-			'manage_options',
-			'ai-faq-generator-tool',
-			array( $this, 'display_generator_page' )
 		);
 
 		// Workers submenu.
@@ -243,20 +222,6 @@ class AI_FAQ_Admin {
 	}
 
 	/**
-	 * Display generator page.
-	 * 
-	 * @since 2.0.0
-	 */
-	public function display_generator_page() {
-		// Check user capabilities.
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( __( 'You do not have sufficient permissions to access this page.', '365i-ai-faq-generator' ) );
-		}
-
-		include AI_FAQ_GEN_DIR . 'templates/admin/generator.php';
-	}
-
-	/**
 	 * Display workers configuration page.
 	 * 
 	 * @since 2.0.0
@@ -290,7 +255,7 @@ class AI_FAQ_Admin {
 	 * @since 2.0.0
 	 */
 	public function general_section_callback() {
-		echo '<p>' . esc_html__( 'Configure general plugin settings.', '365i-ai-faq-generator' ) . '</p>';
+		echo '<p>' . esc_html__( 'Configure general plugin settings for frontend FAQ generation.', '365i-ai-faq-generator' ) . '</p>';
 	}
 
 	/**
@@ -299,7 +264,7 @@ class AI_FAQ_Admin {
 	 * @since 2.0.0
 	 */
 	public function workers_section_callback() {
-		echo '<p>' . esc_html__( 'Configure Cloudflare worker settings and rate limits.', '365i-ai-faq-generator' ) . '</p>';
+		echo '<p>' . esc_html__( 'Configure Cloudflare worker settings and rate limits for frontend use.', '365i-ai-faq-generator' ) . '</p>';
 	}
 
 	/**
@@ -315,7 +280,7 @@ class AI_FAQ_Admin {
 			'<input type="number" id="default_faq_count" name="ai_faq_gen_options[settings][default_faq_count]" value="%d" min="1" max="50" />',
 			intval( $value )
 		);
-		echo '<p class="description">' . esc_html__( 'Default number of FAQ items to generate.', '365i-ai-faq-generator' ) . '</p>';
+		echo '<p class="description">' . esc_html__( 'Default number of FAQ items to generate on frontend.', '365i-ai-faq-generator' ) . '</p>';
 	}
 
 	/**
@@ -331,7 +296,7 @@ class AI_FAQ_Admin {
 			'<input type="number" id="auto_save_interval" name="ai_faq_gen_options[settings][auto_save_interval]" value="%d" min="1" max="60" />',
 			intval( $value )
 		);
-		echo '<p class="description">' . esc_html__( 'Auto-save interval in minutes for local storage.', '365i-ai-faq-generator' ) . '</p>';
+		echo '<p class="description">' . esc_html__( 'Auto-save interval in minutes for local storage on frontend.', '365i-ai-faq-generator' ) . '</p>';
 	}
 
 	/**
@@ -347,7 +312,7 @@ class AI_FAQ_Admin {
 			'<input type="checkbox" id="debug_mode" name="ai_faq_gen_options[settings][debug_mode]" value="1" %s />',
 			checked( $value, true, false )
 		);
-		echo '<label for="debug_mode">' . esc_html__( 'Enable debug mode for troubleshooting.', '365i-ai-faq-generator' ) . '</label>';
+		echo '<label for="debug_mode">' . esc_html__( 'Enable debug mode for troubleshooting frontend issues.', '365i-ai-faq-generator' ) . '</label>';
 	}
 
 	/**
@@ -405,9 +370,9 @@ class AI_FAQ_Admin {
 	 */
 	public function add_action_links( $links ) {
 		$settings_link = '<a href="' . esc_url( admin_url( 'admin.php?page=ai-faq-generator-settings' ) ) . '">' . __( 'Settings', '365i-ai-faq-generator' ) . '</a>';
-		$generator_link = '<a href="' . esc_url( admin_url( 'admin.php?page=ai-faq-generator-tool' ) ) . '">' . __( 'Generator', '365i-ai-faq-generator' ) . '</a>';
+		$workers_link = '<a href="' . esc_url( admin_url( 'admin.php?page=ai-faq-generator-workers' ) ) . '">' . __( 'Workers', '365i-ai-faq-generator' ) . '</a>';
 		
-		array_unshift( $links, $settings_link, $generator_link );
+		array_unshift( $links, $settings_link, $workers_link );
 		
 		return $links;
 	}
@@ -428,55 +393,5 @@ class AI_FAQ_Admin {
 				exit;
 			}
 		}
-	}
-
-	/**
-	 * Add dashboard widget.
-	 * 
-	 * @since 2.0.0
-	 */
-	public function add_dashboard_widget() {
-		wp_add_dashboard_widget(
-			'ai_faq_gen_dashboard_widget',
-			__( '365i AI FAQ Generator', '365i-ai-faq-generator' ),
-			array( $this, 'display_dashboard_widget' )
-		);
-	}
-
-	/**
-	 * Display dashboard widget content.
-	 * 
-	 * @since 2.0.0
-	 */
-	public function display_dashboard_widget() {
-		$options = get_option( 'ai_faq_gen_options', array() );
-		$workers = isset( $options['workers'] ) ? $options['workers'] : array();
-		
-		echo '<div class="ai-faq-gen-dashboard-widget">';
-		echo '<p>' . esc_html__( 'Quick access to AI FAQ Generator tools:', '365i-ai-faq-generator' ) . '</p>';
-		
-		echo '<p>';
-		echo '<a href="' . esc_url( admin_url( 'admin.php?page=ai-faq-generator-tool' ) ) . '" class="button button-primary">' . esc_html__( 'Generate FAQ', '365i-ai-faq-generator' ) . '</a> ';
-		echo '<a href="' . esc_url( admin_url( 'admin.php?page=ai-faq-generator-workers' ) ) . '" class="button">' . esc_html__( 'Worker Status', '365i-ai-faq-generator' ) . '</a>';
-		echo '</p>';
-		
-		// Show worker status summary.
-		$enabled_workers = 0;
-		$total_workers = count( $workers );
-		
-		foreach ( $workers as $worker ) {
-			if ( $worker['enabled'] ) {
-				$enabled_workers++;
-			}
-		}
-		
-		if ( $total_workers > 0 ) {
-			echo '<p><strong>' . esc_html__( 'Workers Status:', '365i-ai-faq-generator' ) . '</strong> ';
-			/* translators: 1: Number of enabled workers, 2: Total number of workers */
-			echo sprintf( esc_html__( '%1$d of %2$d workers enabled', '365i-ai-faq-generator' ), $enabled_workers, $total_workers );
-			echo '</p>';
-		}
-		
-		echo '</div>';
 	}
 }

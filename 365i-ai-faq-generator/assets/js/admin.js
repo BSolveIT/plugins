@@ -1,6 +1,9 @@
 /**
  * Admin JavaScript for 365i AI FAQ Generator.
  * 
+ * Handles minimal admin functionality for worker configuration
+ * and settings only. No FAQ generation functionality.
+ * 
  * @package AI_FAQ_Generator
  * @subpackage Assets
  * @since 2.0.0
@@ -34,16 +37,15 @@
             // Settings forms
             $(document).on('submit', '#ai-faq-gen-settings-form', this.saveSettings);
             
-            // Dashboard interactions
-            $(document).on('click', '#show-shortcode-help', this.toggleShortcodeHelp);
-            $(document).on('click', '.copy-shortcode', this.copyShortcode);
-            
             // Worker status refresh
             $(document).on('click', '.refresh-worker-status', this.refreshWorkerStatus);
             
             // Form validation
             $(document).on('change', 'input[type="url"]', this.validateUrl);
             $(document).on('change', 'input[type="number"]', this.validateNumber);
+            
+            // Copy shortcode functionality
+            $(document).on('click', '.copy-shortcode', this.copyShortcode);
         },
 
         /**
@@ -76,10 +78,10 @@
             
             var $button = $(this);
             var workerName = $button.data('worker');
-            var workerUrl = $button.closest('.worker-card').find('input[name*="[url]"]').val();
+            var workerUrl = $button.closest('.worker-card, .worker-config-card').find('input[name*="[url]"]').val();
             
             if (!workerUrl) {
-                AIFaqGenAdmin.showNotice('error', aiFaqGen.strings.error);
+                AIFaqGenAdmin.showNotice('error', 'Please enter a worker URL first.');
                 return;
             }
             
@@ -138,8 +140,8 @@
                     if (response.success) {
                         AIFaqGenAdmin.showNotice('success', 'Worker usage statistics reset.');
                         // Update usage display
-                        $button.closest('.worker-card').find('.usage-current').text('0');
-                        $button.closest('.worker-card').find('.usage-fill').css('width', '0%');
+                        $button.closest('.worker-card, .worker-config-card').find('.usage-current').text('0');
+                        $button.closest('.worker-card, .worker-config-card').find('.usage-fill').css('width', '0%');
                     } else {
                         AIFaqGenAdmin.showNotice('error', response.data || aiFaqGen.strings.error);
                     }
@@ -160,9 +162,10 @@
             e.preventDefault();
             
             var $form = $(this);
-            var $submitButton = $form.find('input[type="submit"]');
+            var $submitButton = $form.find('input[type="submit"], button[type="submit"]');
+            var originalText = $submitButton.text();
             
-            $submitButton.prop('disabled', true).val(aiFaqGen.strings.loading);
+            $submitButton.prop('disabled', true).text(aiFaqGen.strings.loading);
             
             $.ajax({
                 url: aiFaqGen.ajaxUrl,
@@ -179,27 +182,9 @@
                     AIFaqGenAdmin.showNotice('error', aiFaqGen.strings.error);
                 },
                 complete: function() {
-                    $submitButton.prop('disabled', false).val('Save Changes');
+                    $submitButton.prop('disabled', false).text(originalText);
                 }
             });
-        },
-
-        /**
-         * Toggle shortcode help section.
-         */
-        toggleShortcodeHelp: function(e) {
-            e.preventDefault();
-            
-            var $button = $(this);
-            var $helpSection = $('#shortcode-help');
-            
-            if ($helpSection.is(':visible')) {
-                $helpSection.slideUp();
-                $button.text('Show Examples');
-            } else {
-                $helpSection.slideDown();
-                $button.text('Hide Examples');
-            }
         },
 
         /**
@@ -218,7 +203,11 @@
             
             try {
                 document.execCommand('copy');
-                AIFaqGenAdmin.showNotice('success', aiFaqGen.strings.copied);
+                AIFaqGenAdmin.showNotice('success', 'Shortcode copied to clipboard!');
+                $button.text('Copied!');
+                setTimeout(function() {
+                    $button.text('Copy');
+                }, 2000);
             } catch (err) {
                 AIFaqGenAdmin.showNotice('error', 'Failed to copy shortcode');
             }
@@ -267,7 +256,7 @@
          */
         updateWorkerStatus: function(workers) {
             $.each(workers, function(workerName, status) {
-                var $workerCard = $('.worker-card[data-worker="' + workerName + '"]');
+                var $workerCard = $('.worker-card[data-worker="' + workerName + '"], .worker-config-card[data-worker="' + workerName + '"]');
                 
                 if ($workerCard.length > 0) {
                     // Update enabled/disabled state
@@ -368,8 +357,8 @@
             var $notice = $('<div class="notice notice-' + type + ' is-dismissible"><p>' + message + '</p></div>');
             
             // Insert after the header or at the top of content
-            var $target = $('.ai-faq-gen-header').length > 0 ? $('.ai-faq-gen-header') : $('.ai-faq-gen-content');
-            $target.after($notice);
+            var $target = $('.ai-faq-gen-header').length > 0 ? $('.ai-faq-gen-header') : $('.ai-faq-gen-content, .wrap');
+            $target.first().after($notice);
             
             // Auto-dismiss success notices
             if (type === 'success') {
@@ -403,24 +392,6 @@
          */
         formatNumber: function(num) {
             return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        },
-
-        /**
-         * Debounce function for performance.
-         */
-        debounce: function(func, wait, immediate) {
-            var timeout;
-            return function() {
-                var context = this, args = arguments;
-                var later = function() {
-                    timeout = null;
-                    if (!immediate) func.apply(context, args);
-                };
-                var callNow = immediate && !timeout;
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-                if (callNow) func.apply(context, args);
-            };
         }
     };
 

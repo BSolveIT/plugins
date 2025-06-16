@@ -33,12 +33,12 @@ $page_title = isset( $page_titles[ $page_slug ] ) ? $page_titles[ $page_slug ] :
 <div class="wrap ai-faq-gen-admin">
 	<div class="ai-faq-gen-header">
 		<div class="ai-faq-gen-header-content">
-			<div class="ai-faq-gen-logo">
+			<div class="ai-faq-gen-page-title">
 				<h1>
 					<span class="dashicons dashicons-format-chat"></span>
 					<?php echo esc_html( $page_title ); ?>
+					<span class="ai-faq-gen-version">v<?php echo esc_html( AI_FAQ_GEN_VERSION ); ?></span>
 				</h1>
-				<span class="ai-faq-gen-version">v<?php echo esc_html( AI_FAQ_GEN_VERSION ); ?></span>
 			</div>
 			
 			<div class="ai-faq-gen-nav">
@@ -49,11 +49,7 @@ $page_title = isset( $page_titles[ $page_slug ] ) ? $page_titles[ $page_slug ] :
 						<?php esc_html_e( 'Dashboard', '365i-ai-faq-generator' ); ?>
 					</a>
 					
-					<a href="<?php echo esc_url( admin_url( 'admin.php?page=ai-faq-generator-tool' ) ); ?>" 
-					   class="nav-tab <?php echo 'ai-faq-generator-tool' === $page_slug ? 'nav-tab-active' : ''; ?>">
-						<span class="dashicons dashicons-lightbulb"></span>
-						<?php esc_html_e( 'Generator', '365i-ai-faq-generator' ); ?>
-					</a>
+
 					
 					<a href="<?php echo esc_url( admin_url( 'admin.php?page=ai-faq-generator-workers' ) ); ?>" 
 					   class="nav-tab <?php echo 'ai-faq-generator-workers' === $page_slug ? 'nav-tab-active' : ''; ?>">

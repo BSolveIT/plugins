@@ -2,7 +2,7 @@
 /**
  * Plugin Name: 365i AI FAQ Generator
  * Plugin URI: https://365i.co.uk/plugins/ai-faq-generator
- * Description: Professional AI-powered FAQ generation tool with 6 Cloudflare workers integration, admin interface, and frontend shortcode tool for creating SEO-optimized FAQ content.
+ * Description: Frontend-only AI-powered FAQ generation tool with 6 Cloudflare workers integration. Clients use shortcodes to generate SEO-optimized FAQ content directly on pages.
  * Version: 2.0.0
  * Author: 365i
  * Author URI: https://365i.co.uk

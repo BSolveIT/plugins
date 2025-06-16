@@ -101,7 +101,7 @@
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: var(--spacing-lg);
+    gap: 1.5rem; /* p-6 equivalent */
     position: relative;
     z-index: 1;
 }
@@ -109,21 +109,26 @@
 .ai-faq-gen-logo h1 {
     display: flex;
     align-items: center;
-    gap: var(--spacing-md);
+    gap: var(--spacing-sm);
     margin: 0;
     font-size: 1.875rem;
     font-weight: 700;
     color: white;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    line-height: 1;
 }
 
 .ai-faq-gen-logo .dashicons {
-    font-size: 2.25rem;
+    font-size: 2.75rem;
+    width: 2.75rem;
+    height: 2.75rem;
     background: linear-gradient(135deg, var(--accent-color), #ff6b9d);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    display: inline-block;
+    vertical-align: middle;
 }
 
 .ai-faq-gen-version {
@@ -142,8 +147,8 @@
     display: flex;
     gap: var(--spacing-xs);
     background: rgba(255, 255, 255, 0.15);
-    padding: var(--spacing-xs);
-    border-radius: var(--radius-lg);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md); /* 2xl rounded corners */
     backdrop-filter: blur(15px);
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
@@ -217,6 +222,7 @@
 .welcome-panel-content {
     position: relative;
     z-index: 1;
+    min-height: 0;
 }
 
 .welcome-panel-content h2 {
@@ -232,7 +238,6 @@
 .about-description {
     font-size: 1.125rem;
     color: var(--text-secondary);
-    margin-bottom: var(--spacing-xl);
     line-height: 1.6;
 }
 
@@ -246,8 +251,8 @@
 .welcome-panel-column {
     background: var(--bg-primary);
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-xl);
+    border-radius: var(--radius-xl); /* 2xl rounded corners */
+    padding: 1rem; /* p-4 equivalent */
     box-shadow: var(--shadow-md);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
@@ -340,16 +345,21 @@
     letter-spacing: 0.025em;
 }
 
+@media only screen and (min-width: 1600px) {
+    .welcome-panel-column {
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
 /* ==========================================================================
    Welcome Cards Section - Full Width Layout
    ========================================================================== */
 
 .welcome-cards-section {
     background: var(--bg-primary);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-xl);
-    margin: 0 0 var(--spacing-xl) -20px;
-    margin-right: -20px;
+    border-radius: var(--radius-xl); /* 2xl rounded corners */
+    padding: 1rem; /* p-4 equivalent */
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--border-color);
     position: relative;
@@ -370,8 +380,8 @@
 .welcome-cards-section .welcome-panel-column {
     background: var(--bg-primary);
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-xl);
+    border-radius: var(--radius-xl); /* 2xl rounded corners */
+    padding: 1rem; /* p-4 equivalent */
     box-shadow: var(--shadow-md);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
@@ -470,15 +480,15 @@
 
 .stats-container {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--spacing-lg);
-    margin-bottom: var(--spacing-xl);
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Auto-fit with min 200px */
+    gap: 1.5rem; /* p-6 equivalent */
+    margin: var(--spacing-xl) 0;
 }
 
 .stat-card {
     background: var(--bg-primary);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-xl);
+    border-radius: var(--radius-xl); /* 2xl rounded corners */
+    padding: 1rem; /* p-4 equivalent */
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--border-color);
     text-align: center;
@@ -524,6 +534,61 @@
     margin: 0;
 }
 
+/* Apply stat-card styles to stat-box as well */
+.stat-box {
+    background: var(--bg-primary);
+    border-radius: var(--radius-xl); /* 2xl rounded corners */
+    padding: 1rem; /* p-4 equivalent */
+    box-shadow: var(--shadow-sm); /* Soft shadow */
+    border: 1px solid var(--border-color);
+    text-align: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+}
+
+.stat-box:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-light);
+}
+
+/* Update stat-number styling to match specifications */
+.stat-box .stat-number,
+.stat-card .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #5c6ac4;
+    background: none;
+    -webkit-background-clip: unset;
+    -webkit-text-fill-color: unset;
+    background-clip: unset;
+    margin-bottom: var(--spacing-sm);
+    line-height: 1.2;
+    display: block;
+}
+
+/* Update stat-label styling to match specifications */
+.stat-box .stat-label,
+.stat-card .stat-label {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin: 0;
+}
+
 /* ==========================================================================
    Professional Quick Actions Grid with Prominent Icons
    ========================================================================== */
@@ -531,20 +596,24 @@
 .quick-actions-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: var(--spacing-lg);
+    gap: 1.5rem; /* p-6 equivalent */
     margin-bottom: var(--spacing-xl);
 }
 
 .action-card {
     background: var(--bg-primary);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-xl);
+    border-radius: var(--radius-xl); /* 2xl rounded corners */
+    padding: 1rem; /* p-4 equivalent */
     text-align: center;
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--border-color);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
 }
 
 .action-card:hover {
@@ -573,6 +642,9 @@
     margin-bottom: var(--spacing-lg);
     position: relative;
     z-index: 1;
+    display: block;
+    width: 100%;
+    text-align: center;
 }
 
 .action-icon .dashicons {
@@ -584,6 +656,8 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
     display: block;
+    margin: 0 auto;
+    text-align: center;
 }
 
 .action-card h4 {
@@ -593,6 +667,8 @@
     font-weight: 700;
     position: relative;
     z-index: 1;
+    text-align: center;
+    width: 100%;
 }
 
 .action-card p {
@@ -602,6 +678,8 @@
     line-height: 1.5;
     position: relative;
     z-index: 1;
+    text-align: center;
+    width: 100%;
 }
 
 /* ==========================================================================
@@ -610,9 +688,9 @@
 
 .ai-faq-gen-section {
     background: var(--bg-primary);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-xl); /* 2xl rounded corners */
     margin-bottom: var(--spacing-xl);
-    padding: var(--spacing-xl);
+    padding: 1rem; /* p-4 equivalent */
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--border-color);
     transition: all 0.3s ease;
@@ -769,18 +847,99 @@
 .worker-status-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: var(--spacing-lg);
+    gap: 1.5rem; /* p-6 equivalent */
+    grid-template-rows: repeat(2, auto);
+    list-style: none;
+    margin: 0;
+    padding: 0;
 }
 
-.worker-config-card {
+.worker-card {
     background: var(--bg-primary);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-xl);
     padding: var(--spacing-lg);
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--border-color);
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+}
+
+.worker-card.enabled::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--success-color), #34d399);
+}
+
+.worker-card.disabled::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--error-color), #f87171);
+}
+
+.worker-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Status Indicator for Worker Cards */
+.worker-card .status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    list-style: none;
+    position: relative;
+}
+
+.worker-card .status-indicator.enabled {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+}
+
+.worker-card .status-indicator.disabled {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error-color);
+}
+
+/* Remove bullet points from worker status indicators */
+.worker-header .status-indicator::before,
+.worker-card .status-indicator::before,
+.worker-status-grid .status-indicator::before,
+.worker-status-section .status-indicator::before,
+.ai-faq-gen-admin .worker-status-section .status-indicator::before,
+.ai-faq-gen-admin .worker-status-grid .status-indicator::before,
+.ai-faq-gen-admin .worker-card .status-indicator::before {
+    display: none;
+}
+
+/* Worker Configuration Card - Fixed Styles */
+.worker-config-card {
+    background: var(--bg-primary);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: var(--spacing-lg);
 }
 
 .worker-config-card.enabled::before {
@@ -808,6 +967,192 @@
     box-shadow: var(--shadow-md);
 }
 
+/* Worker Configuration Card Details */
+.worker-details {
+    padding: var(--spacing-md);
+}
+
+.worker-description {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    margin-bottom: var(--spacing-lg);
+}
+
+.worker-specs {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.spec-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+    font-size: 0.875rem;
+}
+
+.spec-item:last-child {
+    margin-bottom: 0;
+}
+
+.spec-item strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.spec-item span {
+    color: var(--text-secondary);
+    font-family: 'Monaco', 'Consolas', 'Courier New', monospace;
+}
+
+/* Worker Configuration Form */
+.worker-config {
+    margin-bottom: var(--spacing-lg);
+}
+
+.config-row {
+    margin-bottom: var(--spacing-md);
+}
+
+.config-row label {
+    display: block;
+    margin-bottom: var(--spacing-sm);
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+}
+
+.config-row input[type="url"],
+.config-row input[type="number"] {
+    width: 100%;
+    padding: var(--spacing-sm);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    transition: border-color 0.3s ease;
+}
+
+.config-row input[type="url"]:focus,
+.config-row input[type="number"]:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+/* Usage Display */
+.usage-display {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+}
+
+.usage-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.usage-text {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.usage-current {
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.usage-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.usage-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--success-color), var(--primary-color));
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+/* Worker Actions */
+.worker-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+/* Form Actions - Save Configuration, Test All, Refresh Buttons */
+.form-actions {
+    display: flex;
+    gap: var(--spacing-xl);
+    margin: var(--spacing-xl) 0;
+    padding: var(--spacing-lg);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.form-actions button {
+    min-width: 180px;
+    justify-content: center;
+    padding: var(--spacing-md) var(--spacing-lg) !important;
+}
+
+.form-actions .dashicons {
+    margin-right: var(--spacing-sm);
+    font-size: 1.2rem;
+    width: 1.2rem;
+    height: 1.2rem;
+}
+
+.worker-actions .button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    transition: all 0.3s ease;
+}
+
+.worker-actions .test-worker-connection {
+    background: var(--success-color);
+    color: white;
+    border: none;
+}
+
+.worker-actions .test-worker-connection:hover {
+    background: #059669;
+    transform: translateY(-1px);
+}
+
+.worker-actions .reset-worker-usage {
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.worker-actions .reset-worker-usage:hover {
+    background: var(--warning-color);
+    color: white;
+    border-color: var(--warning-color);
+    transform: translateY(-1px);
+}
+
+/* Worker Header */
 .worker-header {
     display: flex;
     justify-content: space-between;
@@ -817,7 +1162,7 @@
 
 .worker-header h4 {
     margin: 0;
-    font-size: 1rem;
+    font-size: 1.25rem;
     font-weight: 700;
     color: var(--text-primary);
 }
@@ -829,14 +1174,31 @@
 .worker-overview-stats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: var(--spacing-lg);
+    gap: 1.5rem; /* p-6 equivalent */
+    margin-bottom: var(--spacing-xl);
+}
+
+/* Workers stats container (used in workers.php template) */
+.workers-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem; /* p-6 equivalent */
+    margin-bottom: var(--spacing-xl);
+    width: 100%;
+}
+
+/* Workers grid container for individual worker configuration cards */
+.workers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(570px, 1fr));
+    gap: 1.5rem; /* p-6 equivalent */
     margin-bottom: var(--spacing-xl);
 }
 
 .worker-stat-card {
     background: var(--bg-primary);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-xl);
+    border-radius: var(--radius-xl); /* 2xl rounded corners */
+    padding: 1rem; /* p-4 equivalent */
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--border-color);
     text-align: center;
@@ -981,7 +1343,8 @@ input:checked + .toggle-slider:before {
         grid-template-columns: repeat(2, 1fr);
     }
     
-    .worker-overview-stats {
+    .worker-overview-stats,
+    .workers-stats {
         grid-template-columns: repeat(2, 1fr);
     }
 }
@@ -998,7 +1361,7 @@ input:checked + .toggle-slider:before {
     .ai-faq-gen-header-content {
         flex-direction: column;
         align-items: flex-start;
-        gap: var(--spacing-lg);
+        gap: 1.5rem; /* p-6 equivalent */
     }
     
     .ai-faq-gen-logo h1 {
@@ -1013,7 +1376,8 @@ input:checked + .toggle-slider:before {
     .stats-container,
     .worker-overview-stats,
     .quick-actions-grid,
-    .worker-status-grid {
+    .worker-status-grid,
+    .workers-grid {
         grid-template-columns: 1fr;
     }
     
@@ -1078,6 +1442,7 @@ input:checked + .toggle-slider:before {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    position: relative;
 }
 
 .status-indicator.enabled {
@@ -1090,12 +1455,346 @@ input:checked + .toggle-slider:before {
     color: var(--error-color);
 }
 
+/* Remove default bullet styling */
 .status-indicator::before {
+    display: none;
+}
+
+/* Status indicator dashicons styling */
+.ai-faq-gen-admin .worker-status-section .dashicons,
+.ai-faq-gen-admin .worker-status-grid .dashicons,
+.ai-faq-gen-admin .worker-card .dashicons {
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    margin-right: 4px;
+    text-decoration: none;
+}
+
+/* Remove list styling from all worker status elements */
+.ai-faq-gen-admin .worker-status-section ul,
+.ai-faq-gen-admin .worker-status-section li,
+.ai-faq-gen-admin .worker-status-grid ul,
+.ai-faq-gen-admin .worker-status-grid li,
+.ai-faq-gen-admin .worker-card ul,
+.ai-faq-gen-admin .worker-card li {
+    list-style: none;
+    list-style-type: none;
+    list-style-image: none;
+    list-style-position: outside;
+    margin: 0;
+    padding: 0;
+    text-indent: 0;
+}
+
+/* ==========================================================================
+   Page Title & Section Headers - Professional Layout
+   ========================================================================== */
+
+/* This section applies to both the main page title and section headers */
+.analytics-header,
+.ai-faq-gen-page-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.analytics-header h3,
+.ai-faq-gen-page-title h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.analytics-header .dashicons,
+.ai-faq-gen-page-title .dashicons {
+    color: var(--primary-color);
+    font-size: 2rem;
+    width: 2rem;
+    height: 2rem;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* Main page title specific styling */
+.ai-faq-gen-page-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+.ai-faq-gen-page-title h1 {
+    color: white;
+    display: flex;
+    align-items: center;
+    line-height: 1;
+}
+
+.ai-faq-gen-page-title .dashicons {
+    font-size: 2.75rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: var(--spacing-sm);
+}
+
+/* Version display on same line as title */
+.ai-faq-gen-version {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    color: white;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-md);
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: var(--spacing-sm);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    vertical-align: middle;
+}
+
+/* ==========================================================================
+   Usage Analytics - Professional Metrics Display
+   ========================================================================== */
+
+.analytics-description {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xl);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.analytics-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+    margin: var(--spacing-xl) 0;
+}
+
+.metric-card {
+    background: linear-gradient(to right, rgba(255,255,255,0.9), rgba(245,247,250,0.9));
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.metric-card::before {
     content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: currentColor;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.metric-card .metric-title {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+    display: flex;
+    align-items: center;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.metric-card .metric-title i {
+    margin-right: var(--spacing-sm);
+    color: var(--primary-color);
+    opacity: 0.7;
+}
+
+.metric-card .metric-value {
+    font-size: 2.2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: var(--spacing-md) 0;
+}
+
+.metric-card .metric-description {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: var(--spacing-sm);
+}
+
+/* Success rate specific styling */
+.metric-card.success-rate .metric-value {
+    background: linear-gradient(135deg, var(--success-color), #34d399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.metric-card.error-rate .metric-value {
+    background: linear-gradient(135deg, var(--error-color), #f87171);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Usage chart styling */
+.usage-chart {
+    background-color: white;
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    margin-top: var(--spacing-xl);
+    border: 1px solid var(--border-color);
+    height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.usage-chart.no-data {
+    color: var(--text-secondary);
+    font-style: italic;
+    background-color: rgba(245,247,250,0.5);
+}
+
+/* ==========================================================================
+   Help & Documentation - Professional Card Layout
+   ========================================================================== */
+
+.help-section {
+    margin-top: var(--spacing-2xl);
+}
+
+.help-section .analytics-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+}
+
+.help-section h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.help-section .dashicons {
+    color: var(--info-color);
+    font-size: 1.5rem;
+}
+
+.help-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-xl);
+    margin: var(--spacing-xl) 0;
+}
+
+.help-card {
+    background: linear-gradient(to right, rgba(255,255,255,0.9), rgba(248,250,252,0.9));
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.help-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--info-color), var(--primary-color));
+}
+
+.help-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.help-card h4 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.help-card p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: var(--spacing-lg);
+    flex-grow: 1;
+}
+
+.help-card .button {
+    align-self: flex-start;
+    margin-top: auto;
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+}
+
+.help-card .button::before {
+    font-family: dashicons;
+    font-size: 1.1rem;
+    vertical-align: middle;
+    margin-right: var(--spacing-sm);
+}
+
+.help-card .button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* View guide button icon */
+.help-card .button:nth-of-type(1)::before {
+    content: "\f330";
+}
+
+/* Get help button icon */
+.help-card:nth-child(2) .button::before {
+    content: "\f468";
+}
+
+/* API docs button icon */
+.help-card:nth-child(3) .button::before {
+    content: "\f123";
 }
 
 /* ==========================================================================
@@ -1124,7 +1823,7 @@ input:checked + .toggle-slider:before {
 
 .rounded-sm { border-radius: var(--radius-sm); }
 .rounded-md { border-radius: var(--radius-md); }
-.rounded-lg { border-radius: var(--radius-lg); }
+.rounded-lg { border-radius: var(--radius-xl); /* 2xl rounded corners */ }
 .rounded-xl { border-radius: var(--radius-xl); }
 
 .shadow-sm { box-shadow: var(--shadow-sm); }
@@ -1145,7 +1844,7 @@ input:checked + .toggle-slider:before {
 .p-2 { padding: var(--spacing-sm); }
 .p-4 { padding: var(--spacing-md); }
 .p-6 { padding: var(--spacing-lg); }
-.p-8 { padding: var(--spacing-xl); }
+.p-8 { padding: 1rem; /* p-4 equivalent */ }
 
 .hidden { display: none; }
 .block { display: block; }
@@ -1163,26 +1862,26 @@ input:checked + .toggle-slider:before {
 
 /* Override WordPress core welcome-panel dark styling that causes awful appearance */
 .ai-faq-gen-admin .welcome-panel {
-    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #f1f5f9 100%) !important;
-    border: 1px solid var(--border-light) !important;
-    box-shadow: var(--shadow-md) !important;
-    color: var(--text-primary) !important;
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #f1f5f9 100%);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-md);
+    color: var(--text-primary);
 }
 
 .ai-faq-gen-admin .welcome-panel-content h2 {
-    color: var(--text-primary) !important;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
-    -webkit-background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
-    background-clip: text !important;
+    color: var(--text-primary);
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .ai-faq-gen-admin .welcome-panel-content p {
-    color: var(--text-secondary) !important;
+    color: var(--text-secondary);
 }
 
 .ai-faq-gen-admin .welcome-panel-content {
-    color: var(--text-primary) !important;
+    color: var(--text-primary);
 }
 
 /* ==========================================================================
@@ -1190,10 +1889,10 @@ input:checked + .toggle-slider:before {
    ========================================================================== */
 
 .welcome-panel-column-container {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: var(--spacing-md) !important;
-    margin-top: var(--spacing-xl) !important;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-xl);
 }
 
 /* ==========================================================================
@@ -1205,61 +1904,61 @@ input:checked + .toggle-slider:before {
 .ai-faq-gen-admin .welcome-panel-column .button,
 .ai-faq-gen-admin .button-primary,
 .ai-faq-gen-admin .button-secondary {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    padding: 8px 16px !important;
-    border-radius: 6px !important;
-    font-weight: 600 !important;
-    font-size: 14px !important;
-    text-decoration: none !important;
-    transition: all 0.2s ease !important;
-    cursor: pointer !important;
-    border: 1px solid var(--primary-color) !important;
-    background: var(--bg-primary) !important;
-    color: var(--primary-color) !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: 1px solid var(--primary-color);
+    background: var(--bg-primary);
+    color: var(--primary-color);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* Primary button variant - Keep one distinguishing style for primary actions */
 .ai-faq-gen-admin .button-primary {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
-    color: white !important;
-    border-color: transparent !important;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border-color: transparent;
 }
 
 /* Ensure proper hover states with good contrast */
 .ai-faq-gen-admin .button:hover,
 .ai-faq-gen-admin .welcome-panel-column .button:hover {
-    background: var(--primary-color) !important;
-    color: white !important;
-    border-color: var(--primary-color) !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15) !important;
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
 }
 
 .ai-faq-gen-admin .button-primary:hover {
-    background: linear-gradient(135deg, var(--primary-dark), var(--secondary-color)) !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2) !important;
+    background: linear-gradient(135deg, var(--primary-dark), var(--secondary-color));
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* Ensure icons remain visible on hover */
 .ai-faq-gen-admin .button:hover .dashicons,
 .ai-faq-gen-admin .button-primary:hover .dashicons {
-    color: white !important;
-    opacity: 1 !important;
+    color: white;
+    opacity: 1;
 }
 
 /* Fix for button heroes to match standard sizing */
 .ai-faq-gen-admin .button-hero {
-    padding: 12px 20px !important;
-    font-size: 16px !important;
+    padding: 12px 20px;
+    font-size: 16px;
 }
 
 /* Mobile responsive - Stack cards on smaller screens */
 @media (max-width: 768px) {
     .welcome-panel-column-container {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: 1fr;
     }
 }

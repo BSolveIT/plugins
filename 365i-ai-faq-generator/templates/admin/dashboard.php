@@ -3,7 +3,7 @@
  * Admin dashboard template for 365i AI FAQ Generator.
  * 
  * This template displays the main dashboard with plugin overview,
- * worker status, and quick action buttons.
+ * worker status, and configuration information. No FAQ generation here.
  * 
  * @package AI_FAQ_Generator
  * @subpackage Templates
@@ -50,26 +50,24 @@ foreach ( $workers as $worker_name => $config ) {
 		<div class="welcome-panel-content">
 			<h2><?php esc_html_e( 'Welcome to 365i AI FAQ Generator', '365i-ai-faq-generator' ); ?></h2>
 			<p class="about-description">
-				<?php esc_html_e( 'Generate intelligent FAQ content using advanced AI workers. Create, enhance, and optimize FAQ sections for your website with automated question generation, answer creation, SEO analysis, and schema markup.', '365i-ai-faq-generator' ); ?>
+				<?php esc_html_e( 'Configure your AI-powered FAQ generation system. This plugin provides a frontend-only FAQ generator tool that clients can use directly through shortcodes. All FAQ generation happens on the frontend - use this admin area only for configuration.', '365i-ai-faq-generator' ); ?>
 			</p>
 		</div>
 	</div>
 
-	<!-- Welcome Cards - Full Width Section -->
-	<div class="welcome-cards-section">
+	<!-- Configuration Cards - Full Width Section -->
+	<div>
 		<div class="welcome-panel-column-container">
 			<div class="welcome-panel-column">
-				<h3><?php esc_html_e( 'Get Started', '365i-ai-faq-generator' ); ?></h3>
-				<a class="button button-primary button-hero" href="<?php echo esc_url( admin_url( 'admin.php?page=ai-faq-generator-tool' ) ); ?>">
-					<span class="dashicons dashicons-lightbulb"></span>
-					<?php esc_html_e( 'Generate FAQ', '365i-ai-faq-generator' ); ?>
-				</a>
-				<p><?php esc_html_e( 'Start creating intelligent FAQ content immediately using our AI-powered generators.', '365i-ai-faq-generator' ); ?></p>
+				<h3><?php esc_html_e( 'Frontend Tool', '365i-ai-faq-generator' ); ?></h3>
+				<p><?php esc_html_e( 'All FAQ generation happens on the frontend using shortcodes. There is no backend FAQ creation interface.', '365i-ai-faq-generator' ); ?></p>
+				<code>[ai_faq_generator]</code>
+				<p><small><?php esc_html_e( 'Add this shortcode to any page or post to embed the FAQ generator tool.', '365i-ai-faq-generator' ); ?></small></p>
 			</div>
 			
 			<div class="welcome-panel-column">
 				<h3><?php esc_html_e( 'Configure Workers', '365i-ai-faq-generator' ); ?></h3>
-				<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=ai-faq-generator-workers' ) ); ?>">
+				<a class="button button-primary" href="<?php echo esc_url( admin_url( 'admin.php?page=ai-faq-generator-workers' ) ); ?>">
 					<span class="dashicons dashicons-networking"></span>
 					<?php esc_html_e( 'Worker Settings', '365i-ai-faq-generator' ); ?>
 				</a>
@@ -77,9 +75,12 @@ foreach ( $workers as $worker_name => $config ) {
 			</div>
 			
 			<div class="welcome-panel-column">
-				<h3><?php esc_html_e( 'Use Shortcode', '365i-ai-faq-generator' ); ?></h3>
-				<code>[ai_faq_generator]</code>
-				<p><?php esc_html_e( 'Add the shortcode to any page or post to embed the FAQ generator tool.', '365i-ai-faq-generator' ); ?></p>
+				<h3><?php esc_html_e( 'Plugin Settings', '365i-ai-faq-generator' ); ?></h3>
+				<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=ai-faq-generator-settings' ) ); ?>">
+					<span class="dashicons dashicons-admin-settings"></span>
+					<?php esc_html_e( 'General Settings', '365i-ai-faq-generator' ); ?>
+				</a>
+				<p><?php esc_html_e( 'Configure default settings and debug options for the frontend tool.', '365i-ai-faq-generator' ); ?></p>
 			</div>
 		</div>
 	</div>
@@ -121,7 +122,7 @@ foreach ( $workers as $worker_name => $config ) {
 			<?php if ( empty( $workers ) ) : ?>
 				<div class="notice notice-warning">
 					<p>
-						<?php esc_html_e( 'No workers configured. Please configure your Cloudflare workers to start generating FAQ content.', '365i-ai-faq-generator' ); ?>
+						<?php esc_html_e( 'No workers configured. Please configure your Cloudflare workers to enable frontend FAQ generation.', '365i-ai-faq-generator' ); ?>
 						<a href="<?php echo esc_url( admin_url( 'admin.php?page=ai-faq-generator-workers' ) ); ?>" class="button button-small">
 							<?php esc_html_e( 'Configure Workers', '365i-ai-faq-generator' ); ?>
 						</a>
@@ -167,66 +168,14 @@ foreach ( $workers as $worker_name => $config ) {
 			<?php endif; ?>
 		</div>
 
-		<!-- Quick Actions -->
-		<div class="ai-faq-gen-section quick-actions-section">
-			<h3>
-				<span class="dashicons dashicons-admin-tools"></span>
-				<?php esc_html_e( 'Quick Actions', '365i-ai-faq-generator' ); ?>
-			</h3>
-			
-			<div class="quick-actions-grid">
-				<div class="action-card">
-					<div class="action-icon">
-						<span class="dashicons dashicons-lightbulb"></span>
-					</div>
-					<h4><?php esc_html_e( 'Generate FAQ', '365i-ai-faq-generator' ); ?></h4>
-					<p><?php esc_html_e( 'Create new FAQ content using AI-powered question and answer generation.', '365i-ai-faq-generator' ); ?></p>
-					<a href="<?php echo esc_url( admin_url( 'admin.php?page=ai-faq-generator-tool' ) ); ?>" class="button button-primary">
-						<?php esc_html_e( 'Start Generating', '365i-ai-faq-generator' ); ?>
-					</a>
-				</div>
-				
-				<div class="action-card">
-					<div class="action-icon">
-						<span class="dashicons dashicons-networking"></span>
-					</div>
-					<h4><?php esc_html_e( 'Configure Workers', '365i-ai-faq-generator' ); ?></h4>
-					<p><?php esc_html_e( 'Set up and manage your Cloudflare worker endpoints and rate limits.', '365i-ai-faq-generator' ); ?></p>
-					<a href="<?php echo esc_url( admin_url( 'admin.php?page=ai-faq-generator-workers' ) ); ?>" class="button">
-						<?php esc_html_e( 'Manage Workers', '365i-ai-faq-generator' ); ?>
-					</a>
-				</div>
-				
-				<div class="action-card">
-					<div class="action-icon">
-						<span class="dashicons dashicons-admin-settings"></span>
-					</div>
-					<h4><?php esc_html_e( 'Plugin Settings', '365i-ai-faq-generator' ); ?></h4>
-					<p><?php esc_html_e( 'Configure default settings, auto-save intervals, and debug options.', '365i-ai-faq-generator' ); ?></p>
-					<a href="<?php echo esc_url( admin_url( 'admin.php?page=ai-faq-generator-settings' ) ); ?>" class="button">
-						<?php esc_html_e( 'Edit Settings', '365i-ai-faq-generator' ); ?>
-					</a>
-				</div>
-				
-				<div class="action-card">
-					<div class="action-icon">
-						<span class="dashicons dashicons-editor-code"></span>
-					</div>
-					<h4><?php esc_html_e( 'Shortcode Usage', '365i-ai-faq-generator' ); ?></h4>
-					<p><?php esc_html_e( 'Learn how to embed the FAQ generator in your pages and posts.', '365i-ai-faq-generator' ); ?></p>
-					<button type="button" class="button" id="show-shortcode-help">
-						<?php esc_html_e( 'Show Examples', '365i-ai-faq-generator' ); ?>
-					</button>
-				</div>
-			</div>
-		</div>
-
-		<!-- Shortcode Help (Hidden by default) -->
-		<div class="ai-faq-gen-section shortcode-help-section" id="shortcode-help" style="display: none;">
+		<!-- Shortcode Information -->
+		<div class="ai-faq-gen-section shortcode-help-section">
 			<h3>
 				<span class="dashicons dashicons-editor-code"></span>
-				<?php esc_html_e( 'Shortcode Examples', '365i-ai-faq-generator' ); ?>
+				<?php esc_html_e( 'Frontend Usage', '365i-ai-faq-generator' ); ?>
 			</h3>
+			
+			<p><?php esc_html_e( 'Use these shortcodes to embed the FAQ generator tool on your website:', '365i-ai-faq-generator' ); ?></p>
 			
 			<div class="shortcode-examples">
 				<div class="example-item">
@@ -245,12 +194,6 @@ foreach ( $workers as $worker_name => $config ) {
 					<h4><?php esc_html_e( 'Minimal Theme', '365i-ai-faq-generator' ); ?></h4>
 					<code>[ai_faq_generator theme="minimal" show_export="false"]</code>
 					<p><?php esc_html_e( 'Uses minimal styling and hides export options.', '365i-ai-faq-generator' ); ?></p>
-				</div>
-				
-				<div class="example-item">
-					<h4><?php esc_html_e( 'Generator Only Mode', '365i-ai-faq-generator' ); ?></h4>
-					<code>[ai_faq_generator mode="generator-only"]</code>
-					<p><?php esc_html_e( 'Shows only the generation tools without display area.', '365i-ai-faq-generator' ); ?></p>
 				</div>
 			</div>
 		</div>
@@ -285,7 +228,7 @@ foreach ( $workers as $worker_name => $config ) {
 				
 				if ( empty( $activity_items ) ) :
 				?>
-					<p class="no-activity"><?php esc_html_e( 'No recent activity found. Start generating FAQ content to see activity here.', '365i-ai-faq-generator' ); ?></p>
+					<p class="no-activity"><?php esc_html_e( 'No recent activity found. Users can generate FAQ content using the frontend shortcode.', '365i-ai-faq-generator' ); ?></p>
 				<?php else : ?>
 					<ul class="activity-items">
 						<?php foreach ( $activity_items as $item ) : ?>
@@ -305,26 +248,6 @@ foreach ( $workers as $worker_name => $config ) {
 	</div><!-- .ai-faq-gen-main-content -->
 
 </div><!-- .ai-faq-gen-dashboard -->
-
-<script type="text/javascript">
-document.addEventListener('DOMContentLoaded', function() {
-	// Show/hide shortcode help
-	var showButton = document.getElementById('show-shortcode-help');
-	var helpSection = document.getElementById('shortcode-help');
-	
-	if (showButton && helpSection) {
-		showButton.addEventListener('click', function() {
-			if (helpSection.style.display === 'none') {
-				helpSection.style.display = 'block';
-				showButton.textContent = '<?php echo esc_js( __( 'Hide Examples', '365i-ai-faq-generator' ) ); ?>';
-			} else {
-				helpSection.style.display = 'none';
-				showButton.textContent = '<?php echo esc_js( __( 'Show Examples', '365i-ai-faq-generator' ) ); ?>';
-			}
-		});
-	}
-});
-</script>
 
 <?php
 // Include footer.

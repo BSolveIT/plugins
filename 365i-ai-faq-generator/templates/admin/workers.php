@@ -67,10 +67,10 @@ $worker_definitions = array(
 	
 	<!-- Workers Overview -->
 	<div class="ai-faq-gen-section workers-overview-section">
-		<h3>
+		<div class="analytics-header">
 			<span class="dashicons dashicons-networking"></span>
-			<?php esc_html_e( 'Cloudflare Workers Overview', '365i-ai-faq-generator' ); ?>
-		</h3>
+			<h3><?php esc_html_e( 'Cloudflare Workers Overview', '365i-ai-faq-generator' ); ?></h3>
+		</div>
 		
 		<p><?php esc_html_e( 'Configure your Cloudflare AI workers for FAQ generation. Each worker serves a specific purpose in the FAQ creation pipeline.', '365i-ai-faq-generator' ); ?></p>
 		
@@ -202,51 +202,58 @@ $worker_definitions = array(
 
 	<!-- Usage Analytics -->
 	<div class="ai-faq-gen-section usage-analytics-section">
-		<h3>
+		<div class="analytics-header">
 			<span class="dashicons dashicons-chart-area"></span>
-			<?php esc_html_e( 'Usage Analytics', '365i-ai-faq-generator' ); ?>
-		</h3>
+			<h3><?php esc_html_e( 'Usage Analytics', '365i-ai-faq-generator' ); ?></h3>
+		</div>
 		
-		<p><?php esc_html_e( 'Monitor worker usage and performance metrics. Rate limits reset every hour.', '365i-ai-faq-generator' ); ?></p>
+		<p class="analytics-description"><?php esc_html_e( 'Monitor worker usage and performance metrics. Rate limits reset every hour.', '365i-ai-faq-generator' ); ?></p>
 		
-		<div class="analytics-grid">
-			<div class="analytics-card">
-				<h4><?php esc_html_e( 'Total Requests Today', '365i-ai-faq-generator' ); ?></h4>
-				<div class="analytics-value">
-					<span class="value-number" id="total-requests-today">0</span>
-					<span class="value-label"><?php esc_html_e( 'requests', '365i-ai-faq-generator' ); ?></span>
+		<div class="analytics-metrics">
+			<div class="metric-card">
+				<div class="metric-title">
+					<i class="dashicons dashicons-chart-bar"></i>
+					<?php esc_html_e( 'Total Requests Today', '365i-ai-faq-generator' ); ?>
 				</div>
+				<div class="metric-value" id="total-requests-today">0</div>
+				<div class="metric-description"><?php esc_html_e( 'Total API requests processed across all workers', '365i-ai-faq-generator' ); ?></div>
 			</div>
 			
-			<div class="analytics-card">
-				<h4><?php esc_html_e( 'Average Response Time', '365i-ai-faq-generator' ); ?></h4>
-				<div class="analytics-value">
-					<span class="value-number" id="avg-response-time">0</span>
-					<span class="value-label"><?php esc_html_e( 'seconds', '365i-ai-faq-generator' ); ?></span>
+			<div class="metric-card">
+				<div class="metric-title">
+					<i class="dashicons dashicons-performance"></i>
+					<?php esc_html_e( 'Average Response Time', '365i-ai-faq-generator' ); ?>
 				</div>
+				<div class="metric-value" id="avg-response-time">0</div>
+				<div class="metric-description"><?php esc_html_e( 'Average time in seconds for worker response', '365i-ai-faq-generator' ); ?></div>
 			</div>
 			
-			<div class="analytics-card">
-				<h4><?php esc_html_e( 'Success Rate', '365i-ai-faq-generator' ); ?></h4>
-				<div class="analytics-value">
-					<span class="value-number" id="success-rate">100</span>
-					<span class="value-label">%</span>
+			<div class="metric-card success-rate">
+				<div class="metric-title">
+					<i class="dashicons dashicons-yes-alt"></i>
+					<?php esc_html_e( 'Success Rate', '365i-ai-faq-generator' ); ?>
 				</div>
+				<div class="metric-value" id="success-rate">100%</div>
+				<div class="metric-description"><?php esc_html_e( 'Percentage of successful API requests', '365i-ai-faq-generator' ); ?></div>
 			</div>
+		</div>
+		
+		<div class="usage-chart no-data">
+			<?php esc_html_e( 'Usage data will display here as workers are used', '365i-ai-faq-generator' ); ?>
 		</div>
 	</div>
 
 	<!-- Help & Documentation -->
 	<div class="ai-faq-gen-section help-section">
-		<h3>
+		<div class="analytics-header">
 			<span class="dashicons dashicons-editor-help"></span>
-			<?php esc_html_e( 'Help & Documentation', '365i-ai-faq-generator' ); ?>
-		</h3>
+			<h3><?php esc_html_e( 'Help & Documentation', '365i-ai-faq-generator' ); ?></h3>
+		</div>
 		
 		<div class="help-grid">
 			<div class="help-card">
 				<h4><?php esc_html_e( 'Worker Setup Guide', '365i-ai-faq-generator' ); ?></h4>
-				<p><?php esc_html_e( 'Learn how to configure your Cloudflare workers and KV namespaces.', '365i-ai-faq-generator' ); ?></p>
+				<p><?php esc_html_e( 'Learn how to configure your Cloudflare workers and KV namespaces for optimal performance. This guide walks you through the complete setup process with step-by-step instructions.', '365i-ai-faq-generator' ); ?></p>
 				<a href="#" class="button button-secondary">
 					<?php esc_html_e( 'View Guide', '365i-ai-faq-generator' ); ?>
 				</a>
@@ -254,7 +261,7 @@ $worker_definitions = array(
 			
 			<div class="help-card">
 				<h4><?php esc_html_e( 'Troubleshooting', '365i-ai-faq-generator' ); ?></h4>
-				<p><?php esc_html_e( 'Common issues and solutions for worker connectivity problems.', '365i-ai-faq-generator' ); ?></p>
+				<p><?php esc_html_e( 'Common issues and solutions for worker connectivity problems. Find answers to frequently encountered setup issues and learn how to diagnose connection failures.', '365i-ai-faq-generator' ); ?></p>
 				<a href="#" class="button button-secondary">
 					<?php esc_html_e( 'Get Help', '365i-ai-faq-generator' ); ?>
 				</a>
@@ -262,7 +269,7 @@ $worker_definitions = array(
 			
 			<div class="help-card">
 				<h4><?php esc_html_e( 'API Reference', '365i-ai-faq-generator' ); ?></h4>
-				<p><?php esc_html_e( 'Complete API documentation for all worker endpoints and parameters.', '365i-ai-faq-generator' ); ?></p>
+				<p><?php esc_html_e( 'Complete API documentation for all worker endpoints and parameters. This technical reference provides detailed information about request formats, response structures, and authentication.', '365i-ai-faq-generator' ); ?></p>
 				<a href="#" class="button button-secondary">
 					<?php esc_html_e( 'View API Docs', '365i-ai-faq-generator' ); ?>
 				</a>
