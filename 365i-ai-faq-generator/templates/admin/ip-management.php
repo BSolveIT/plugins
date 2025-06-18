@@ -80,7 +80,7 @@ require_once AI_FAQ_GEN_DIR . 'templates/partials/header.php';
 
 	<div class="ai-faq-ip-lists">
 		<!-- Whitelist Section -->
-		<div class="ai-faq-admin-section ai-faq-ip-list">
+		<div class="ai-faq-admin-section ai-faq-ip-list" id="whitelist-list">
 			<h2><?php esc_html_e( 'IP Whitelist', '365i-ai-faq-generator' ); ?></h2>
 			
 			<p class="description">
@@ -100,15 +100,15 @@ require_once AI_FAQ_GEN_DIR . 'templates/partials/header.php';
 					</thead>
 					<tbody>
 						<?php foreach ( $whitelist_ips as $entry ) : ?>
-							<tr>
+							<tr class="ip-row" data-ip="<?php echo esc_attr( $entry['ip'] ?? '' ); ?>">
 								<td><code><?php echo esc_html( $entry['ip'] ?? 'N/A' ); ?></code></td>
 								<td><?php echo esc_html( $entry['reason'] ?? 'No reason provided' ); ?></td>
 								<td><?php echo esc_html( $entry['added_by'] ?? 'Unknown' ); ?></td>
 								<td><?php echo esc_html( $entry['added_date'] ?? 'Unknown' ); ?></td>
 								<td>
-									<button type="button" 
-									        class="button button-small remove-ip" 
-									        data-ip="<?php echo esc_attr( $entry['ip'] ?? '' ); ?>" 
+									<button type="button"
+									        class="button button-small remove-ip"
+									        data-ip="<?php echo esc_attr( $entry['ip'] ?? '' ); ?>"
 									        data-list="whitelist">
 										<?php esc_html_e( 'Remove', '365i-ai-faq-generator' ); ?>
 									</button>
@@ -118,12 +118,14 @@ require_once AI_FAQ_GEN_DIR . 'templates/partials/header.php';
 					</tbody>
 				</table>
 			<?php else : ?>
-				<p class="no-items"><?php esc_html_e( 'No IP addresses in whitelist.', '365i-ai-faq-generator' ); ?></p>
+				<div class="empty-list-message">
+					<p><?php esc_html_e( 'No IP addresses in whitelist.', '365i-ai-faq-generator' ); ?></p>
+				</div>
 			<?php endif; ?>
 		</div>
 
 		<!-- Blacklist Section -->
-		<div class="ai-faq-admin-section ai-faq-ip-list">
+		<div class="ai-faq-admin-section ai-faq-ip-list" id="blacklist-list">
 			<h2><?php esc_html_e( 'IP Blacklist', '365i-ai-faq-generator' ); ?></h2>
 			
 			<p class="description">
@@ -143,15 +145,15 @@ require_once AI_FAQ_GEN_DIR . 'templates/partials/header.php';
 					</thead>
 					<tbody>
 						<?php foreach ( $blacklist_ips as $entry ) : ?>
-							<tr>
+							<tr class="ip-row" data-ip="<?php echo esc_attr( $entry['ip'] ?? '' ); ?>">
 								<td><code><?php echo esc_html( $entry['ip'] ?? 'N/A' ); ?></code></td>
 								<td><?php echo esc_html( $entry['reason'] ?? 'No reason provided' ); ?></td>
 								<td><?php echo esc_html( $entry['added_by'] ?? 'Unknown' ); ?></td>
 								<td><?php echo esc_html( $entry['added_date'] ?? 'Unknown' ); ?></td>
 								<td>
-									<button type="button" 
-									        class="button button-small remove-ip" 
-									        data-ip="<?php echo esc_attr( $entry['ip'] ?? '' ); ?>" 
+									<button type="button"
+									        class="button button-small remove-ip"
+									        data-ip="<?php echo esc_attr( $entry['ip'] ?? '' ); ?>"
 									        data-list="blacklist">
 										<?php esc_html_e( 'Remove', '365i-ai-faq-generator' ); ?>
 									</button>
@@ -161,7 +163,9 @@ require_once AI_FAQ_GEN_DIR . 'templates/partials/header.php';
 					</tbody>
 				</table>
 			<?php else : ?>
-				<p class="no-items"><?php esc_html_e( 'No IP addresses in blacklist.', '365i-ai-faq-generator' ); ?></p>
+				<div class="empty-list-message">
+					<p><?php esc_html_e( 'No IP addresses in blacklist.', '365i-ai-faq-generator' ); ?></p>
+				</div>
 			<?php endif; ?>
 		</div>
 	</div>

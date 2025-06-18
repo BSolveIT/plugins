@@ -76,16 +76,6 @@ require_once AI_FAQ_GEN_DIR . 'templates/partials/header.php';
 		</form>
 	</div>
 
-	<!-- Data Source Status -->
-	<?php if ( isset( $analytics_data['error_message'] ) ) : ?>
-	<div class="notice notice-warning">
-		<p><strong><?php esc_html_e( 'Connection Issue:', '365i-ai-faq-generator' ); ?></strong> <?php echo esc_html( $analytics_data['error_message'] ); ?></p>
-	</div>
-	<?php elseif ( isset( $analytics_data['data_source'] ) && 'kv_live' === $analytics_data['data_source'] ) : ?>
-	<div class="notice notice-success">
-		<p><strong><?php esc_html_e( 'Live Data:', '365i-ai-faq-generator' ); ?></strong> <?php esc_html_e( 'Analytics are being fetched in real-time from Cloudflare KV storage.', '365i-ai-faq-generator' ); ?></p>
-	</div>
-	<?php endif; ?>
 
 	<!-- Analytics Overview -->
 	<div class="ai-faq-admin-section">
@@ -101,11 +91,13 @@ require_once AI_FAQ_GEN_DIR . 'templates/partials/header.php';
 				<?php if ( isset( $analytics_data['data_source'] ) ) : ?>
 					<div class="data-source-indicator">
 						<?php if ( 'kv_live' === $analytics_data['data_source'] ) : ?>
-							<span class="status-green">● Live from KV</span>
+							<span class="connection-status-badge connected">Live from KV</span>
+						<?php elseif ( 'kv_empty' === $analytics_data['data_source'] ) : ?>
+							<span class="connection-status-badge ready">KV connected (no data yet)</span>
 						<?php elseif ( 'fallback' === $analytics_data['data_source'] ) : ?>
-							<span class="status-orange">● Fallback data</span>
+							<span class="connection-status-badge pending">Fallback data</span>
 						<?php else : ?>
-							<span class="status-blue">● Demo data</span>
+							<span class="connection-status-badge ready">Demo data</span>
 						<?php endif; ?>
 					</div>
 				<?php endif; ?>
@@ -149,8 +141,8 @@ require_once AI_FAQ_GEN_DIR . 'templates/partials/header.php';
 					<span class="metric-label"><?php esc_html_e( 'unique IPs', '365i-ai-faq-generator' ); ?></span>
 				</div>
 				<?php if ( isset( $analytics_data['last_updated'] ) ) : ?>
-					<div class="data-source-indicator">
-						<span class="status-blue">Updated: <?php echo esc_html( gmdate( 'H:i', strtotime( $analytics_data['last_updated'] ) ) ); ?></span>
+					<div class="analytics-updated">
+						<strong><?php echo esc_html( gmdate( 'H:i', strtotime( $analytics_data['last_updated'] ) ) ); ?></strong>
 					</div>
 				<?php endif; ?>
 			</div>
@@ -260,6 +252,113 @@ require_once AI_FAQ_GEN_DIR . 'templates/partials/header.php';
 			</div>
 		</div>
 	</div>
+
+	<!-- KV Connection Diagnostics -->
+	<?php if ( isset( $analytics_data['diagnostic_info'] ) ) : ?>
+		<div class="ai-faq-admin-section ai-faq-kv-diagnostics">
+			<h2><?php esc_html_e( 'Cloudflare KV Diagnostics', '365i-ai-faq-generator' ); ?></h2>
+			
+			<div class="ai-faq-status-grid">
+				<?php
+				$credentials_configured = $analytics_data['diagnostic_info']['credentials_configured'];
+				$card_class = $credentials_configured ? 'success' : 'error';
+				?>
+				<div class="status-card <?php echo esc_attr( $card_class ); ?>">
+					<h3><?php esc_html_e( 'API Credentials', '365i-ai-faq-generator' ); ?></h3>
+					<div class="status-indicator">
+						<?php if ( $credentials_configured ) : ?>
+							<span class="status-icon status-green">✓</span>
+							<span class="connection-status-badge connected"><?php esc_html_e( 'Configured', '365i-ai-faq-generator' ); ?></span>
+						<?php else : ?>
+							<span class="status-icon status-red">✗</span>
+							<span class="connection-status-badge disconnected"><?php esc_html_e( 'Missing Credentials', '365i-ai-faq-generator' ); ?></span>
+						<?php endif; ?>
+					</div>
+					<div class="status-details">
+						<small>
+							<strong>Account ID:</strong> <?php echo $analytics_data['diagnostic_info']['account_id_set'] ? '<span class="status-green">✓ Configured</span>' : '<span class="status-red">✗ Missing</span>'; ?><br>
+							<strong>API Token:</strong> <?php echo $analytics_data['diagnostic_info']['api_token_set'] ? '<span class="status-green">✓ Configured</span>' : '<span class="status-red">✗ Missing</span>'; ?>
+						</small>
+					</div>
+				</div>
+				
+				<?php
+				$test_result = $analytics_data['diagnostic_info']['test_connection'];
+				if ( 'success' === $test_result ) {
+					$connection_class = 'success';
+				} elseif ( 'not_tested' === $test_result ) {
+					$connection_class = 'warning';
+				} else {
+					$connection_class = 'error';
+				}
+				?>
+				<div class="status-card <?php echo esc_attr( $connection_class ); ?>">
+					<h3><?php esc_html_e( 'KV Connection', '365i-ai-faq-generator' ); ?></h3>
+					<div class="status-indicator">
+						<?php if ( 'success' === $test_result ) : ?>
+							<span class="status-icon status-green">✓</span>
+							<span class="connection-status-badge connected"><?php esc_html_e( 'Connected', '365i-ai-faq-generator' ); ?></span>
+						<?php elseif ( 'not_tested' === $test_result ) : ?>
+							<span class="status-icon status-orange">⚠</span>
+							<span class="connection-status-badge pending"><?php esc_html_e( 'Not Tested', '365i-ai-faq-generator' ); ?></span>
+						<?php else : ?>
+							<span class="status-icon status-red">✗</span>
+							<span class="connection-status-badge disconnected"><?php esc_html_e( 'Connection Failed', '365i-ai-faq-generator' ); ?></span>
+						<?php endif; ?>
+					</div>
+					<?php if ( 'success' !== $test_result && 'not_tested' !== $test_result ) : ?>
+						<div class="status-details">
+							<small><strong>Error Details:</strong><br><?php echo esc_html( $test_result ); ?></small>
+						</div>
+					<?php endif; ?>
+				</div>
+
+				<?php
+				$data_source = $analytics_data['data_source'] ?? 'unknown';
+				if ( 'kv_live' === $data_source ) {
+					$source_class = 'success';
+				} elseif ( 'kv_empty' === $data_source ) {
+					$source_class = 'info';
+				} elseif ( 'fallback' === $data_source ) {
+					$source_class = 'warning';
+				} else {
+					$source_class = 'info';
+				}
+				?>
+				<div class="status-card <?php echo esc_attr( $source_class ); ?>">
+					<h3><?php esc_html_e( 'Data Source', '365i-ai-faq-generator' ); ?></h3>
+					<div class="status-indicator">
+						<?php if ( 'kv_live' === $data_source ) : ?>
+							<span class="status-icon status-green">🚀</span>
+							<span class="connection-status-badge connected"><?php esc_html_e( 'Live KV Data', '365i-ai-faq-generator' ); ?></span>
+						<?php elseif ( 'kv_empty' === $data_source ) : ?>
+							<span class="status-icon status-blue">📊</span>
+							<span class="connection-status-badge ready"><?php esc_html_e( 'KV Ready (no data yet)', '365i-ai-faq-generator' ); ?></span>
+						<?php elseif ( 'fallback' === $data_source ) : ?>
+							<span class="status-icon status-orange">⚠</span>
+							<span class="connection-status-badge pending"><?php esc_html_e( 'Fallback Mode', '365i-ai-faq-generator' ); ?></span>
+						<?php else : ?>
+							<span class="status-icon status-blue">📋</span>
+							<span class="connection-status-badge ready"><?php esc_html_e( 'Demo Data', '365i-ai-faq-generator' ); ?></span>
+						<?php endif; ?>
+					</div>
+					<div class="status-details">
+						<small>
+							<?php if ( 'kv_live' === $data_source ) : ?>
+								<strong>Status:</strong> Analytics data is being fetched in real-time from Cloudflare KV storage.
+							<?php elseif ( 'kv_empty' === $data_source ) : ?>
+								<strong>Status:</strong> KV storage is connected and ready. Data will appear once your workers start processing requests.
+							<?php elseif ( 'fallback' === $data_source ) : ?>
+								<strong>Status:</strong> Unable to connect to KV storage. Check your API credentials in Settings.
+							<?php else : ?>
+								<strong>Status:</strong> Currently displaying demonstration data for interface preview.
+							<?php endif; ?>
+						</small>
+					</div>
+				</div>
+			</div>
+		</div>
+	<?php endif; ?>
 
 </div>
 

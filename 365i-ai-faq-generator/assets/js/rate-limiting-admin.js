@@ -35,13 +35,13 @@
         // Add to Whitelist button
         $('#add-to-whitelist').on('click', function(e) {
             e.preventDefault();
-            handleIPAction('add_whitelist');
+            handleIPAction('add_to_whitelist');
         });
 
         // Add to Blacklist button
         $('#add-to-blacklist').on('click', function(e) {
             e.preventDefault();
-            handleIPAction('add_blacklist');
+            handleIPAction('add_to_blacklist');
         });
 
         // Remove IP buttons (using event delegation for dynamic content)
@@ -49,7 +49,7 @@
             e.preventDefault();
             var ip = $(this).data('ip');
             var listType = $(this).data('list');
-            var action = 'remove_' + listType;
+            var action = 'remove_from_' + listType;
             
             if (confirm('Are you sure you want to remove this IP address?')) {
                 handleIPAction(action, ip, '');
@@ -62,7 +62,7 @@
             var ip = $(this).data('ip');
             
             if (confirm('Are you sure you want to blacklist this IP address?')) {
-                handleIPAction('add_blacklist', ip, 'Added from usage analytics - rate limit violator');
+                handleIPAction('add_to_blacklist', ip, 'Added from usage analytics - rate limit violator');
             }
         });
 
@@ -104,8 +104,8 @@
         }
 
         // Show loading state
-        var $button = action.includes('add_whitelist') ? $('#add-to-whitelist') : 
-                     action.includes('add_blacklist') ? $('#add-to-blacklist') : 
+        var $button = action.includes('add_to_whitelist') ? $('#add-to-whitelist') :
+                     action.includes('add_to_blacklist') ? $('#add-to-blacklist') :
                      $('.remove-ip[data-ip="' + ipAddress + '"]');
         
         var originalText = $button.text();
@@ -127,15 +127,13 @@
                     showMessage('success', response.data.message);
                     
                     // Clear form if adding new IP
-                    if (action.includes('add_')) {
+                    if (action.includes('add_to_')) {
                         $ipInput.val('');
                         $reasonInput.val('');
                     }
                     
-                    // Reload page to update lists
-                    setTimeout(function() {
-                        location.reload();
-                    }, 1500);
+                    // Update IP lists dynamically
+                    updateIPLists(action, ipAddress, ipReason);
                 } else {
                     showMessage('error', response.data.message || 'An error occurred.');
                 }
@@ -286,40 +284,197 @@
     }
 
     /**
+     * Update IP lists dynamically after successful operations
+     *
+     * @param {string} action - The action performed
+     * @param {string} ipAddress - The IP address
+     * @param {string} reason - The reason for adding
+     */
+    function updateIPLists(action, ipAddress, reason) {
+        console.log('updateIPLists called:', action, ipAddress, reason);
+        
+        if (action === 'add_to_whitelist') {
+            addIPToList('whitelist', ipAddress, reason);
+            updateStatusCounters();
+        } else if (action === 'add_to_blacklist') {
+            addIPToList('blacklist', ipAddress, reason);
+            updateStatusCounters();
+        } else if (action === 'remove_from_whitelist') {
+            removeIPFromList('whitelist', ipAddress);
+            // Note: updateStatusCounters() is called inside removeIPFromList after element removal
+        } else if (action === 'remove_from_blacklist') {
+            removeIPFromList('blacklist', ipAddress);
+            // Note: updateStatusCounters() is called inside removeIPFromList after element removal
+        } else {
+            console.log('Unknown action:', action);
+        }
+    }
+
+    /**
+     * Add IP to the displayed list
+     *
+     * @param {string} listType - 'whitelist' or 'blacklist'
+     * @param {string} ipAddress - The IP address
+     * @param {string} reason - The reason for adding
+     */
+    function addIPToList(listType, ipAddress, reason) {
+        const listContainer = $('#' + listType + '-list');
+        const emptyMessage = listContainer.find('.empty-list-message');
+        
+        // Remove empty message if it exists
+        if (emptyMessage.length) {
+            emptyMessage.remove();
+        }
+        
+        // Get current user display name (fallback to 'Current User')
+        const currentUser = aiFAQRateLimit.currentUser || 'Current User';
+        const currentDate = new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        // Create new IP row
+        const newRow = $(`
+            <tr class="ip-row" data-ip="${ipAddress}">
+                <td class="ip-address">
+                    <strong>${ipAddress}</strong>
+                </td>
+                <td class="ip-reason">
+                    ${reason || 'No reason provided'}
+                </td>
+                <td class="ip-added-by">
+                    ${currentUser}
+                </td>
+                <td class="ip-date-added">
+                    ${currentDate}
+                </td>
+                <td class="ip-actions">
+                    <button type="button" class="button button-small remove-ip"
+                            data-ip="${ipAddress}"
+                            data-list="${listType}">
+                        Remove
+                    </button>
+                </td>
+            </tr>
+        `);
+        
+        // Add to the appropriate table
+        const tableBody = listContainer.find('tbody');
+        if (tableBody.length) {
+            tableBody.append(newRow);
+        } else {
+            // Create table if it doesn't exist
+            const newTable = $(`
+                <table class="wp-list-table widefat fixed striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">IP Address</th>
+                            <th scope="col">Reason</th>
+                            <th scope="col">Added By</th>
+                            <th scope="col">Date Added</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            `);
+            newTable.find('tbody').append(newRow);
+            listContainer.append(newTable);
+        }
+        
+        // Add fade-in animation
+        newRow.hide().fadeIn(500);
+    }
+
+    /**
+     * Remove IP from the displayed list
+     *
+     * @param {string} listType - 'whitelist' or 'blacklist'
+     * @param {string} ipAddress - The IP address to remove
+     */
+    function removeIPFromList(listType, ipAddress) {
+        console.log('removeIPFromList called:', listType, ipAddress);
+        
+        const listContainer = $('#' + listType + '-list');
+        console.log('List container found:', listContainer.length);
+        
+        const ipRow = listContainer.find(`tr[data-ip="${ipAddress}"]`);
+        console.log('IP row found:', ipRow.length);
+        
+        if (ipRow.length) {
+            ipRow.fadeOut(500, function() {
+                $(this).remove();
+                
+                // Check if list is now empty
+                const remainingRows = listContainer.find('tbody tr').length;
+                console.log('Remaining rows:', remainingRows);
+                
+                if (remainingRows === 0) {
+                    // Remove the table and show empty message
+                    listContainer.find('table').remove();
+                    const emptyMessage = $(`
+                        <div class="empty-list-message">
+                            <p>No IP addresses in ${listType}.</p>
+                        </div>
+                    `);
+                    listContainer.append(emptyMessage);
+                }
+                
+                // Update status counters after element is removed
+                updateStatusCounters();
+            });
+        } else {
+            console.log('IP row not found for removal');
+        }
+    }
+
+    /**
+     * Update status counters for whitelist and blacklist
+     */
+    function updateStatusCounters() {
+        console.log('updateStatusCounters called');
+        
+        // Count whitelist IPs
+        const whitelistContainer = $('#whitelist-list');
+        const whitelistCount = whitelistContainer.find('tbody tr').length;
+        
+        // Count blacklist IPs
+        const blacklistContainer = $('#blacklist-list');
+        const blacklistCount = blacklistContainer.find('tbody tr').length;
+        
+        console.log('Whitelist count:', whitelistCount);
+        console.log('Blacklist count:', blacklistCount);
+        
+        // Update whitelist counter - look for status card with "Whitelist Status" heading
+        $('.status-card').each(function() {
+            const $card = $(this);
+            const $heading = $card.find('h3');
+            
+            if ($heading.length && $heading.text().includes('Whitelist Status')) {
+                const $counter = $card.find('.status-blue');
+                if ($counter.length) {
+                    $counter.text(whitelistCount);
+                    console.log('Updated whitelist count to:', whitelistCount);
+                }
+            } else if ($heading.length && $heading.text().includes('Blacklist Status')) {
+                const $counter = $card.find('.status-red');
+                if ($counter.length) {
+                    $counter.text(blacklistCount);
+                    console.log('Updated blacklist count to:', blacklistCount);
+                }
+            }
+        });
+    }
+
+    /**
      * Show notification message
      */
     function showMessage(type, message) {
-        // Remove existing messages
-        $('.ai-faq-message').remove();
-        
-        var messageClass = 'notice notice-' + (type === 'success' ? 'success' : 
-                          type === 'error' ? 'error' : 'info');
-        
-        var $message = $('<div class="ai-faq-message ' + messageClass + ' is-dismissible">' +
-                        '<p>' + message + '</p>' +
-                        '<button type="button" class="notice-dismiss">' +
-                        '<span class="screen-reader-text">Dismiss this notice.</span>' +
-                        '</button>' +
-                        '</div>');
-        
-        // Insert after page title
-        $('.wrap h1').after($message);
-        
-        // Handle dismiss button
-        $message.find('.notice-dismiss').on('click', function() {
-            $message.fadeOut(function() {
-                $(this).remove();
-            });
-        });
-        
-        // Auto-dismiss success messages
-        if (type === 'success') {
-            setTimeout(function() {
-                $message.fadeOut(function() {
-                    $(this).remove();
-                });
-            }, 5000);
-        }
+        // Notifications disabled - do nothing
+        return;
     }
 
 })(jQuery);

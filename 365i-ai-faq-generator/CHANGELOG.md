@@ -5,6 +5,94 @@ All notable changes to the 365i AI FAQ Generator plugin will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.3] - 2025-06-18
+
+### Fixed
+- **"Demo Data" Display Fix:** Resolved misleading "Demo data" display in Usage Analytics when Cloudflare KV is connected but empty
+  - Fixed analytics template to properly handle `kv_empty` data source status
+  - Added proper distinction between actual demo data and connected KV with no analytics data yet
+  - Enhanced status messaging to clearly indicate KV connection status vs. data availability
+- **Bullet Point Styling Fix:** Removed unsightly bullet points from Analytics Overview cards
+  - Replaced `● KV connected (no data yet)` style indicators with professional status badges
+  - Applied consistent badge styling across both Analytics Overview and Diagnostics sections
+  - Improved visual consistency and professional appearance
+
+### Added
+- **KV Connection Diagnostics:** Added comprehensive diagnostic section to Usage Analytics page
+  - Real-time API credentials validation (Account ID and API Token status)
+  - Live KV connection testing with detailed error reporting
+  - Clear data source indicators showing connection health and data origin
+  - Enhanced troubleshooting information for Cloudflare KV connectivity issues
+- **Enhanced Status Indicators:** Improved analytics cards with clearer data source labeling
+  - "KV connected (no data yet)" for empty but connected KV storage
+  - "Live from KV" for active data streams
+  - "Fallback data" for credential issues
+  - "Demo data" only for actual demonstration mode
+
+### Improved
+- Better user understanding of KV connection status and data availability
+- Enhanced error messaging to help users distinguish between connection issues and empty data
+- More informative status displays throughout the Usage Analytics interface
+- **Professional Styling Upgrade:** Completely redesigned KV diagnostics section with modern card-based layout
+  - Removed bullet lists in favor of elegant status badges and cards
+  - Added gradient backgrounds, hover effects, and color-coded status indicators
+  - Implemented responsive design with proper mobile breakpoints
+  - Enhanced typography and spacing for better readability
+  - Added visual status badges (Connected, Disconnected, Pending, Ready) for instant recognition
+- **Enhanced Analytics Card Styling:** Completely modernized analytics overview cards with professional design elements
+  - Implemented gradient backgrounds (white to light gray) with subtle transitions
+  - Added colored top accent bars that dynamically change based on metric type (blue for normal, red for blocked, orange for violations)
+  - Enhanced hover animations with lift effect and increased shadow depth
+  - Improved typography with larger metrics (36px), text shadows, and better visual hierarchy
+  - Added elegant timestamp styling with clock emoji icons and blue gradient backgrounds
+  - Implemented smooth transitions and modern border radius for professional appearance
+- **Cleaner Interface:** Removed unnecessary notification banners from Usage Analytics page
+  - Removed status notifications (Connected to KV, Live Data, Fallback Mode messages)
+  - Cleaner, more focused interface without redundant status messaging
+  - Data source information still available in KV Diagnostics section
+- **Fixed KV Connection Error:** Resolved "limit argument must be at least 10" API error
+  - Fixed KV connection test to use minimum required limit parameter (changed from limit=1 to limit=10)
+  - Eliminates spurious connection failure notifications in KV diagnostics
+  - Connection testing now properly validates API connectivity without parameter errors
+- **Fixed IP Management Actions:** Resolved "Invalid action specified" error when adding IPs to whitelist/blacklist
+  - Fixed JavaScript action name mismatch: `'add_whitelist'` → `'add_to_whitelist'` and `'add_blacklist'` → `'add_to_blacklist'`
+  - Updated all button handlers and form clearing logic to use correct action names
+  - IP management now works properly for adding/removing IPs from both whitelist and blacklist
+- **Fixed IP Metadata Display:** Resolved "Unknown" values for added_by and date_added fields in IP management
+  - Enhanced `fetch_ip_list_from_kv()` method to retrieve complete IP metadata from KV storage
+  - Added `fetch_ip_metadata_from_kv()` method for individual IP metadata retrieval
+  - Implemented `get_user_display_name()` method for proper username resolution
+  - IP lists now display actual user names and timestamps instead of "Unknown" values
+- **Enhanced AJAX Experience:** Eliminated full page refreshes in favor of smooth dynamic updates
+  - Replaced `location.reload()` with proper AJAX-based IP list updates
+  - Added `updateIPLists()`, `addIPToList()`, and `removeIPFromList()` JavaScript functions
+  - Implemented dynamic DOM manipulation with fade-in/fade-out animations
+  - Added current user information to script localization for proper "Added By" display
+  - IP management operations now update lists instantly without page reload
+- **Fixed Remove IP Functionality:** Resolved action name mismatch and DOM targeting issues causing "Remove" button failures
+  - Fixed JavaScript action construction: `remove_whitelist` → `remove_from_whitelist`
+  - Added proper IDs (`whitelist-list`, `blacklist-list`) to template containers for DOM targeting
+  - Added `data-ip` attributes to existing table rows for proper element selection
+  - Fixed empty state handling to match actual HTML structure
+  - Corrected data attribute usage in dynamically created remove buttons
+  - Added debugging console logs to track DOM operations
+  - Remove IP operations now work properly for both whitelist and blacklist entries
+- **Improved Table Styling:** Enhanced visual presentation with proper vertical alignment
+  - Added `vertical-align: middle` to all table headers and cells
+  - Table row content is now properly centered vertically for better readability
+  - Consistent styling across IP management and analytics tables
+- **Disabled Notification System:** Completely disabled all JavaScript notifications to prevent duplication issues
+  - No more notification messages displayed from JavaScript functions
+  - Resolves duplicate notification conflicts between JavaScript and WordPress admin notices
+  - Clean interface without notification interference
+- **Dynamic Status Counter Updates:** Enhanced IP management with real-time status box updates
+  - Added `updateStatusCounters()` function to dynamically update whitelist and blacklist counts
+  - Status boxes now automatically reflect changes when adding or removing IPs
+  - Fixed timing issue where removal counter updates occurred before DOM element removal
+  - Counter updates now properly wait for fade-out animations to complete before recounting
+  - Improved user experience with instant visual feedback on IP list modifications
+  - Eliminates need for page refresh to see updated counts
+
 ## [2.1.2] - 2025-06-18
 
 ### Fixed

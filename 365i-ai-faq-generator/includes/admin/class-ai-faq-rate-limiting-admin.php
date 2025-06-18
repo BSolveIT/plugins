@@ -228,9 +228,10 @@ class AI_FAQ_Rate_Limiting_Admin {
 				'ai-faq-rate-limiting-admin',
 				'aiFAQRateLimit',
 				array(
-					'ajax_url' => admin_url( 'admin-ajax.php' ),
-					'nonce'    => wp_create_nonce( 'ai_faq_rate_limit_nonce' ),
-					'workers'  => $this->workers,
+					'ajax_url'    => admin_url( 'admin-ajax.php' ),
+					'nonce'       => wp_create_nonce( 'ai_faq_rate_limit_nonce' ),
+					'workers'     => $this->workers,
+					'currentUser' => $this->get_current_user_display_name(),
 				)
 			);
 		}
@@ -294,7 +295,82 @@ class AI_FAQ_Rate_Limiting_Admin {
 			);
 		}
 
+		// Add diagnostic information for debugging
+		$analytics_data['diagnostic_info'] = $this->get_kv_diagnostic_info();
+
 		include AI_FAQ_GEN_DIR . 'templates/admin/usage-analytics.php';
+	}
+
+	/**
+	 * Get diagnostic information about KV connection
+	 *
+	 * @since 2.1.1
+	 * @return array Diagnostic information
+	 */
+	private function get_kv_diagnostic_info() {
+		$diagnostic = array(
+			'credentials_configured' => false,
+			'account_id_set'         => false,
+			'api_token_set'          => false,
+			'test_connection'        => 'not_tested',
+			'namespaces'             => $this->kv_namespaces,
+		);
+
+		// Check if credentials are configured
+		$diagnostic['account_id_set'] = ! empty( $this->cloudflare_config['account_id'] );
+		$diagnostic['api_token_set'] = ! empty( $this->cloudflare_config['api_token'] );
+		$diagnostic['credentials_configured'] = $diagnostic['account_id_set'] && $diagnostic['api_token_set'];
+
+		// If credentials are configured, test a simple connection
+		if ( $diagnostic['credentials_configured'] ) {
+			$diagnostic['test_connection'] = $this->test_kv_connection();
+		}
+
+		return $diagnostic;
+	}
+
+	/**
+	 * Test KV connection with a simple API call
+	 *
+	 * @since 2.1.1
+	 * @return string Connection status ('success', 'failed', 'error')
+	 */
+	private function test_kv_connection() {
+		$namespace_id = $this->kv_namespaces['FAQ_RATE_LIMITS'];
+		$account_id = $this->cloudflare_config['account_id'];
+		$api_token = $this->cloudflare_config['api_token'];
+
+		// Try to list keys in the FAQ_RATE_LIMITS namespace (lightweight test)
+		$api_url = sprintf(
+			'https://api.cloudflare.com/client/v4/accounts/%s/storage/kv/namespaces/%s/keys?limit=10',
+			$account_id,
+			$namespace_id
+		);
+
+		$response = wp_remote_get( $api_url, array(
+			'headers' => array(
+				'Authorization' => 'Bearer ' . $api_token,
+				'Content-Type'  => 'application/json',
+			),
+			'timeout' => 10, // Short timeout for diagnostics
+		) );
+
+		if ( is_wp_error( $response ) ) {
+			return 'error: ' . $response->get_error_message();
+		}
+
+		$response_code = wp_remote_retrieve_response_code( $response );
+		
+		if ( 200 === $response_code ) {
+			return 'success';
+		} else {
+			$response_body = wp_remote_retrieve_body( $response );
+			$error_data = json_decode( $response_body, true );
+			$error_message = isset( $error_data['errors'][0]['message'] )
+				? $error_data['errors'][0]['message']
+				: 'Unknown error';
+			return 'failed: ' . $error_message;
+		}
 	}
 
 	/**
@@ -586,23 +662,115 @@ class AI_FAQ_Rate_Limiting_Admin {
 			return array();
 		}
 
-		// Convert KV keys to IP list with metadata
+		// Fetch actual values for each IP to get metadata
 		$ip_list = array();
 		foreach ( $data['result'] as $key_info ) {
 			$ip_address = $key_info['name'];
 			
 			// Validate IP address
 			if ( filter_var( $ip_address, FILTER_VALIDATE_IP ) ) {
-				$ip_list[] = array(
+				// Fetch the actual value for this IP
+				$ip_metadata = $this->fetch_ip_metadata_from_kv( $namespace_id, $ip_address );
+				
+				// Merge with key info
+				$ip_entry = array(
 					'ip'           => $ip_address,
-					'added_date'   => isset( $key_info['modified'] ) ? $key_info['modified'] : 'Unknown',
-					'reason'       => '', // Would need separate API call to get value for reason
+					'added_date'   => isset( $ip_metadata['added_date'] ) ? $ip_metadata['added_date'] : ( isset( $key_info['modified'] ) ? $key_info['modified'] : 'Unknown' ),
+					'reason'       => isset( $ip_metadata['reason'] ) ? $ip_metadata['reason'] : 'No reason provided',
+					'added_by'     => isset( $ip_metadata['added_by'] ) ? $this->get_user_display_name( $ip_metadata['added_by'] ) : 'Unknown',
 					'list_type'    => $list_type,
 				);
+				
+				$ip_list[] = $ip_entry;
 			}
 		}
 
 		return $ip_list;
+	}
+
+	/**
+	 * Fetch metadata for a specific IP from KV
+	 *
+	 * @since 2.1.3
+	 * @param string $namespace_id KV namespace ID.
+	 * @param string $ip_address IP address.
+	 * @return array IP metadata
+	 */
+	private function fetch_ip_metadata_from_kv( $namespace_id, $ip_address ) {
+		$account_id = $this->cloudflare_config['account_id'];
+		$api_token = $this->cloudflare_config['api_token'];
+
+		// Get the value for this specific IP
+		$api_url = sprintf(
+			'https://api.cloudflare.com/client/v4/accounts/%s/storage/kv/namespaces/%s/values/%s',
+			$account_id,
+			$namespace_id,
+			$ip_address
+		);
+
+		$response = wp_remote_get( $api_url, array(
+			'headers' => array(
+				'Authorization' => 'Bearer ' . $api_token,
+				'Content-Type'  => 'application/json',
+			),
+			'timeout' => 15,
+		) );
+
+		if ( is_wp_error( $response ) ) {
+			return array();
+		}
+
+		$response_code = wp_remote_retrieve_response_code( $response );
+		$response_body = wp_remote_retrieve_body( $response );
+
+		if ( 200 !== $response_code ) {
+			return array();
+		}
+
+		$metadata = json_decode( $response_body, true );
+		
+		if ( json_last_error() !== JSON_ERROR_NONE ) {
+			return array();
+		}
+
+		return is_array( $metadata ) ? $metadata : array();
+	}
+
+	/**
+	 * Get display name for user ID
+	 *
+	 * @since 2.1.3
+	 * @param int|string $user_id User ID.
+	 * @return string Display name
+	 */
+	private function get_user_display_name( $user_id ) {
+		if ( empty( $user_id ) || ! is_numeric( $user_id ) ) {
+			return 'Unknown';
+		}
+
+		$user = get_user_by( 'id', $user_id );
+		
+		if ( ! $user ) {
+			return 'Unknown';
+		}
+
+		return $user->display_name ?: $user->user_login;
+	}
+
+	/**
+	 * Get current user's display name for script localization
+	 *
+	 * @since 2.1.3
+	 * @return string Current user display name
+	 */
+	private function get_current_user_display_name() {
+		$current_user = wp_get_current_user();
+		
+		if ( ! $current_user || ! $current_user->exists() ) {
+			return 'Unknown User';
+		}
+
+		return $current_user->display_name ?: $current_user->user_login;
 	}
 
 	/**
