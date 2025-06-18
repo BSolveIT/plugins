@@ -74,6 +74,14 @@ class AI_FAQ_Admin {
 	private $security;
 
 	/**
+	 * Rate_Limiting_Admin component instance.
+	 *
+	 * @since 2.1.2
+	 * @var AI_FAQ_Rate_Limiting_Admin
+	 */
+	private $rate_limiting;
+
+	/**
 	 * Constructor.
 	 * 
 	 * Initialize the admin component.
@@ -102,6 +110,7 @@ class AI_FAQ_Admin {
 		$this->workers = new AI_FAQ_Admin_Workers();
 		$this->analytics = new AI_FAQ_Admin_Analytics();
 		$this->security = new AI_FAQ_Admin_Security();
+		$this->rate_limiting = new AI_FAQ_Rate_Limiting_Admin();
 
 		// Initialize each component.
 		$this->menu->init();
@@ -110,6 +119,7 @@ class AI_FAQ_Admin {
 		$this->workers->init();
 		$this->analytics->init();
 		$this->security->init();
+		// Note: rate_limiting admin handles its own initialization in constructor
 
 		// Add activation redirect hook.
 		add_action( 'admin_init', array( $this, 'activation_redirect' ) );
@@ -132,6 +142,7 @@ class AI_FAQ_Admin {
 		require_once $admin_dir . 'class-ai-faq-admin-workers.php';
 		require_once $admin_dir . 'class-ai-faq-admin-analytics.php';
 		require_once $admin_dir . 'class-ai-faq-admin-security.php';
+		require_once $admin_dir . 'class-ai-faq-rate-limiting-admin.php';
 	}
 
 	/**

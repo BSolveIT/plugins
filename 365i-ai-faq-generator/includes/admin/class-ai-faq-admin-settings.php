@@ -491,6 +491,44 @@ class AI_FAQ_Admin_Settings {
 			);
 		}
 
+		// Enqueue rate limiting assets for rate limiting pages.
+		if ( strpos( $hook_suffix, 'ai-faq-generator-rate-limiting' ) !== false ||
+		     strpos( $hook_suffix, 'ai-faq-generator-ip-management' ) !== false ||
+		     strpos( $hook_suffix, 'ai-faq-generator-usage-analytics' ) !== false ) {
+			
+			wp_enqueue_style(
+				'ai-faq-rate-limiting-admin',
+				AI_FAQ_GEN_URL . 'assets/css/rate-limiting-admin.css',
+				array( 'ai-faq-gen-admin' ),
+				AI_FAQ_GEN_VERSION
+			);
+
+			wp_enqueue_script(
+				'ai-faq-rate-limiting-admin',
+				AI_FAQ_GEN_URL . 'assets/js/rate-limiting-admin.js',
+				array( 'jquery', 'wp-util', 'ai-faq-gen-admin' ),
+				AI_FAQ_GEN_VERSION,
+				true
+			);
+
+			wp_localize_script(
+				'ai-faq-rate-limiting-admin',
+				'aiFAQRateLimit',
+				array(
+					'ajax_url' => admin_url( 'admin-ajax.php' ),
+					'nonce'    => wp_create_nonce( 'ai_faq_rate_limit_nonce' ),
+					'workers'  => array(
+						'faq-answer-generator-worker'  => 'FAQ Answer Generator',
+						'faq-realtime-assistant-worker' => 'Realtime Assistant',
+						'faq-enhancement-worker'       => 'FAQ Enhancement',
+						'faq-seo-analyzer-worker'      => 'SEO Analyzer',
+						'faq-proxy-fetch'              => 'Proxy Fetch',
+						'url-to-faq-generator-worker'  => 'URL to FAQ Generator',
+					),
+				)
+			);
+		}
+
 		// Localize script.
 		wp_localize_script(
 			'ai-faq-gen-admin',

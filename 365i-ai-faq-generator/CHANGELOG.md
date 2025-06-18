@@ -5,6 +5,108 @@ All notable changes to the 365i AI FAQ Generator plugin will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.2] - 2025-06-18
+
+### Fixed
+- **CRITICAL FIX:** Resolved 405 HTTP errors in rate limiting configuration interface:
+  - Fixed Cloudflare KV API requests to use actual namespace IDs instead of namespace names
+  - Updated all KV namespace references to use proper 32-character namespace IDs:
+    - FAQ_RATE_LIMITS: 77fcd59503e34efcaf4d77d1a550433b
+    - FAQ_CACHE: 8a2d095ab02947408cbf81e70a3e7f8a
+    - FAQ_IP_WHITELIST: 98e217d3ffdf439f9080f29b9868dce0
+    - FAQ_IP_BLACKLIST: ea349175a0dd4a01923c9da59e794b9b
+    - FAQ_VIOLATIONS: 99d05632fa564f95bd47f22891f943aa
+    - FAQ_ANALYTICS: a3573648cc1d4c1990a06090dab3e646
+- **SETTINGS SAVE FIX:** Fixed global settings not saving properly:
+  - Integrated AI_FAQ_Rate_Limiting_Admin into main admin initialization system
+  - Added proper AJAX handler registration and settings registration
+  - Fixed save_global_settings_to_kv() method to properly store settings in Cloudflare KV
+  - Added validation and error handling for global settings saves
+  - Global rate limiting settings now save successfully with proper feedback
+
+### Added
+- **AJAX Global Settings**: Implemented AJAX saving for global rate limiting settings:
+  - No more full page refresh when saving global settings
+  - Beautiful visual feedback with success/error messages using WordPress notice styling
+  - Real-time status updates in the overview section when settings change
+  - Enhanced user experience with loading states and button state changes
+  - Client-side email validation for notification settings
+- **Enhanced Global Settings Form**: Added missing global settings options:
+  - IP whitelist enable/disable toggle
+  - IP blacklist enable/disable toggle
+  - Notification preferences for rate limit violations
+  - Improved form structure with proper nonces and AJAX handling
+- **Missing Admin Templates**: Created missing admin template files:
+  - Created IP Management admin template (templates/admin/ip-management.php)
+  - Created Usage Analytics admin template (templates/admin/usage-analytics.php)
+  - Added comprehensive IP whitelist/blacklist management interface
+  - Added detailed usage analytics with worker breakdown and violation tracking
+  - Resolved PHP warnings caused by missing admin template files
+- **Admin Template Styling**: Created comprehensive CSS styling system:
+  - Created admin-templates.css for improved spacing and visual layout
+  - Added proper margin/padding for form sections and cards
+  - Implemented responsive grid layouts for IP lists and analytics
+  - Enhanced visual hierarchy with consistent typography and borders
+  - Improved mobile responsiveness with proper breakpoints
+  - Integrated CSS enqueuing into rate limiting admin system
+- **UI Improvements**: Enhanced admin interface usability:
+  - Removed data retention policy notification from Usage Analytics page
+  - Cleaner interface without unnecessary informational notices
+- **JavaScript Functionality**: Created comprehensive admin interaction system:
+  - Created rate-limiting-admin.js with full button functionality
+  - Added AJAX handlers for IP management (Add to Whitelist/Blacklist, Remove IP)
+  - Implemented analytics refresh and export functionality
+  - Added real-time IP address validation with visual feedback
+  - Integrated user notification system with auto-dismiss features
+  - Added loading states and error handling for all interactions
+  - Connected all admin buttons to proper backend AJAX endpoints
+- **Backend Integration**: Completed button functionality with working backend:
+  - Fixed corrupted PHP class structure in rate limiting admin
+  - Added missing analytics export AJAX handler with CSV generation
+  - Implemented demo data for analytics display and testing
+  - Created proper method structure for all admin operations
+  - All buttons now properly connected to functional backend endpoints
+- **AJAX Security Fix**: Resolved console error and security check failures:
+  - Fixed automatic AJAX calls triggering on page load causing security errors
+  - Updated nonce verification to use wp_verify_nonce for improved reliability
+  - Changed analytics filter behavior to require manual refresh instead of automatic calls
+  - Removed debugging code and cleaned up AJAX handlers
+  - Eliminated "Security check failed" console errors
+  - **CRITICAL FINAL FIX**: Resolved duplicate AJAX action name conflicts:
+    - Identified root cause: duplicate AJAX action names between rate limiting system and main plugin
+    - Main plugin's AI_FAQ_Admin_Ajax already registered `ai_faq_get_analytics` with different nonce expectations
+    - Implemented unique action naming convention using `ai_faq_rl_` prefix for all rate limiting AJAX handlers
+    - Updated all JavaScript AJAX calls to use new unique action names
+    - Re-enabled full JavaScript functionality after resolving conflicts
+    - All admin interface interactions now work without console security errors
+
+### Improved
+- **User Experience**: Global settings now save instantly with professional visual feedback
+- **Form Validation**: Added client-side email validation and real-time error messaging
+- **Visual Design**: Enhanced global settings messages with WordPress notice styling and smooth animations
+- **Loading States**: Added professional loading overlays and disabled button states during AJAX operations
+- **Status Updates**: Real-time updates to status overview cards when settings are saved
+
+### Removed
+- **Removed Geographic Restrictions feature** (as requested):
+  - Removed geographic restrictions section from rate limiting configuration template
+  - Removed geographic restrictions settings from PHP validation
+  - Removed geographic restrictions JavaScript handlers
+  - Cleaned up default settings to remove geographic-related options
+  - Removed geographic restrictions from worker rate limiter implementation
+  - Removed `checkGeographicRestrictions()` method from rate limiter
+  - Cleaned up dynamic configuration to remove geo-restriction settings
+  - Interface is now cleaner and focused on core rate limiting functionality
+  - Fixed get_worker_config() method to use correct KV namespace ID in API calls
+  - Fixed update_worker_rate_config() method to use correct KV namespace ID in PUT requests
+  - Fixed get_global_settings() method to use correct KV namespace ID
+  - Fixed get_ip_list() method to use correct namespace IDs for whitelist/blacklist operations
+  - Fixed manage_ip_address() method to properly handle IP whitelist/blacklist management
+  - Fixed get_analytics_data() method to use correct analytics namespace ID
+  - Enhanced IP management with full CRUD operations for whitelist/blacklist functionality
+  - Added proper error handling and response validation for all KV operations
+  - Rate limiting configuration interface now fully functional without HTTP errors
+
 ## [2.1.1] - 2025-06-18
 
 ### Improved

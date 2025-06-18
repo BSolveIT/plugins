@@ -1,0 +1,403 @@
+/**
+ * Admin Templates Styling
+ * 
+ * Styling for IP Management and Usage Analytics admin templates
+ * 
+ * @package    AI_FAQ_Generator
+ * @subpackage Assets/CSS
+ * @since      2.1.2
+ */
+
+/* ==========================================================================
+   IP Management Template Styles
+   ========================================================================== */
+
+.ai-faq-ip-management .ai-faq-admin-section {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 20px;
+	margin-bottom: 20px;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.ai-faq-ip-management .ai-faq-admin-section h2 {
+	margin-top: 0;
+	margin-bottom: 15px;
+	font-size: 1.3em;
+	font-weight: 600;
+	color: #1d2327;
+	border-bottom: 1px solid #e1e1e1;
+	padding-bottom: 8px;
+}
+
+.ai-faq-ip-management .description {
+	color: #646970;
+	font-style: italic;
+	margin-bottom: 20px;
+}
+
+/* Form Styling */
+.ai-faq-ip-form .form-table {
+	margin-top: 0;
+	margin-bottom: 20px;
+}
+
+.ai-faq-ip-form .form-table th {
+	width: 150px;
+	padding: 15px 0;
+	vertical-align: top;
+}
+
+.ai-faq-ip-form .form-table td {
+	padding: 15px 0;
+	vertical-align: top;
+}
+
+.ai-faq-ip-form .regular-text {
+	width: 400px;
+	max-width: 100%;
+}
+
+.ai-faq-ip-form textarea.regular-text {
+	width: 400px;
+	max-width: 100%;
+	resize: vertical;
+}
+
+.ai-faq-ip-form .description {
+	margin-top: 5px;
+	margin-bottom: 0;
+	color: #646970;
+	font-size: 13px;
+}
+
+/* Button Actions */
+.ip-management-actions {
+	padding: 15px 0;
+	border-top: 1px solid #e1e1e1;
+	margin-top: 10px;
+}
+
+.ip-management-actions .button {
+	margin-right: 10px;
+	margin-bottom: 0;
+}
+
+/* IP Lists Layout */
+.ai-faq-ip-lists {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 20px;
+	margin-bottom: 20px;
+}
+
+.ai-faq-ip-list {
+	margin-bottom: 0 !important;
+}
+
+.ai-faq-ip-list .description {
+	margin-bottom: 15px;
+}
+
+.ai-faq-ip-list .wp-list-table {
+	margin-top: 0;
+}
+
+.ai-faq-ip-list .no-items {
+	padding: 20px;
+	text-align: center;
+	color: #646970;
+	font-style: italic;
+	background: #f6f7f7;
+	border: 1px solid #e1e1e1;
+	border-radius: 3px;
+}
+
+/* Status Grid */
+.ai-faq-status-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 15px;
+	margin-top: 15px;
+}
+
+.status-card {
+	background: #f6f7f7;
+	border: 1px solid #e1e1e1;
+	border-radius: 4px;
+	padding: 15px;
+	text-align: center;
+}
+
+.status-card h3 {
+	margin: 0 0 10px 0;
+	font-size: 14px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.status-indicator {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	font-size: 14px;
+	color: #646970;
+}
+
+.status-indicator .status-blue {
+	font-size: 24px;
+	font-weight: bold;
+	color: #0073aa;
+}
+
+.status-indicator .status-red {
+	font-size: 24px;
+	font-weight: bold;
+	color: #d63638;
+}
+
+.status-indicator .status-green {
+	font-size: 24px;
+	font-weight: bold;
+	color: #00a32a;
+}
+
+.status-indicator .status-orange {
+	font-size: 24px;
+	font-weight: bold;
+	color: #dba617;
+}
+
+/* ==========================================================================
+   Usage Analytics Template Styles
+   ========================================================================== */
+
+.ai-faq-usage-analytics .ai-faq-admin-section {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 20px;
+	margin-bottom: 20px;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.ai-faq-usage-analytics .ai-faq-admin-section h2 {
+	margin-top: 0;
+	margin-bottom: 15px;
+	font-size: 1.3em;
+	font-weight: 600;
+	color: #1d2327;
+	border-bottom: 1px solid #e1e1e1;
+	padding-bottom: 8px;
+}
+
+/* Analytics Filters */
+.ai-faq-analytics-filters .form-table {
+	margin-bottom: 15px;
+}
+
+.ai-faq-analytics-filters .form-table th {
+	width: 120px;
+	padding: 10px 0;
+}
+
+.ai-faq-analytics-filters .form-table td {
+	padding: 10px 0;
+}
+
+.analytics-actions {
+	padding: 15px 0;
+	border-top: 1px solid #e1e1e1;
+}
+
+.analytics-actions .button {
+	margin-right: 10px;
+}
+
+/* Analytics Grid */
+.ai-faq-analytics-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 15px;
+	margin-top: 15px;
+}
+
+.analytics-card {
+	background: #f6f7f7;
+	border: 1px solid #e1e1e1;
+	border-radius: 4px;
+	padding: 15px;
+	text-align: center;
+}
+
+.analytics-card h3 {
+	margin: 0 0 10px 0;
+	font-size: 14px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.analytics-metric {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+}
+
+.metric-value {
+	font-size: 28px;
+	font-weight: bold;
+	color: #0073aa;
+}
+
+.metric-value.blocked {
+	color: #d63638;
+}
+
+.metric-value.violations {
+	color: #dba617;
+}
+
+.metric-label {
+	font-size: 13px;
+	color: #646970;
+}
+
+/* Table Styling */
+.ai-faq-usage-analytics .wp-list-table th,
+.ai-faq-ip-management .wp-list-table th {
+	font-weight: 600;
+}
+
+.ai-faq-usage-analytics .wp-list-table .status-green,
+.ai-faq-ip-management .wp-list-table .status-green {
+	color: #00a32a;
+	font-weight: 600;
+}
+
+.ai-faq-usage-analytics .wp-list-table .status-red,
+.ai-faq-ip-management .wp-list-table .status-red {
+	color: #d63638;
+	font-weight: 600;
+}
+
+.ai-faq-usage-analytics .wp-list-table .status-orange,
+.ai-faq-ip-management .wp-list-table .status-orange {
+	color: #dba617;
+	font-weight: 600;
+}
+
+/* Button Styles */
+.add-to-blacklist,
+.remove-ip {
+	font-size: 12px;
+	padding: 4px 8px;
+	height: auto;
+	line-height: 1.4;
+}
+
+/* Form Validation */
+.ai-faq-ip-form input.invalid {
+	border-color: #d63638;
+	box-shadow: 0 0 2px rgba(214, 54, 56, 0.8);
+}
+
+.ai-faq-ip-form input.invalid:focus {
+	border-color: #d63638;
+	box-shadow: 0 0 5px rgba(214, 54, 56, 0.8);
+}
+
+/* Loading States */
+.button:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+/* Message Styling */
+.ai-faq-message {
+	margin: 15px 0;
+}
+
+.ai-faq-message.notice {
+	padding: 12px;
+	border-left: 4px solid;
+	background: #fff;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.ai-faq-message.notice-success {
+	border-left-color: #00a32a;
+}
+
+.ai-faq-message.notice-error {
+	border-left-color: #d63638;
+}
+
+.ai-faq-message.notice-info {
+	border-left-color: #0073aa;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media screen and (max-width: 782px) {
+	.ai-faq-ip-lists {
+		grid-template-columns: 1fr;
+	}
+	
+	.ai-faq-analytics-grid,
+	.ai-faq-status-grid {
+		grid-template-columns: 1fr;
+	}
+	
+	.ai-faq-ip-form .regular-text,
+	.ai-faq-ip-form textarea.regular-text {
+		width: 100%;
+	}
+	
+	.ip-management-actions .button,
+	.analytics-actions .button {
+		display: block;
+		width: 100%;
+		margin-bottom: 10px;
+		margin-right: 0;
+	}
+}
+
+@media screen and (max-width: 600px) {
+	.ai-faq-ip-management .ai-faq-admin-section,
+	.ai-faq-usage-analytics .ai-faq-admin-section {
+		padding: 15px;
+	}
+	
+	.ai-faq-ip-form .form-table th,
+	.ai-faq-analytics-filters .form-table th {
+		display: block;
+		width: 100%;
+		padding-bottom: 5px;
+	}
+	
+	.ai-faq-ip-form .form-table td,
+	.ai-faq-analytics-filters .form-table td {
+		display: block;
+		width: 100%;
+		padding-top: 0;
+	}
+}
+
+/* ==========================================================================
+   WordPress Notice Integration
+   ========================================================================== */
+
+.ai-faq-ip-management .notice,
+.ai-faq-usage-analytics .notice {
+	margin-bottom: 20px;
+}
+
+.ai-faq-ip-management .notice p,
+.ai-faq-usage-analytics .notice p {
+	margin: 0.5em 0;
+}
