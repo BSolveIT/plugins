@@ -254,25 +254,28 @@ $worker_definitions = array(
 			<div class="help-card">
 				<h4><?php esc_html_e( 'Worker Setup Guide', '365i-ai-faq-generator' ); ?></h4>
 				<p><?php esc_html_e( 'Learn how to configure your Cloudflare workers and KV namespaces for optimal performance. This guide walks you through the complete setup process with step-by-step instructions.', '365i-ai-faq-generator' ); ?></p>
-				<a href="#" class="button button-secondary">
+				<button type="button" class="button button-secondary ai-faq-doc-button" data-doc-type="setup_guide">
+					<span class="dashicons dashicons-media-text"></span>
 					<?php esc_html_e( 'View Guide', '365i-ai-faq-generator' ); ?>
-				</a>
+				</button>
 			</div>
 			
 			<div class="help-card">
 				<h4><?php esc_html_e( 'Troubleshooting', '365i-ai-faq-generator' ); ?></h4>
 				<p><?php esc_html_e( 'Common issues and solutions for worker connectivity problems. Find answers to frequently encountered setup issues and learn how to diagnose connection failures.', '365i-ai-faq-generator' ); ?></p>
-				<a href="#" class="button button-secondary">
+				<button type="button" class="button button-secondary ai-faq-doc-button" data-doc-type="troubleshooting">
+					<span class="dashicons dashicons-sos"></span>
 					<?php esc_html_e( 'Get Help', '365i-ai-faq-generator' ); ?>
-				</a>
+				</button>
 			</div>
 			
 			<div class="help-card">
 				<h4><?php esc_html_e( 'API Reference', '365i-ai-faq-generator' ); ?></h4>
 				<p><?php esc_html_e( 'Complete API documentation for all worker endpoints and parameters. This technical reference provides detailed information about request formats, response structures, and authentication.', '365i-ai-faq-generator' ); ?></p>
-				<a href="#" class="button button-secondary">
+				<button type="button" class="button button-secondary ai-faq-doc-button" data-doc-type="api_reference">
+					<span class="dashicons dashicons-editor-code"></span>
 					<?php esc_html_e( 'View API Docs', '365i-ai-faq-generator' ); ?>
-				</a>
+				</button>
 			</div>
 		</div>
 	</div>

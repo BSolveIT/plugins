@@ -82,6 +82,14 @@ class AI_FAQ_Admin {
 	private $rate_limiting;
 
 	/**
+	 * Admin_Documentation component instance.
+	 *
+	 * @since 2.1.0
+	 * @var AI_FAQ_Admin_Documentation
+	 */
+	private $documentation;
+
+	/**
 	 * Constructor.
 	 * 
 	 * Initialize the admin component.
@@ -111,6 +119,7 @@ class AI_FAQ_Admin {
 		$this->analytics = new AI_FAQ_Admin_Analytics();
 		$this->security = new AI_FAQ_Admin_Security();
 		$this->rate_limiting = new AI_FAQ_Rate_Limiting_Admin();
+		$this->documentation = new AI_FAQ_Admin_Documentation();
 
 		// Initialize each component.
 		$this->menu->init();
@@ -119,10 +128,12 @@ class AI_FAQ_Admin {
 		$this->workers->init();
 		$this->analytics->init();
 		$this->security->init();
+		$this->documentation->init();
 		// Note: rate_limiting admin handles its own initialization in constructor
 
-		// Add activation redirect hook.
+		// Add admin hooks.
 		add_action( 'admin_init', array( $this, 'activation_redirect' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 	}
 
 	/**
@@ -143,11 +154,12 @@ class AI_FAQ_Admin {
 		require_once $admin_dir . 'class-ai-faq-admin-analytics.php';
 		require_once $admin_dir . 'class-ai-faq-admin-security.php';
 		require_once $admin_dir . 'class-ai-faq-rate-limiting-admin.php';
+		require_once $admin_dir . 'class-ai-faq-admin-documentation.php';
 	}
 
 	/**
 	 * Handle activation redirect.
-	 * 
+	 *
 	 * @since 2.0.0
 	 */
 	public function activation_redirect() {
@@ -161,5 +173,64 @@ class AI_FAQ_Admin {
 				exit;
 			}
 		}
+	}
+
+	/**
+	 * Enqueue admin assets.
+	 *
+	 * Load CSS and JavaScript files for admin pages.
+	 *
+	 * @since 2.1.0
+	 * @param string $hook_suffix Current admin page hook suffix.
+	 */
+	public function enqueue_admin_assets( $hook_suffix ) {
+		// Debug: Log the hook suffix to see what pages are being loaded
+		error_log( '[365i AI FAQ] Admin assets called for hook: ' . $hook_suffix );
+		
+		// Only load on our plugin admin pages.
+		$plugin_pages = array(
+			'toplevel_page_ai-faq-generator',
+			'ai-faq-gen_page_ai-faq-generator-workers',
+			'ai-faq-gen_page_ai-faq-generator-analytics',
+			'ai-faq-gen_page_ai-faq-generator-rate-limiting',
+			'ai-faq-gen_page_ai-faq-generator-ip-management',
+			'ai-faq-gen_page_ai-faq-generator-usage-analytics',
+			'ai-faq-gen_page_ai-faq-generator-settings',
+		);
+
+		if ( ! in_array( $hook_suffix, $plugin_pages, true ) ) {
+			error_log( '[365i AI FAQ] Hook suffix not in plugin pages, skipping asset enqueue' );
+			return;
+		}
+
+		error_log( '[365i AI FAQ] Enqueuing documentation modal assets for: ' . $hook_suffix );
+
+		// Enqueue documentation modal assets.
+		wp_enqueue_style(
+			'ai-faq-documentation-modal',
+			AI_FAQ_GEN_URL . 'assets/css/documentation-modal.css',
+			array(),
+			AI_FAQ_GEN_VERSION
+		);
+
+		wp_enqueue_script(
+			'ai-faq-documentation-modal',
+			AI_FAQ_GEN_URL . 'assets/js/documentation-modal.js',
+			array( 'jquery' ),
+			AI_FAQ_GEN_VERSION,
+			true
+		);
+
+		// Localize script with AJAX data.
+		wp_localize_script(
+			'ai-faq-documentation-modal',
+			'ai_faq_ajax',
+			array(
+				'ajax_url' => admin_url( 'admin-ajax.php' ),
+				'documentation_nonce' => wp_create_nonce( 'ai_faq_documentation_nonce' ),
+			)
+		);
+		
+		error_log( '[365i AI FAQ] Documentation modal assets enqueued successfully' );
 	}
 }

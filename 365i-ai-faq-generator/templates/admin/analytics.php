@@ -394,6 +394,30 @@ require_once AI_FAQ_GEN_DIR . 'templates/partials/header.php';
 		</div>
 	</div>
 
+	<!-- Cloudflare Statistics Section -->
+	<div class="ai-faq-section">
+		<h2><?php esc_html_e( 'Cloudflare Statistics', '365i-ai-faq-generator' ); ?></h2>
+		<div class="ai-faq-cloudflare-stats">
+			<p><?php esc_html_e( 'Fetch real-time statistics directly from Cloudflare\'s GraphQL Analytics API for your workers. This provides comprehensive insights into requests, errors, CPU usage, and data transfer.', '365i-ai-faq-generator' ); ?></p>
+			<div class="ai-faq-button-group">
+				<button type="button" id="fetch-cloudflare-stats-btn" class="button button-primary">
+					<span class="dashicons dashicons-cloud"></span>
+					<?php esc_html_e( 'Fetch Cloudflare Statistics', '365i-ai-faq-generator' ); ?>
+				</button>
+				<select id="cloudflare-stats-period" style="margin-left: 10px;">
+					<option value="1"><?php esc_html_e( 'Last 24 hours', '365i-ai-faq-generator' ); ?></option>
+					<option value="7" selected><?php esc_html_e( 'Last 7 days', '365i-ai-faq-generator' ); ?></option>
+					<option value="30"><?php esc_html_e( 'Last 30 days', '365i-ai-faq-generator' ); ?></option>
+					<option value="90"><?php esc_html_e( 'Last 90 days', '365i-ai-faq-generator' ); ?></option>
+				</select>
+				<span id="cloudflare-stats-spinner" class="spinner" style="display: none;"></span>
+			</div>
+			<div id="cloudflare-stats-result" class="ai-faq-cloudflare-result" style="display: none; margin-top: 20px;">
+				<!-- Cloudflare stats results will be displayed here -->
+			</div>
+		</div>
+	</div>
+
 	<!-- Test Summary Section -->
 	<?php if ( ! empty( $test_summary ) ) : ?>
 	<div class="ai-faq-section">
@@ -470,6 +494,43 @@ require_once AI_FAQ_GEN_DIR . 'templates/partials/header.php';
 		</div>
 	</div>
 	<?php endif; ?>
+
+	<!-- Help & Documentation -->
+	<div class="ai-faq-section">
+		<h2>
+			<span class="dashicons dashicons-editor-help"></span>
+			<?php esc_html_e( 'Help & Documentation', '365i-ai-faq-generator' ); ?>
+		</h2>
+		
+		<div class="help-grid">
+			<div class="help-card">
+				<h4><?php esc_html_e( 'Worker Setup Guide', '365i-ai-faq-generator' ); ?></h4>
+				<p><?php esc_html_e( 'Learn how to configure your Cloudflare workers and KV namespaces for optimal performance. This guide walks you through the complete setup process with step-by-step instructions.', '365i-ai-faq-generator' ); ?></p>
+				<button type="button" class="button button-secondary ai-faq-doc-button" data-doc-type="setup_guide">
+					<span class="dashicons dashicons-media-text"></span>
+					<?php esc_html_e( 'View Guide', '365i-ai-faq-generator' ); ?>
+				</button>
+			</div>
+			
+			<div class="help-card">
+				<h4><?php esc_html_e( 'Troubleshooting', '365i-ai-faq-generator' ); ?></h4>
+				<p><?php esc_html_e( 'Common issues and solutions for worker connectivity problems. Find answers to frequently encountered setup issues and learn how to diagnose connection failures.', '365i-ai-faq-generator' ); ?></p>
+				<button type="button" class="button button-secondary ai-faq-doc-button" data-doc-type="troubleshooting">
+					<span class="dashicons dashicons-sos"></span>
+					<?php esc_html_e( 'Get Help', '365i-ai-faq-generator' ); ?>
+				</button>
+			</div>
+			
+			<div class="help-card">
+				<h4><?php esc_html_e( 'API Reference', '365i-ai-faq-generator' ); ?></h4>
+				<p><?php esc_html_e( 'Complete API documentation for all worker endpoints and parameters. This technical reference provides detailed information about request formats, response structures, and authentication.', '365i-ai-faq-generator' ); ?></p>
+				<button type="button" class="button button-secondary ai-faq-doc-button" data-doc-type="api_reference">
+					<span class="dashicons dashicons-editor-code"></span>
+					<?php esc_html_e( 'View API Docs', '365i-ai-faq-generator' ); ?>
+				</button>
+			</div>
+		</div>
+	</div>
 </div>
 
 <script>
@@ -640,6 +701,170 @@ jQuery(document).ready(function($) {
 				}
 			}
 		});
+	}
+	
+	// Cloudflare Statistics Fetching
+	$('#fetch-cloudflare-stats-btn').on('click', function() {
+		const button = $(this);
+		const spinner = $('#cloudflare-stats-spinner');
+		const resultDiv = $('#cloudflare-stats-result');
+		const periodSelect = $('#cloudflare-stats-period');
+		const days = periodSelect.val();
+		
+		// Show spinner and disable button
+		button.prop('disabled', true);
+		spinner.show();
+		resultDiv.hide().empty();
+		
+		// Make AJAX request
+		$.post(ajaxurl, {
+			action: 'ai_faq_fetch_cloudflare_stats',
+			nonce: '<?php echo esc_js( wp_create_nonce( 'ai_faq_gen_nonce' ) ); ?>',
+			days: days,
+		}, function(response) {
+			// Hide spinner and enable button
+			spinner.hide();
+			button.prop('disabled', false);
+			
+			if (response.success) {
+				const data = response.data;
+				let resultHtml = `
+					<div class="notice notice-success">
+						<h4><span class="dashicons dashicons-cloud"></span> ${data.message}</h4>
+					</div>
+					
+					<div class="ai-faq-cloudflare-overview">
+						<h3><?php esc_html_e( 'Summary Statistics', '365i-ai-faq-generator' ); ?></h3>
+						<div class="ai-faq-metrics-grid">
+							<div class="ai-faq-metric-card">
+								<div class="ai-faq-metric-content">
+									<h4><?php esc_html_e( 'Total Requests', '365i-ai-faq-generator' ); ?></h4>
+									<div class="ai-faq-metric-value">${data.totals.requests.toLocaleString()}</div>
+									<div class="ai-faq-metric-caption">${data.period.days} ${data.period.days === 1 ? '<?php esc_html_e( 'day', '365i-ai-faq-generator' ); ?>' : '<?php esc_html_e( 'days', '365i-ai-faq-generator' ); ?>'}</div>
+								</div>
+							</div>
+							<div class="ai-faq-metric-card">
+								<div class="ai-faq-metric-content">
+									<h4><?php esc_html_e( 'Success Rate', '365i-ai-faq-generator' ); ?></h4>
+									<div class="ai-faq-metric-value">${data.success_rate}%</div>
+									<div class="ai-faq-metric-caption">${data.totals.errors} <?php esc_html_e( 'errors', '365i-ai-faq-generator' ); ?></div>
+								</div>
+							</div>
+							<div class="ai-faq-metric-card">
+								<div class="ai-faq-metric-content">
+									<h4><?php esc_html_e( 'CPU Time', '365i-ai-faq-generator' ); ?></h4>
+									<div class="ai-faq-metric-value">${(data.totals.cpu_time / 1000).toFixed(2)}s</div>
+									<div class="ai-faq-metric-caption"><?php esc_html_e( 'Total processing', '365i-ai-faq-generator' ); ?></div>
+								</div>
+							</div>
+							<div class="ai-faq-metric-card">
+								<div class="ai-faq-metric-content">
+									<h4><?php esc_html_e( 'Data Transfer', '365i-ai-faq-generator' ); ?></h4>
+									<div class="ai-faq-metric-value">${formatBytes(data.totals.egress_bytes)}</div>
+									<div class="ai-faq-metric-caption"><?php esc_html_e( 'Egress bytes', '365i-ai-faq-generator' ); ?></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				`;
+				
+				// Add individual worker statistics
+				if (Object.keys(data.worker_stats).length > 0) {
+					resultHtml += `
+						<div class="ai-faq-worker-stats">
+							<h3><?php esc_html_e( 'Worker Breakdown', '365i-ai-faq-generator' ); ?></h3>
+							<div class="ai-faq-table-container">
+								<table class="ai-faq-data-table">
+									<thead>
+										<tr>
+											<th><?php esc_html_e( 'Worker', '365i-ai-faq-generator' ); ?></th>
+											<th><?php esc_html_e( 'Requests', '365i-ai-faq-generator' ); ?></th>
+											<th><?php esc_html_e( 'Errors', '365i-ai-faq-generator' ); ?></th>
+											<th><?php esc_html_e( 'Success Rate', '365i-ai-faq-generator' ); ?></th>
+											<th><?php esc_html_e( 'CPU Time', '365i-ai-faq-generator' ); ?></th>
+											<th><?php esc_html_e( 'Data Transfer', '365i-ai-faq-generator' ); ?></th>
+										</tr>
+									</thead>
+									<tbody>`;
+					
+					for (const [workerName, stats] of Object.entries(data.worker_stats)) {
+						if (stats.error) {
+							resultHtml += `
+								<tr>
+									<td>${workerName}</td>
+									<td colspan="5" class="error-cell">
+										<span class="dashicons dashicons-warning"></span>
+										<?php esc_html_e( 'Error:', '365i-ai-faq-generator' ); ?> ${stats.error}
+									</td>
+								</tr>`;
+						} else {
+							const successRate = stats.requests > 0 ? (((stats.requests - stats.errors) / stats.requests) * 100).toFixed(1) : '0.0';
+							resultHtml += `
+								<tr>
+									<td>${workerName}</td>
+									<td>${stats.requests.toLocaleString()}</td>
+									<td>${stats.errors.toLocaleString()}</td>
+									<td>${successRate}%</td>
+									<td>${(stats.cpu_time / 1000).toFixed(2)}s</td>
+									<td>${formatBytes(stats.egress_bytes)}</td>
+								</tr>`;
+						}
+					}
+					
+					resultHtml += `
+									</tbody>
+								</table>
+							</div>
+						</div>`;
+				}
+				
+				// Add error details if any
+				if (Object.keys(data.errors).length > 0) {
+					resultHtml += `
+						<div class="ai-faq-cloudflare-errors">
+							<h3><?php esc_html_e( 'Errors', '365i-ai-faq-generator' ); ?></h3>
+							<div class="notice notice-warning">`;
+					
+					for (const [workerName, error] of Object.entries(data.errors)) {
+						resultHtml += `<p><strong>${workerName}:</strong> ${error}</p>`;
+					}
+					
+					resultHtml += `
+							</div>
+						</div>`;
+				}
+				
+				resultDiv.html(resultHtml).show();
+			} else {
+				resultDiv.html(`
+					<div class="notice notice-error">
+						<h4><span class="dashicons dashicons-no"></span> <?php esc_html_e( 'Failed to Fetch Statistics', '365i-ai-faq-generator' ); ?></h4>
+						<p>${response.data || '<?php esc_html_e( 'Unknown error occurred', '365i-ai-faq-generator' ); ?>'}</p>
+					</div>
+				`).show();
+			}
+		}).fail(function(xhr, status, error) {
+			// Hide spinner and enable button
+			spinner.hide();
+			button.prop('disabled', false);
+			
+			resultDiv.html(`
+				<div class="notice notice-error">
+					<h4><span class="dashicons dashicons-no"></span> <?php esc_html_e( 'Request Failed', '365i-ai-faq-generator' ); ?></h4>
+					<p><?php esc_html_e( 'Failed to connect to server:', '365i-ai-faq-generator' ); ?> ${error}</p>
+				</div>
+			`).show();
+		});
+	});
+	
+	// Helper function to format bytes
+	function formatBytes(bytes, decimals = 2) {
+		if (bytes === 0) return '0 Bytes';
+		const k = 1024;
+		const dm = decimals < 0 ? 0 : decimals;
+		const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+		const i = Math.floor(Math.log(bytes) / Math.log(k));
+		return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 	}
 });
 </script>

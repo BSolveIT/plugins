@@ -5,6 +5,18 @@ All notable changes to the 365i AI FAQ Generator plugin will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.4] - 2025-06-19
+
+### Removed
+- **Analytics Testing Feature:** Removed the Analytics Testing section and all related functionality
+  - Removed "Test Analytics Tracking" button and UI section from Analytics dashboard
+  - Removed `ajax_test_analytics()` AJAX handler method from backend
+  - Removed all Analytics Testing related JavaScript code and event handlers
+  - Removed AJAX action registration for `ai_faq_test_analytics`
+  - Cleaned up templates and backend code to eliminate all testing-related components
+  - The working Cloudflare Statistics integration remains fully functional
+  - This removal was requested due to implementation issues with the testing feature
+
 ## [2.1.3] - 2025-06-18
 
 ### Fixed
@@ -45,8 +57,67 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - "Live from KV" for active data streams
   - "Fallback data" for credential issues
   - "Demo data" only for actual demonstration mode
+- **Analytics Testing Feature:** Added comprehensive analytics tracking verification system
+  - New "Test Analytics Tracking" button in Analytics dashboard to verify tracking system functionality
+  - Makes real worker requests through WordPress system to trigger analytics tracking
+  - Provides detailed before/after comparison of analytics data to confirm increment behavior
+  - Shows worker response details and success/failure status for comprehensive debugging
+  - Resolves the analytics disconnect where direct worker calls don't affect WordPress analytics
+  - Enables verification that WordPress analytics dashboard updates correctly when workers are used
+- **Cloudflare Statistics Integration:** Added direct integration with Cloudflare's GraphQL Analytics API
+  - New "Fetch Cloudflare Statistics" button in Analytics dashboard for real-time worker statistics
+  - Direct integration with Cloudflare's GraphQL Analytics API using `workersInvocationsAdaptive` endpoint
+  - Displays requests, errors, subrequests, CPU time percentiles (P50/P99), and success rates for configurable time periods
+  - Configurable time periods: 1 day, 7 days, 30 days, and 90 days
+  - Individual worker breakdown showing detailed statistics per worker with error handling
+  - Professional UI with metrics cards, data tables, and formatted data display (CPU time percentiles, etc.)
+  - Comprehensive error handling for API connectivity issues and credential validation
+  - Compatible with Account API tokens using proper GraphQL schema detection
+  - Requires Cloudflare Account ID and API Token configuration in Settings page
+- **COMPREHENSIVE DOCUMENTATION SYSTEM:** Implemented professional help and documentation modal system
+  - Created full documentation modal interface with responsive design and professional WordPress admin styling
+  - **Worker Setup Guide:** Complete step-by-step guide for Cloudflare Workers configuration
+    - Prerequisites and account requirements with API token creation instructions
+    - Detailed worker deployment process for all 6 workers (Question Generator, Answer Generator, FAQ Enhancer, SEO Analyzer, FAQ Extractor, Topic Generator)
+    - KV namespace configuration with proper binding instructions
+    - Worker URL configuration guidelines and environment variables setup
+    - Comprehensive testing and validation procedures
+  - **Troubleshooting Documentation:** Extensive troubleshooting guide for common issues
+    - Connection problem diagnosis with solutions for HTTP 401, 404, 429 errors
+    - KV storage issue resolution including namespace setup and data persistence problems
+    - Performance optimization guidance for slow response times and timeout errors
+    - Comprehensive debugging tools and techniques reference
+  - **API Reference Documentation:** Complete technical documentation for all worker endpoints
+    - Authentication requirements and header specifications
+    - Detailed endpoint documentation for all 6 workers with request/response examples
+    - Rate limiting documentation with header specifications and error handling
+    - Comprehensive error code reference with descriptions and solutions
+  - **Professional Modal System:** Modern modal interface with advanced features
+    - AJAX-powered content loading with proper nonce security and error handling
+    - Print functionality for offline documentation access
+    - Responsive design with mobile breakpoints and accessibility features
+    - Professional animations and transitions with reduced motion support
+    - High contrast mode support and focus management for accessibility
+  - **Seamless Integration:** Fully integrated into existing admin interface
+    - Updated Workers page Help & Documentation buttons to use new modal system
+    - Proper asset enqueuing with WordPress admin standards
+    - Added `AI_FAQ_Admin_Documentation` component to admin architecture
+    - Enhanced admin buttons with dashicons and improved visual design
+
+### Fixed
+- **CRITICAL: Documentation Modal Buttons Fix:** Resolved issue where documentation buttons only worked on main dashboard page
+  - Fixed asset enqueuing logic to properly load JavaScript and CSS on ALL plugin admin pages
+  - Replaced rigid hook suffix matching with robust page detection using `is_plugin_admin_page()` method
+  - Documentation modals now function correctly on all 7 admin pages: Dashboard, Workers, Analytics, Rate Limiting, IP Management, Usage Analytics, and Settings
+  - Users can now successfully access "View Guide", "Get Help", and "View API Docs" buttons from any plugin page
+  - Eliminated hook suffix detection issues that prevented proper asset loading on subpages
 
 ### Improved
+- **EXPANDED DOCUMENTATION AVAILABILITY:** Extended professional documentation system to all plugin admin pages
+  - Documentation buttons now available on ALL 7 admin pages: Dashboard, Workers, Analytics, Rate Limiting, IP Management, Usage Analytics, and Settings
+  - Users can access comprehensive help documentation from any plugin page for consistent support experience
+  - Expanded from Workers-only availability to full plugin coverage for improved user accessibility
+  - Maintains same professional modal system with AJAX content loading and responsive design across all pages
 - Better user understanding of KV connection status and data availability
 - Enhanced error messaging to help users distinguish between connection issues and empty data
 - More informative status displays throughout the Usage Analytics interface

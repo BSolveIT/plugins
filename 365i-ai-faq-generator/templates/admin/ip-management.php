@@ -192,6 +192,43 @@ require_once AI_FAQ_GEN_DIR . 'templates/partials/header.php';
 			</div>
 		</div>
 	</div>
+
+	<!-- Help & Documentation -->
+	<div class="ai-faq-admin-section">
+		<h2>
+			<span class="dashicons dashicons-editor-help"></span>
+			<?php esc_html_e( 'Help & Documentation', '365i-ai-faq-generator' ); ?>
+		</h2>
+		
+		<div class="help-grid">
+			<div class="help-card">
+				<h4><?php esc_html_e( 'Worker Setup Guide', '365i-ai-faq-generator' ); ?></h4>
+				<p><?php esc_html_e( 'Learn how to configure your Cloudflare workers and KV namespaces for optimal performance. This guide walks you through the complete setup process with step-by-step instructions.', '365i-ai-faq-generator' ); ?></p>
+				<button type="button" class="button button-secondary ai-faq-doc-button" data-doc-type="setup_guide">
+					<span class="dashicons dashicons-media-text"></span>
+					<?php esc_html_e( 'View Guide', '365i-ai-faq-generator' ); ?>
+				</button>
+			</div>
+			
+			<div class="help-card">
+				<h4><?php esc_html_e( 'Troubleshooting', '365i-ai-faq-generator' ); ?></h4>
+				<p><?php esc_html_e( 'Common issues and solutions for worker connectivity problems. Find answers to frequently encountered setup issues and learn how to diagnose connection failures.', '365i-ai-faq-generator' ); ?></p>
+				<button type="button" class="button button-secondary ai-faq-doc-button" data-doc-type="troubleshooting">
+					<span class="dashicons dashicons-sos"></span>
+					<?php esc_html_e( 'Get Help', '365i-ai-faq-generator' ); ?>
+				</button>
+			</div>
+			
+			<div class="help-card">
+				<h4><?php esc_html_e( 'API Reference', '365i-ai-faq-generator' ); ?></h4>
+				<p><?php esc_html_e( 'Complete API documentation for all worker endpoints and parameters. This technical reference provides detailed information about request formats, response structures, and authentication.', '365i-ai-faq-generator' ); ?></p>
+				<button type="button" class="button button-secondary ai-faq-doc-button" data-doc-type="api_reference">
+					<span class="dashicons dashicons-editor-code"></span>
+					<?php esc_html_e( 'View API Docs', '365i-ai-faq-generator' ); ?>
+				</button>
+			</div>
+		</div>
+	</div>
 </div>
 
 <?php

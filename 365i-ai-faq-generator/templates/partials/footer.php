@@ -35,8 +35,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 			
 			<div class="ai-faq-gen-footer-right">
 				<div class="ai-faq-gen-footer-links">
-					<a href="https://365i.co.uk" target="_blank" rel="noopener noreferrer">
-						<?php esc_html_e( '365i.co.uk', '365i-ai-faq-generator' ); ?>
+					<a href="https://www.365i.co.uk" target="_blank" rel="noopener noreferrer">
+						<?php esc_html_e( 'www.365i.co.uk', '365i-ai-faq-generator' ); ?>
 					</a>
 					<span class="separator">|</span>
 					<a href="https://github.com/BSolveIT/plugins" target="_blank" rel="noopener noreferrer">

@@ -58,6 +58,7 @@ class AI_FAQ_Admin {
 		require_once AI_FAQ_GEN_DIR . 'includes/admin/class-ai-faq-admin-analytics.php';
 		require_once AI_FAQ_GEN_DIR . 'includes/admin/class-ai-faq-admin-security.php';
 		require_once AI_FAQ_GEN_DIR . 'includes/admin/class-ai-faq-rate-limiting-admin.php';
+		require_once AI_FAQ_GEN_DIR . 'includes/admin/class-ai-faq-admin-documentation.php';
 		
 		// Create and initialize admin menu component
 		$menu = new AI_FAQ_Admin_Menu();
@@ -74,6 +75,10 @@ class AI_FAQ_Admin {
 		// Initialize other components as needed
 		$workers = new AI_FAQ_Admin_Workers();
 		$workers->init();
+		
+		// Create and initialize documentation component
+		$documentation = new AI_FAQ_Admin_Documentation();
+		$documentation->init();
 		
 		// Create and initialize rate limiting admin component
 		$rate_limiting = new AI_FAQ_Rate_Limiting_Admin();
