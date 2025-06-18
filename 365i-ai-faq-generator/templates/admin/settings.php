@@ -307,7 +307,7 @@ $enable_analytics = isset( $options['enable_analytics'] ) ? $options['enable_ana
 		</div>
 	</form>
 
-	<!-- Import Settings Form (Hidden) -->
+	<!-- Import Settings Modal -->
 	<div id="import-settings-modal" class="import-modal" style="display: none;">
 		<div class="modal-content">
 			<h3><?php esc_html_e( 'Import Settings', '365i-ai-faq-generator' ); ?></h3>
@@ -324,78 +324,6 @@ $enable_analytics = isset( $options['enable_analytics'] ) ? $options['enable_ana
 	</div>
 
 </div><!-- .ai-faq-gen-settings -->
-
-<script type="text/javascript">
-document.addEventListener('DOMContentLoaded', function() {
-	// Password toggle functionality
-	const toggleButtons = document.querySelectorAll('.toggle-password');
-	toggleButtons.forEach(function(button) {
-		button.addEventListener('click', function() {
-			const targetId = this.getAttribute('data-target');
-			const targetInput = document.getElementById(targetId);
-			const icon = this.querySelector('.dashicons');
-			
-			if (targetInput.type === 'password') {
-				targetInput.type = 'text';
-				icon.className = 'dashicons dashicons-hidden';
-			} else {
-				targetInput.type = 'password';
-				icon.className = 'dashicons dashicons-visibility';
-			}
-		});
-	});
-	
-	// Import/Export functionality
-	const importButton = document.querySelector('.import-settings');
-	const exportButton = document.querySelector('.export-settings');
-	const importModal = document.getElementById('import-settings-modal');
-	const closeModal = document.querySelector('.close-modal');
-	
-	if (importButton) {
-		importButton.addEventListener('click', function() {
-			importModal.style.display = 'block';
-		});
-	}
-	
-	if (closeModal) {
-		closeModal.addEventListener('click', function() {
-			importModal.style.display = 'none';
-		});
-	}
-	
-	if (exportButton) {
-		exportButton.addEventListener('click', function() {
-			// Export settings as JSON
-			const settings = {};
-			const form = document.getElementById('settings-form');
-			const formData = new FormData(form);
-			
-			for (let [key, value] of formData.entries()) {
-				settings[key] = value;
-			}
-			
-			const blob = new Blob([JSON.stringify(settings, null, 2)], {type: 'application/json'});
-			const url = URL.createObjectURL(blob);
-			const a = document.createElement('a');
-			a.href = url;
-			a.download = 'ai-faq-gen-settings.json';
-			a.click();
-			URL.revokeObjectURL(url);
-		});
-	}
-	
-	// Reset to defaults confirmation
-	const resetButton = document.querySelector('.reset-settings');
-	if (resetButton) {
-		resetButton.addEventListener('click', function() {
-			if (confirm('<?php echo esc_js( __( 'Are you sure you want to reset all settings to defaults? This action cannot be undone.', '365i-ai-faq-generator' ) ); ?>')) {
-				// Reset form to defaults
-				document.getElementById('settings-form').reset();
-			}
-		});
-	}
-});
-</script>
 
 <?php
 // Include footer.

@@ -279,38 +279,6 @@ $worker_definitions = array(
 
 </div><!-- .ai-faq-gen-workers -->
 
-<script type="text/javascript">
-document.addEventListener('DOMContentLoaded', function() {
-	// Worker toggle functionality
-	const workerToggles = document.querySelectorAll('.worker-toggle input[type="checkbox"]');
-	workerToggles.forEach(function(toggle) {
-		toggle.addEventListener('change', function() {
-			const card = this.closest('.worker-config-card');
-			if (this.checked) {
-				card.classList.remove('disabled');
-				card.classList.add('enabled');
-			} else {
-				card.classList.remove('enabled');
-				card.classList.add('disabled');
-			}
-		});
-	});
-	
-	// Test all workers button
-	const testAllButton = document.querySelector('.test-all-workers');
-	if (testAllButton) {
-		testAllButton.addEventListener('click', function() {
-			const testButtons = document.querySelectorAll('.test-worker-connection');
-			testButtons.forEach(function(button, index) {
-				setTimeout(function() {
-					button.click();
-				}, index * 1000); // Stagger tests by 1 second
-			});
-		});
-	}
-});
-</script>
-
 <?php
 // Include footer.
 include AI_FAQ_GEN_DIR . 'templates/partials/footer.php';

@@ -1,13 +1,12 @@
 <?php
 /**
- * Workers API integration class for 365i AI FAQ Generator.
+ * Workers class for 365i AI FAQ Generator.
  * 
- * This class handles communication with all 6 Cloudflare workers,
- * including rate limiting, error handling, and response caching.
+ * This class implements a facade pattern to provide backward compatibility
+ * while delegating to specialized component classes.
  * 
  * @package AI_FAQ_Generator
- * @subpackage Workers
- * @since 2.0.0
+ * @since 1.0.0
  */
 
 // Prevent direct access to this file.
@@ -16,487 +15,569 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Workers API integration class.
+ * Main Workers class.
  * 
- * Manages communication with Cloudflare workers including rate limiting,
- * error handling, response caching, and unified API interface.
+ * Coordinates worker operations and provides a facade for the component-based architecture.
  * 
- * @since 2.0.0
+ * @since 1.0.0
  */
 class AI_FAQ_Workers {
 
 	/**
-	 * Available workers configuration.
-	 * 
-	 * @since 2.0.0
-	 * @var array
+	 * Workers Manager instance.
+	 *
+	 * @since 2.1.0
+	 * @var AI_FAQ_Workers_Manager
 	 */
-	private $workers = array();
+	private $manager;
 
 	/**
-	 * Rate limiting cache key prefix.
-	 * 
-	 * @since 2.0.0
-	 * @var string
+	 * Rate Limiter instance.
+	 *
+	 * @since 2.1.0
+	 * @var AI_FAQ_Workers_Rate_Limiter
 	 */
-	private $rate_limit_prefix = 'ai_faq_rate_limit_';
+	private $rate_limiter;
 
 	/**
-	 * Response cache key prefix.
-	 * 
-	 * @since 2.0.0
-	 * @var string
+	 * Security instance.
+	 *
+	 * @since 2.1.0
+	 * @var AI_FAQ_Workers_Security
 	 */
-	private $cache_prefix = 'ai_faq_response_';
+	private $security;
+
+	/**
+	 * Analytics instance.
+	 *
+	 * @since 2.1.0
+	 * @var AI_FAQ_Workers_Analytics
+	 */
+	private $analytics;
+
+	/**
+	 * Request Handler instance.
+	 *
+	 * @since 2.1.0
+	 * @var AI_FAQ_Workers_Request_Handler
+	 */
+	private $request_handler;
 
 	/**
 	 * Constructor.
-	 * 
-	 * Initialize the workers configuration.
-	 * 
-	 * @since 2.0.0
+	 *
+	 * Initialize the worker components with enhanced error handling.
+	 *
+	 * @since 1.0.0
 	 */
 	public function __construct() {
-		$this->load_worker_config();
+		try {
+			// Load component classes.
+			$this->load_dependencies();
+			
+			// Get worker configuration from options with fallbacks
+			$options = get_option( 'ai_faq_gen_options', array() );
+			
+			// Create a default config if the option doesn't exist or is malformed
+			if ( empty( $options ) || !isset( $options['workers'] ) || !is_array( $options['workers'] ) ) {
+				$workers_config = $this->get_default_workers_config();
+			} else {
+				$workers_config = $options['workers'];
+			}
+			
+			// Initialize components with try/catch for each one
+			try {
+				$this->security = new AI_FAQ_Workers_Security();
+			} catch ( Exception $e ) {
+				$this->security = null;
+				error_log( 'AI FAQ Generator: Error initializing Security component: ' . $e->getMessage() );
+			}
+			
+			try {
+				$this->rate_limiter = new AI_FAQ_Workers_Rate_Limiter( $workers_config );
+			} catch ( Exception $e ) {
+				$this->rate_limiter = null;
+				error_log( 'AI FAQ Generator: Error initializing Rate Limiter component: ' . $e->getMessage() );
+			}
+			
+			try {
+				$this->analytics = new AI_FAQ_Workers_Analytics();
+			} catch ( Exception $e ) {
+				$this->analytics = null;
+				error_log( 'AI FAQ Generator: Error initializing Analytics component: ' . $e->getMessage() );
+			}
+			
+			// Only create manager if required components exist
+			if ( $this->rate_limiter && $this->security && $this->analytics ) {
+				try {
+					$this->manager = new AI_FAQ_Workers_Manager(
+						$this->rate_limiter,
+						$this->security,
+						$this->analytics
+					);
+				} catch ( Exception $e ) {
+					$this->manager = null;
+					error_log( 'AI FAQ Generator: Error initializing Workers Manager: ' . $e->getMessage() );
+				}
+			} else {
+				$this->manager = null;
+			}
+			
+			// Only create request handler if all components exist
+			if ( $this->manager && $this->rate_limiter && $this->security && $this->analytics ) {
+				try {
+					$this->request_handler = new AI_FAQ_Workers_Request_Handler(
+						$this->manager,
+						$this->rate_limiter,
+						$this->security,
+						$this->analytics
+					);
+				} catch ( Exception $e ) {
+					$this->request_handler = null;
+					error_log( 'AI FAQ Generator: Error initializing Request Handler: ' . $e->getMessage() );
+				}
+			} else {
+				$this->request_handler = null;
+			}
+		} catch ( Exception $e ) {
+			// Log any uncaught exceptions
+			error_log( 'AI FAQ Generator: Fatal error in Workers initialization: ' . $e->getMessage() );
+		}
 	}
 
 	/**
-	 * Initialize the workers component.
-	 * 
-	 * Set up hooks and filters for worker functionality.
-	 * 
-	 * @since 2.0.0
+	 * Initialize the Workers system.
+	 *
+	 * Sets up hooks and initializes components in the correct order.
+	 *
+	 * @since 1.0.0
 	 */
 	public function init() {
-		// Add AJAX handlers for worker requests.
-		add_action( 'wp_ajax_ai_faq_generate_questions', array( $this, 'ajax_generate_questions' ) );
-		add_action( 'wp_ajax_ai_faq_generate_answers', array( $this, 'ajax_generate_answers' ) );
-		add_action( 'wp_ajax_ai_faq_enhance_faq', array( $this, 'ajax_enhance_faq' ) );
-		add_action( 'wp_ajax_ai_faq_analyze_seo', array( $this, 'ajax_analyze_seo' ) );
-		add_action( 'wp_ajax_ai_faq_extract_faq', array( $this, 'ajax_extract_faq' ) );
-		add_action( 'wp_ajax_ai_faq_generate_topics', array( $this, 'ajax_generate_topics' ) );
-
-		// Add public AJAX handlers for shortcode.
-		add_action( 'wp_ajax_nopriv_ai_faq_generate_questions', array( $this, 'ajax_generate_questions' ) );
-		add_action( 'wp_ajax_nopriv_ai_faq_generate_answers', array( $this, 'ajax_generate_answers' ) );
-		add_action( 'wp_ajax_nopriv_ai_faq_enhance_faq', array( $this, 'ajax_enhance_faq' ) );
-		add_action( 'wp_ajax_nopriv_ai_faq_analyze_seo', array( $this, 'ajax_analyze_seo' ) );
-		add_action( 'wp_ajax_nopriv_ai_faq_extract_faq', array( $this, 'ajax_extract_faq' ) );
-		add_action( 'wp_ajax_nopriv_ai_faq_generate_topics', array( $this, 'ajax_generate_topics' ) );
-	}
-
-	/**
-	 * Load worker configuration from options.
-	 * 
-	 * @since 2.0.0
-	 */
-	private function load_worker_config() {
-		$options = get_option( 'ai_faq_gen_options', array() );
-		$this->workers = isset( $options['workers'] ) ? $options['workers'] : array();
-	}
-
-	/**
-	 * Make API request to worker.
-	 * 
-	 * @since 2.0.0
-	 * @param string $worker_name Worker name.
-	 * @param array  $data Request data.
-	 * @param string $method HTTP method.
-	 * @return array|WP_Error Response data or error.
-	 */
-	private function make_request( $worker_name, $data = array(), $method = 'POST' ) {
-		// Check if worker exists and is enabled.
-		if ( ! isset( $this->workers[ $worker_name ] ) || ! $this->workers[ $worker_name ]['enabled'] ) {
-			return new WP_Error(
-				'worker_disabled',
-				/* translators: %s: Worker name */
-				sprintf( __( 'Worker %s is not enabled', '365i-ai-faq-generator' ), $worker_name )
-			);
+		// Skip initialization if any critical component is missing
+		if ( ! $this->security || ! $this->rate_limiter || ! $this->analytics || ! $this->manager ) {
+			error_log( 'AI FAQ Generator: Skipping worker initialization due to missing components' );
+			return;
 		}
-
-		$worker_config = $this->workers[ $worker_name ];
-
-		// Check rate limiting.
-		if ( ! $this->check_rate_limit( $worker_name ) ) {
-			return new WP_Error(
-				'rate_limit_exceeded',
-				/* translators: %s: Worker name */
-				sprintf( __( 'Rate limit exceeded for worker %s', '365i-ai-faq-generator' ), $worker_name )
-			);
-		}
-
-		// Check cache for GET requests.
-		if ( 'GET' === $method ) {
-			$cache_key = $this->cache_prefix . $worker_name . '_' . md5( serialize( $data ) );
-			$cached_response = get_transient( $cache_key );
+		
+		try {
+			// Initialize components in the right order
+			// First, initialize the security component
+			$this->security->init();
 			
-			if ( false !== $cached_response ) {
-				return $cached_response;
+			// Next, initialize the rate limiter that depends on security
+			$this->rate_limiter->init();
+			
+			// Then analytics
+			$this->analytics->init();
+			
+			// Initialize the manager with already initialized components
+			// The manager will not re-initialize components passed from here
+			$this->manager->init();
+			
+			// Finally, initialize the request handler
+			if ( $this->request_handler ) {
+				$this->request_handler->init();
 			}
+		} catch ( Exception $e ) {
+			error_log( 'AI FAQ Generator: Error during worker initialization: ' . $e->getMessage() );
 		}
-
-		// Prepare request arguments.
-		$args = array(
-			'method'  => $method,
-			'timeout' => 30,
-			'headers' => array(
-				'Content-Type' => 'application/json',
-				'User-Agent'   => 'WordPress/365i-AI-FAQ-Generator',
+	}
+	
+	/**
+	 * Get default workers configuration.
+	 *
+	 * Provides a fallback configuration when no configuration exists.
+	 *
+	 * @since 2.1.0
+	 * @return array Default workers configuration.
+	 */
+	private function get_default_workers_config() {
+		return array(
+			'question_generator' => array(
+				'url' => 'https://faq-realtime-assistant-worker.winter-cake-bf57.workers.dev',
+				'enabled' => true,
+				'rate_limit' => 100,
+			),
+			'answer_generator' => array(
+				'url' => 'https://faq-answer-generator-worker.winter-cake-bf57.workers.dev',
+				'enabled' => true,
+				'rate_limit' => 50,
+			),
+			'faq_enhancer' => array(
+				'url' => 'https://faq-enhancement-worker.winter-cake-bf57.workers.dev',
+				'enabled' => true,
+				'rate_limit' => 50,
+			),
+			'seo_analyzer' => array(
+				'url' => 'https://faq-seo-analyzer-worker.winter-cake-bf57.workers.dev',
+				'enabled' => true,
+				'rate_limit' => 75,
+			),
+			'faq_extractor' => array(
+				'url' => 'https://faq-proxy-fetch.winter-cake-bf57.workers.dev',
+				'enabled' => true,
+				'rate_limit' => 100,
+			),
+			'topic_generator' => array(
+				'url' => 'https://url-to-faq-generator-worker.winter-cake-bf57.workers.dev',
+				'enabled' => true,
+				'rate_limit' => 10,
 			),
 		);
-
-		// Add body for POST requests.
-		if ( 'POST' === $method && ! empty( $data ) ) {
-			$args['body'] = wp_json_encode( $data );
-		}
-
-		// Make the request.
-		$response = wp_remote_request( $worker_config['url'], $args );
-
-		// Update rate limit counter.
-		$this->update_rate_limit( $worker_name );
-
-		// Handle response errors.
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
-
-		$response_code = wp_remote_retrieve_response_code( $response );
-		$response_body = wp_remote_retrieve_body( $response );
-
-		// Check for HTTP errors.
-		if ( $response_code < 200 || $response_code >= 300 ) {
-			return new WP_Error(
-				'http_error',
-				/* translators: 1: HTTP response code, 2: Worker name */
-				sprintf( __( 'HTTP error %1$d from worker %2$s', '365i-ai-faq-generator' ), $response_code, $worker_name )
-			);
-		}
-
-		// Decode JSON response.
-		$decoded_response = json_decode( $response_body, true );
-
-		if ( null === $decoded_response ) {
-			return new WP_Error(
-				'json_decode_error',
-				/* translators: %s: Worker name */
-				sprintf( __( 'Invalid JSON response from worker %s', '365i-ai-faq-generator' ), $worker_name )
-			);
-		}
-
-		// Cache successful GET responses.
-		if ( 'GET' === $method && isset( $cache_key ) ) {
-			set_transient( $cache_key, $decoded_response, HOUR_IN_SECONDS );
-		}
-
-		return $decoded_response;
 	}
 
 	/**
-	 * Check rate limit for worker.
+	 * Load required dependencies.
 	 * 
-	 * @since 2.0.0
-	 * @param string $worker_name Worker name.
-	 * @return bool True if within rate limit, false otherwise.
+	 * @since 2.1.0
 	 */
-	private function check_rate_limit( $worker_name ) {
-		if ( ! isset( $this->workers[ $worker_name ]['rate_limit'] ) ) {
-			return true;
+	private function load_dependencies() {
+		// Load Manager class.
+		if ( ! class_exists( 'AI_FAQ_Workers_Manager' ) ) {
+			require_once AI_FAQ_GEN_DIR . 'includes/workers/class-ai-faq-workers-manager.php';
 		}
 
-		$rate_limit = $this->workers[ $worker_name ]['rate_limit'];
-		$cache_key = $this->rate_limit_prefix . $worker_name;
-		$current_count = get_transient( $cache_key );
+		// Load Rate Limiter class.
+		if ( ! class_exists( 'AI_FAQ_Workers_Rate_Limiter' ) ) {
+			require_once AI_FAQ_GEN_DIR . 'includes/workers/components/class-ai-faq-workers-rate-limiter.php';
+		}
 
-		return ( false === $current_count || $current_count < $rate_limit );
-	}
+		// Load Security class.
+		if ( ! class_exists( 'AI_FAQ_Workers_Security' ) ) {
+			require_once AI_FAQ_GEN_DIR . 'includes/workers/components/class-ai-faq-workers-security.php';
+		}
 
-	/**
-	 * Update rate limit counter for worker.
-	 * 
-	 * @since 2.0.0
-	 * @param string $worker_name Worker name.
-	 */
-	private function update_rate_limit( $worker_name ) {
-		$cache_key = $this->rate_limit_prefix . $worker_name;
-		$current_count = get_transient( $cache_key );
+		// Load Analytics class.
+		if ( ! class_exists( 'AI_FAQ_Workers_Analytics' ) ) {
+			require_once AI_FAQ_GEN_DIR . 'includes/workers/components/class-ai-faq-workers-analytics.php';
+		}
 
-		if ( false === $current_count ) {
-			set_transient( $cache_key, 1, HOUR_IN_SECONDS );
-		} else {
-			set_transient( $cache_key, $current_count + 1, HOUR_IN_SECONDS );
+		// Load Request Handler class.
+		if ( ! class_exists( 'AI_FAQ_Workers_Request_Handler' ) ) {
+			require_once AI_FAQ_GEN_DIR . 'includes/workers/components/class-ai-faq-workers-request-handler.php';
 		}
 	}
 
 	/**
-	 * Generate questions using Question Generator worker.
+	 * Generate questions based on a topic.
 	 * 
-	 * @since 2.0.0
-	 * @param string $topic Topic to generate questions for.
-	 * @param int    $count Number of questions to generate.
-	 * @return array|WP_Error Generated questions or error.
+	 * @since 1.0.0
+	 * @param string $topic The topic to generate questions for.
+	 * @param int    $count The number of questions to generate.
+	 * @return array|WP_Error An array of questions or a WP_Error object on failure.
 	 */
 	public function generate_questions( $topic, $count = 12 ) {
-		$data = array(
-			'topic' => sanitize_text_field( $topic ),
-			'count' => intval( $count ),
-		);
-
-		return $this->make_request( 'question_generator', $data );
+		return $this->manager->generate_questions( $topic, $count );
 	}
 
 	/**
-	 * Generate answers using Answer Generator worker.
+	 * Generate answers for a list of questions.
 	 * 
-	 * @since 2.0.0
-	 * @param array $questions Array of questions.
-	 * @return array|WP_Error Generated answers or error.
+	 * @since 1.0.0
+	 * @param array $questions The list of questions to generate answers for.
+	 * @return array|WP_Error An array of question-answer pairs or a WP_Error object on failure.
 	 */
 	public function generate_answers( $questions ) {
-		$data = array(
-			'questions' => array_map( 'sanitize_text_field', $questions ),
-		);
-
-		return $this->make_request( 'answer_generator', $data );
+		return $this->manager->generate_answers( $questions );
 	}
 
 	/**
-	 * Enhance FAQ using FAQ Enhancer worker.
+	 * Enhance an existing FAQ with additional information.
 	 * 
-	 * @since 2.0.0
-	 * @param array $faq_data FAQ data to enhance.
-	 * @return array|WP_Error Enhanced FAQ or error.
+	 * @since 1.0.0
+	 * @param array $faq_data The FAQ data to enhance.
+	 * @return array|WP_Error Enhanced FAQ data or a WP_Error object on failure.
 	 */
 	public function enhance_faq( $faq_data ) {
-		$data = array(
-			'faq' => $faq_data,
-		);
-
-		return $this->make_request( 'faq_enhancer', $data );
+		return $this->manager->enhance_faq( $faq_data );
 	}
 
 	/**
-	 * Analyze SEO using SEO Analyzer worker.
+	 * Analyze FAQ content for SEO.
 	 * 
-	 * @since 2.0.0
-	 * @param array $faq_data FAQ data to analyze.
-	 * @return array|WP_Error SEO analysis or error.
+	 * @since 1.1.0
+	 * @param array $faq_data The FAQ data to analyze.
+	 * @return array|WP_Error SEO analysis results or a WP_Error object on failure.
 	 */
 	public function analyze_seo( $faq_data ) {
-		$data = array(
-			'faq' => $faq_data,
-		);
-
-		return $this->make_request( 'seo_analyzer', $data );
+		return $this->manager->analyze_seo( $faq_data );
 	}
 
 	/**
-	 * Extract FAQ from URL using FAQ Extractor worker.
+	 * Extract FAQ content from a URL.
 	 * 
-	 * @since 2.0.0
-	 * @param string $url URL to extract FAQ from.
-	 * @return array|WP_Error Extracted FAQ or error.
+	 * @since 1.2.0
+	 * @param string $url The URL to extract FAQ content from.
+	 * @return array|WP_Error Extracted FAQ data or a WP_Error object on failure.
 	 */
 	public function extract_faq( $url ) {
-		$data = array(
-			'url' => esc_url_raw( $url ),
-		);
-
-		return $this->make_request( 'faq_extractor', $data );
+		return $this->manager->extract_faq( $url );
 	}
 
 	/**
-	 * Generate topics using Topic Generator worker.
+	 * Generate topic suggestions from input text.
 	 * 
-	 * @since 2.0.0
-	 * @param string $input Input text for topic generation.
-	 * @return array|WP_Error Generated topics or error.
+	 * @since 1.3.0
+	 * @param string $input The input text to generate topics from.
+	 * @return array|WP_Error Topic suggestions or a WP_Error object on failure.
 	 */
 	public function generate_topics( $input ) {
-		$data = array(
-			'input' => sanitize_textarea_field( $input ),
-		);
-
-		return $this->make_request( 'topic_generator', $data );
+		return $this->manager->generate_topics( $input );
 	}
 
 	/**
-	 * AJAX handler for generating questions.
+	 * Make a request to a worker.
 	 * 
-	 * @since 2.0.0
+	 * @since 1.0.0
+	 * @param string $worker_name The name of the worker to request.
+	 * @param array  $data        The data to send to the worker.
+	 * @return array|WP_Error The response data or a WP_Error object on failure.
 	 */
-	public function ajax_generate_questions() {
-		// Verify nonce.
-		if ( ! wp_verify_nonce( $_POST['nonce'], 'ai_faq_gen_nonce' ) ) {
-			wp_die( __( 'Security check failed', '365i-ai-faq-generator' ) );
-		}
-
-		$topic = isset( $_POST['topic'] ) ? sanitize_text_field( $_POST['topic'] ) : '';
-		$count = isset( $_POST['count'] ) ? intval( $_POST['count'] ) : 12;
-
-		if ( empty( $topic ) ) {
-			wp_send_json_error( __( 'Topic is required', '365i-ai-faq-generator' ) );
-		}
-
-		$result = $this->generate_questions( $topic, $count );
-
-		if ( is_wp_error( $result ) ) {
-			wp_send_json_error( $result->get_error_message() );
-		}
-
-		wp_send_json_success( $result );
+	public function make_worker_request( $worker_name, $data ) {
+		return $this->manager->make_worker_request( $worker_name, $data );
 	}
 
 	/**
-	 * AJAX handler for generating answers.
+	 * Check if an IP address is blocked.
 	 * 
-	 * @since 2.0.0
+	 * @since 1.0.0
+	 * @param string $ip_address The IP address to check.
+	 * @return bool Whether the IP address is blocked.
 	 */
-	public function ajax_generate_answers() {
-		// Verify nonce.
-		if ( ! wp_verify_nonce( $_POST['nonce'], 'ai_faq_gen_nonce' ) ) {
-			wp_die( __( 'Security check failed', '365i-ai-faq-generator' ) );
-		}
-
-		$questions = isset( $_POST['questions'] ) ? $_POST['questions'] : array();
-
-		if ( empty( $questions ) || ! is_array( $questions ) ) {
-			wp_send_json_error( __( 'Questions are required', '365i-ai-faq-generator' ) );
-		}
-
-		$result = $this->generate_answers( $questions );
-
-		if ( is_wp_error( $result ) ) {
-			wp_send_json_error( $result->get_error_message() );
-		}
-
-		wp_send_json_success( $result );
+	public function is_ip_blocked( $ip_address = '' ) {
+		return $this->security->is_ip_blocked( $ip_address );
 	}
 
 	/**
-	 * AJAX handler for enhancing FAQ.
+	 * Block an IP address.
 	 * 
-	 * @since 2.0.0
+	 * @since 1.0.0
+	 * @param string $ip_address    The IP address to block.
+	 * @param string $reason        The reason for blocking.
+	 * @param int    $duration_hours The duration to block for, in hours.
+	 * @return array Result of the blocking operation.
 	 */
-	public function ajax_enhance_faq() {
-		// Verify nonce.
-		if ( ! wp_verify_nonce( $_POST['nonce'], 'ai_faq_gen_nonce' ) ) {
-			wp_die( __( 'Security check failed', '365i-ai-faq-generator' ) );
-		}
-
-		$faq_data = isset( $_POST['faq_data'] ) ? $_POST['faq_data'] : array();
-
-		if ( empty( $faq_data ) ) {
-			wp_send_json_error( __( 'FAQ data is required', '365i-ai-faq-generator' ) );
-		}
-
-		$result = $this->enhance_faq( $faq_data );
-
-		if ( is_wp_error( $result ) ) {
-			wp_send_json_error( $result->get_error_message() );
-		}
-
-		wp_send_json_success( $result );
+	public function block_ip( $ip_address, $reason = '', $duration_hours = 24 ) {
+		return $this->security->block_ip( $ip_address, $reason, $duration_hours );
 	}
 
 	/**
-	 * AJAX handler for SEO analysis.
+	 * Unblock an IP address.
 	 * 
-	 * @since 2.0.0
+	 * @since 1.0.0
+	 * @param string $ip_address The IP address to unblock.
+	 * @return array Result of the unblocking operation.
 	 */
-	public function ajax_analyze_seo() {
-		// Verify nonce.
-		if ( ! wp_verify_nonce( $_POST['nonce'], 'ai_faq_gen_nonce' ) ) {
-			wp_die( __( 'Security check failed', '365i-ai-faq-generator' ) );
-		}
-
-		$faq_data = isset( $_POST['faq_data'] ) ? $_POST['faq_data'] : array();
-
-		if ( empty( $faq_data ) ) {
-			wp_send_json_error( __( 'FAQ data is required', '365i-ai-faq-generator' ) );
-		}
-
-		$result = $this->analyze_seo( $faq_data );
-
-		if ( is_wp_error( $result ) ) {
-			wp_send_json_error( $result->get_error_message() );
-		}
-
-		wp_send_json_success( $result );
+	public function unblock_ip( $ip_address ) {
+		return $this->security->unblock_ip( $ip_address );
 	}
 
 	/**
-	 * AJAX handler for FAQ extraction.
+	 * Get a list of blocked IP addresses.
 	 * 
-	 * @since 2.0.0
+	 * @since 1.0.0
+	 * @return array The list of blocked IP addresses.
 	 */
-	public function ajax_extract_faq() {
-		// Verify nonce.
-		if ( ! wp_verify_nonce( $_POST['nonce'], 'ai_faq_gen_nonce' ) ) {
-			wp_die( __( 'Security check failed', '365i-ai-faq-generator' ) );
-		}
-
-		$url = isset( $_POST['url'] ) ? esc_url_raw( $_POST['url'] ) : '';
-
-		if ( empty( $url ) ) {
-			wp_send_json_error( __( 'URL is required', '365i-ai-faq-generator' ) );
-		}
-
-		$result = $this->extract_faq( $url );
-
-		if ( is_wp_error( $result ) ) {
-			wp_send_json_error( $result->get_error_message() );
-		}
-
-		wp_send_json_success( $result );
+	public function get_blocked_ips() {
+		return $this->security->get_blocked_ips();
 	}
 
 	/**
-	 * AJAX handler for topic generation.
+	 * Check if a user has reached their rate limit.
 	 * 
-	 * @since 2.0.0
+	 * @since 1.0.0
+	 * @param string $worker_name The name of the worker to check.
+	 * @param string $ip_address  The IP address to check.
+	 * @return bool Whether the rate limit has been reached.
 	 */
-	public function ajax_generate_topics() {
-		// Verify nonce.
-		if ( ! wp_verify_nonce( $_POST['nonce'], 'ai_faq_gen_nonce' ) ) {
-			wp_die( __( 'Security check failed', '365i-ai-faq-generator' ) );
-		}
-
-		$input = isset( $_POST['input'] ) ? sanitize_textarea_field( $_POST['input'] ) : '';
-
-		if ( empty( $input ) ) {
-			wp_send_json_error( __( 'Input text is required', '365i-ai-faq-generator' ) );
-		}
-
-		$result = $this->generate_topics( $input );
-
-		if ( is_wp_error( $result ) ) {
-			wp_send_json_error( $result->get_error_message() );
-		}
-
-		wp_send_json_success( $result );
+	public function is_rate_limited( $worker_name, $ip_address = '' ) {
+		return $this->rate_limiter->is_rate_limited( $worker_name, $ip_address );
 	}
 
 	/**
-	 * Get worker status.
+	 * Track a worker request for rate limiting.
 	 * 
-	 * Check the status of all workers.
+	 * @since 1.0.0
+	 * @param string $worker_name The name of the worker that was requested.
+	 * @param string $ip_address  The IP address that made the request.
+	 * @return void
+	 */
+	public function track_request( $worker_name, $ip_address = '' ) {
+		$this->rate_limiter->track_request( $worker_name, $ip_address );
+	}
+
+	/**
+	 * Reset rate limit for a worker.
 	 * 
-	 * @since 2.0.0
+	 * @since 1.0.0
+	 * @param string $worker_name The name of the worker to reset.
+	 * @return bool Whether the reset was successful.
+	 */
+	public function reset_rate_limit( $worker_name ) {
+		return $this->rate_limiter->reset_rate_limit( $worker_name );
+	}
+
+	/**
+	 * Get usage statistics for workers.
+	 * 
+	 * @since 1.0.0
+	 * @param int $days The number of days to get statistics for.
+	 * @return array The usage statistics.
+	 */
+	public function get_usage_stats( $days = 30 ) {
+		return $this->analytics->get_usage_stats( $days );
+	}
+
+	/**
+	 * Get worker status information.
+	 * 
+	 * @since 1.1.0
 	 * @return array Worker status information.
 	 */
 	public function get_worker_status() {
-		$status = array();
+		return $this->manager->get_worker_status();
+	}
 
-		foreach ( $this->workers as $worker_name => $config ) {
-			$status[ $worker_name ] = array(
-				'enabled' => $config['enabled'],
-				'url' => $config['url'],
-				'rate_limit' => $config['rate_limit'],
-				'current_usage' => get_transient( $this->rate_limit_prefix . $worker_name ) ?: 0,
-			);
+	/**
+	 * Cache worker response.
+	 * 
+	 * @since 1.0.0
+	 * @param string $cache_key The cache key.
+	 * @param mixed  $data      The data to cache.
+	 * @param int    $expiration The cache expiration in seconds.
+	 * @return bool Whether the data was cached successfully.
+	 */
+	public function cache_response( $cache_key, $data, $expiration = 3600 ) {
+		return $this->rate_limiter->cache_response( $cache_key, $data, $expiration );
+	}
+
+	/**
+	 * Get cached worker response.
+	 * 
+	 * @since 1.0.0
+	 * @param string $cache_key The cache key.
+	 * @return mixed|false The cached data or false if not found.
+	 */
+	public function get_cached_response( $cache_key ) {
+		return $this->rate_limiter->get_cached_response( $cache_key );
+	}
+
+	/**
+	 * Record a usage event.
+	 * 
+	 * @since 1.0.0
+	 * @param string $worker_name The name of the worker used.
+	 * @param string $event_type  The type of event.
+	 * @param array  $metadata    Additional metadata about the event.
+	 * @return bool Whether the event was recorded successfully.
+	 */
+	public function record_usage( $worker_name, $event_type, $metadata = array() ) {
+		return $this->analytics->record_usage( $worker_name, $event_type, $metadata );
+	}
+
+	/**
+	 * Get analytics data.
+	 * 
+	 * @since 1.1.0
+	 * @param int $period_days The number of days to get data for.
+	 * @return array The analytics data.
+	 */
+	public function get_analytics_data( $period_days = 30 ) {
+		return $this->analytics->get_analytics_data( $period_days );
+	}
+
+	/**
+	 * Get violations data.
+	 * 
+	 * @since 1.1.0
+	 * @param int $period_hours The number of hours to get data for.
+	 * @return array The violations data.
+	 */
+	public function get_violations_data( $period_hours = 24 ) {
+		return $this->security->get_violations_data( $period_hours );
+	}
+
+	/**
+	 * Record a rate limit violation.
+	 * 
+	 * @since 1.0.0
+	 * @param string $worker_name The name of the worker that was requested.
+	 * @param string $ip_address  The IP address that made the request.
+	 * @param array  $metadata    Additional metadata about the violation.
+	 * @return bool Whether the violation was recorded successfully.
+	 */
+	public function record_violation( $worker_name, $ip_address = '', $metadata = array() ) {
+		return $this->security->record_violation( $worker_name, $ip_address, $metadata );
+	}
+
+	/**
+	 * Clean up old violation records.
+	 * 
+	 * @since 1.0.0
+	 * @param int $days The number of days to keep records for.
+	 * @return int The number of records cleaned up.
+	 */
+	public function cleanup_violations( $days = 30 ) {
+		return $this->security->cleanup_violations( $days );
+	}
+
+	/**
+	 * Check if cached response exists.
+	 * 
+	 * @since 1.0.0
+	 * @param string $cache_key The cache key.
+	 * @return bool Whether the cached response exists.
+	 */
+	public function has_cached_response( $cache_key ) {
+		return $this->rate_limiter->has_cached_response( $cache_key );
+	}
+
+	/**
+	 * Delete cached response.
+	 * 
+	 * @since 1.0.0
+	 * @param string $cache_key The cache key.
+	 * @return bool Whether the cached response was deleted.
+	 */
+	public function delete_cached_response( $cache_key ) {
+		return $this->rate_limiter->delete_cached_response( $cache_key );
+	}
+
+	/**
+	 * Clean up old cached responses.
+	 * 
+	 * @since 1.0.0
+	 * @return int The number of cached responses cleaned up.
+	 */
+	public function cleanup_cache() {
+		return $this->rate_limiter->cleanup_cache();
+	}
+
+	/**
+	 * Get current IP address.
+	 *
+	 * @since 1.0.0
+	 * @return string The current IP address.
+	 */
+	public function get_ip_address() {
+		return $this->security->get_ip_address();
+	}
+
+	/**
+	 * Reload worker configuration from database.
+	 *
+	 * Forces a fresh reload of worker configuration from the database,
+	 * ensuring that any recently saved changes are immediately available.
+	 *
+	 * @since 2.1.0
+	 * @return bool True if configuration was reloaded successfully.
+	 */
+	public function reload_worker_config() {
+		if ( $this->manager && method_exists( $this->manager, 'reload_worker_config' ) ) {
+			return $this->manager->reload_worker_config();
 		}
-
-		return $status;
+		
+		error_log( '[365i AI FAQ] Warning: Cannot reload worker config - manager not available' );
+		return false;
 	}
 }

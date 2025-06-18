@@ -1,0 +1,104 @@
+/**
+ * Worker test results CSS styles for 365i AI FAQ Generator.
+ *
+ * Provides visual styling for worker connection test results
+ * including animations, success/error states, and formatting.
+ *
+ * @package AI_FAQ_Generator
+ * @subpackage Assets
+ * @since 2.1.0
+ */
+
+/* Basic icon coloring */
+.dashicons-yes-alt {
+    color: #46b450 !important;
+    font-size: 18px !important;
+}
+
+.dashicons-warning {
+    color: #dc3232 !important;
+    font-size: 18px !important;
+}
+
+/* Card states */
+.worker-card.tested-success,
+.worker-config-card.tested-success {
+    border-left: 4px solid #46b450;
+}
+
+.worker-card.tested-error,
+.worker-config-card.tested-error {
+    border-left: 4px solid #dc3232;
+}
+
+/* Test results container */
+.test-results {
+    margin: 10px 0;
+    padding: 8px 12px;
+    background-color: #f8f8f8;
+    border-radius: 4px;
+    display: none;
+}
+
+/* Fade animations */
+.fade-in {
+    display: block !important;
+    animation: fadeIn 0.5s;
+    opacity: 1;
+}
+
+.fade-out {
+    animation: fadeOut 0.5s;
+    opacity: 0;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+/* Loading indicator */
+.test-result-loading {
+    display: flex;
+    align-items: center;
+    color: #606060;
+}
+
+/* Success message */
+.test-result-success {
+    display: flex;
+    align-items: center;
+    color: #46b450;
+    font-weight: 500;
+}
+
+/* Error message */
+.test-result-error {
+    display: flex;
+    align-items: center;
+    color: #dc3232;
+    font-weight: 500;
+}
+
+/* Test result details */
+.test-detail {
+    margin: 5px 0 5px 24px;
+    font-size: 13px;
+    color: #606060;
+}
+
+/* Space between icon and text */
+.test-status {
+    margin-left: 5px;
+}
+
+/* Spin animation (already defined in JS but included here for completeness) */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

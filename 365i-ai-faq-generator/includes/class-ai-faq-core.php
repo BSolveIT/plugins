@@ -135,14 +135,16 @@ class AI_FAQ_Core {
 
 	/**
 	 * Define plugin hooks.
-	 * 
+	 *
 	 * Set up WordPress action and filter hooks.
-	 * 
+	 *
 	 * @since 2.0.0
 	 */
 	private function define_hooks() {
-		// Initialize admin hooks if in admin.
-		if ( is_admin() ) {
+		// Initialize admin hooks if in admin or doing AJAX.
+		// AJAX handlers must be registered for admin-ajax.php requests.
+		// Using DOING_AJAX constant as it's available earlier than wp_doing_ajax().
+		if ( is_admin() || ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ) {
 			$this->admin->init();
 		}
 		
@@ -201,12 +203,12 @@ class AI_FAQ_Core {
 					'rate_limit' => 75,
 				),
 				'faq_extractor' => array(
-					'url' => 'https://faq-proxy-fetch.winter-cake-bf57.workers.dev',
+					'url' => 'https://url-to-faq-generator-worker.winter-cake-bf57.workers.dev',
 					'enabled' => true,
 					'rate_limit' => 100,
 				),
 				'topic_generator' => array(
-					'url' => 'https://url-to-faq-generator-worker.winter-cake-bf57.workers.dev',
+					'url' => 'https://faq-proxy-fetch.winter-cake-bf57.workers.dev',
 					'enabled' => true,
 					'rate_limit' => 10,
 				),

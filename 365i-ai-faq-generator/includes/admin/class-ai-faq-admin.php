@@ -1,0 +1,154 @@
+<?php
+/**
+ * Admin interface coordinator class for 365i AI FAQ Generator.
+ * 
+ * This class serves as a coordinator for various admin components including
+ * menu registration, settings management, AJAX handlers, worker management,
+ * analytics, and security features.
+ * 
+ * @package AI_FAQ_Generator
+ * @subpackage Admin
+ * @since 2.1.0
+ */
+
+// Prevent direct access to this file.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Admin interface coordinator class.
+ * 
+ * Coordinates all admin functionality components to avoid a "God class".
+ * 
+ * @since 2.1.0
+ */
+class AI_FAQ_Admin {
+
+	/**
+	 * Admin_Menu component instance.
+	 *
+	 * @since 2.1.0
+	 * @var AI_FAQ_Admin_Menu
+	 */
+	private $menu;
+
+	/**
+	 * Admin_Settings component instance.
+	 *
+	 * @since 2.1.0
+	 * @var AI_FAQ_Admin_Settings
+	 */
+	private $settings;
+
+	/**
+	 * Admin_Ajax component instance.
+	 *
+	 * @since 2.1.0
+	 * @var AI_FAQ_Admin_Ajax
+	 */
+	private $ajax;
+
+	/**
+	 * Admin_Workers component instance.
+	 *
+	 * @since 2.1.0
+	 * @var AI_FAQ_Admin_Workers
+	 */
+	private $workers;
+
+	/**
+	 * Admin_Analytics component instance.
+	 *
+	 * @since 2.1.0
+	 * @var AI_FAQ_Admin_Analytics
+	 */
+	private $analytics;
+
+	/**
+	 * Admin_Security component instance.
+	 *
+	 * @since 2.1.0
+	 * @var AI_FAQ_Admin_Security
+	 */
+	private $security;
+
+	/**
+	 * Constructor.
+	 * 
+	 * Initialize the admin component.
+	 * 
+	 * @since 2.1.0
+	 */
+	public function __construct() {
+		// We'll load dependencies on init.
+	}
+
+	/**
+	 * Initialize the admin component.
+	 * 
+	 * Set up hooks and filters for admin functionality.
+	 * 
+	 * @since 2.1.0
+	 */
+	public function init() {
+		// Load dependencies first.
+		$this->load_dependencies();
+
+		// Initialize components.
+		$this->menu = new AI_FAQ_Admin_Menu();
+		$this->settings = new AI_FAQ_Admin_Settings();
+		$this->ajax = new AI_FAQ_Admin_Ajax();
+		$this->workers = new AI_FAQ_Admin_Workers();
+		$this->analytics = new AI_FAQ_Admin_Analytics();
+		$this->security = new AI_FAQ_Admin_Security();
+
+		// Initialize each component.
+		$this->menu->init();
+		$this->settings->init();
+		$this->ajax->init();
+		$this->workers->init();
+		$this->analytics->init();
+		$this->security->init();
+
+		// Add activation redirect hook.
+		add_action( 'admin_init', array( $this, 'activation_redirect' ) );
+	}
+
+	/**
+	 * Load admin component dependencies.
+	 * 
+	 * Include all necessary class files for admin functionality.
+	 * 
+	 * @since 2.1.0
+	 */
+	private function load_dependencies() {
+		$admin_dir = AI_FAQ_GEN_DIR . 'includes/admin/';
+
+		// Load component classes.
+		require_once $admin_dir . 'class-ai-faq-admin-menu.php';
+		require_once $admin_dir . 'class-ai-faq-admin-settings.php';
+		require_once $admin_dir . 'class-ai-faq-admin-ajax.php';
+		require_once $admin_dir . 'class-ai-faq-admin-workers.php';
+		require_once $admin_dir . 'class-ai-faq-admin-analytics.php';
+		require_once $admin_dir . 'class-ai-faq-admin-security.php';
+	}
+
+	/**
+	 * Handle activation redirect.
+	 * 
+	 * @since 2.0.0
+	 */
+	public function activation_redirect() {
+		// Check if we should redirect after activation.
+		if ( get_option( 'ai_faq_gen_activation_redirect', false ) ) {
+			delete_option( 'ai_faq_gen_activation_redirect' );
+			
+			// Only redirect if not activating multiple plugins.
+			if ( ! isset( $_GET['activate-multi'] ) ) {
+				wp_safe_redirect( admin_url( 'admin.php?page=ai-faq-generator' ) );
+				exit;
+			}
+		}
+	}
+}
