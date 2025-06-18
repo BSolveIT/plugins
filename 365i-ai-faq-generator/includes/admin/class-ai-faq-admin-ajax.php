@@ -98,9 +98,6 @@ class AI_FAQ_Admin_Ajax {
 			wp_send_json_error( __( 'Worker URL is required.', '365i-ai-faq-generator' ) );
 		}
 		
-		// Log the original URL before any modification
-		error_log( sprintf( '[365i AI FAQ] Original worker URL from POST: %s', $worker_url ) );
-		
 		// Minimal URL sanitization - just trim whitespace
 		// FILTER_SANITIZE_URL can break valid URLs by removing characters like colons in ports
 		$worker_url = trim( $worker_url );
@@ -123,33 +120,11 @@ class AI_FAQ_Admin_Ajax {
 		// Ensure URL doesn't have trailing slashes
 		$worker_url = rtrim( $worker_url, '/' );
 		
-		// Log the final worker URL
-		error_log( sprintf( '[365i AI FAQ] Final worker URL after processing: %s', $worker_url ) );
-		
 		// Append /health endpoint
 		$health_url = $worker_url . '/health';
 		
 		// Normalize the worker name for consistent handling
 		$normalized_worker = str_replace( '-', '_', $worker_name );
-
-		// Enhanced logging for debugging
-		error_log( sprintf(
-			'[365i AI FAQ] Testing worker: %s (normalized: %s) with health URL: %s',
-			$worker_name,
-			$normalized_worker,
-			$health_url
-		) );
-		
-		// Debug: Log all request parameters
-		error_log( sprintf(
-			'[365i AI FAQ] Debug - Complete request data: worker_name=%s, normalized_worker=%s, worker_url=%s, health_url=%s',
-			$worker_name,
-			$normalized_worker,
-			$worker_url,
-			$health_url
-		) );
-
-		error_log( sprintf( '[365i AI FAQ] Testing worker %s health endpoint with URL: %s', $worker_name, $health_url ) );
 		
 		$start_time = microtime( true );
 		
@@ -167,26 +142,14 @@ class AI_FAQ_Admin_Ajax {
 		// Apply filters to request arguments
 		$args = apply_filters( 'ai_faq_gen_test_worker_args', $args, $worker_name, $health_url );
 		
-		// Log the exact request details before making the request
-		error_log( '[365i AI FAQ] ========== WORDPRESS HTTP REQUEST DETAILS ==========' );
-		error_log( sprintf( '[365i AI FAQ] URL: %s', $health_url ) );
-		error_log( sprintf( '[365i AI FAQ] Method: %s', $args['method'] ) );
-		error_log( sprintf( '[365i AI FAQ] Headers: %s', wp_json_encode( $args['headers'] ) ) );
-		error_log( sprintf( '[365i AI FAQ] Timeout: %d seconds', $args['timeout'] ) );
-		error_log( sprintf( '[365i AI FAQ] SSL Verify: %s', $args['sslverify'] ? 'true' : 'false' ) );
-		error_log( '[365i AI FAQ] ===================================================' );
-		
 		// Make the request
 		$response = wp_remote_request( $health_url, $args );
 		
 		$end_time = microtime( true );
 		$response_time = round( ( $end_time - $start_time ) * 1000 );
 		
-		error_log( sprintf( '[365i AI FAQ] Request completed in %d ms', $response_time ) );
-		
 		// Handle response errors
 		if ( is_wp_error( $response ) ) {
-			error_log( sprintf( '[365i AI FAQ] Request error: %s', $response->get_error_message() ) );
 			
 			$health_result = array(
 				'status' => 'error',
@@ -200,11 +163,7 @@ class AI_FAQ_Admin_Ajax {
 			$response_code = wp_remote_retrieve_response_code( $response );
 			$response_body = wp_remote_retrieve_body( $response );
 			
-			error_log( sprintf( '[365i AI FAQ] Response code: %d', $response_code ) );
-			error_log( sprintf( '[365i AI FAQ] Response (first 200 chars): %s', substr( $response_body, 0, 200 ) ) );
-			
 			if ( $response_code >= 200 && $response_code < 300 ) {
-				error_log( '[365i AI FAQ] Worker test SUCCESSFUL!' );
 				
 				// Try to parse response as JSON
 				$json_response = json_decode( $response_body, true );
@@ -220,8 +179,6 @@ class AI_FAQ_Admin_Ajax {
 					'json_parsed' => $json_success,
 				);
 			} else {
-				error_log( sprintf( '[365i AI FAQ] Worker test FAILED with status %d', $response_code ) );
-				
 				// Create specific error messages based on common error codes
 				$error_message = sprintf( 'Connection failed with status code: %d', $response_code );
 				
@@ -261,7 +218,6 @@ class AI_FAQ_Admin_Ajax {
 		
 		// Fall back to legacy test method if needed
 		if ( ! isset( $health_result ) || ( isset( $health_result['status'] ) && 'error' === $health_result['status'] ) ) {
-			error_log( '[365i AI FAQ] Falling back to legacy test_worker_health method' );
 			// Use the original worker_name, not normalized, as the legacy method will handle its own normalization
 			$fallback_result = $this->workers->test_worker_health( $worker_name, $worker_url );
 			
@@ -319,13 +275,6 @@ class AI_FAQ_Admin_Ajax {
 				$transient_pattern
 			)
 		);
-
-		// Log admin action for audit trail.
-		error_log( sprintf( 
-			'[365i AI FAQ] Admin %s reset usage for worker: %s', 
-			wp_get_current_user()->user_login, 
-			$worker_name 
-		) );
 
 		wp_send_json_success( array(
 			'message' => sprintf( 
@@ -389,9 +338,6 @@ class AI_FAQ_Admin_Ajax {
 		// Get existing options
 		$existing_options = get_option( 'ai_faq_gen_options', array() );
 		
-		// Log for debugging
-		error_log( '[365i AI FAQ] Save settings - Input data: ' . print_r( $settings_data, true ) );
-		
 		// Update existing options with new settings while preserving worker settings
 		if ( isset( $existing_options['workers'] ) ) {
 			// Ensure workers are preserved
@@ -402,9 +348,6 @@ class AI_FAQ_Admin_Ajax {
 
 		// Update option
 		$update_result = update_option( 'ai_faq_gen_options', $settings_data );
-
-		// Log the result
-		error_log( '[365i AI FAQ] Save settings - Update result: ' . ($update_result ? 'success' : 'failed') );
 		
 		if ( $update_result ) {
 			wp_send_json_success( array(
@@ -449,7 +392,6 @@ class AI_FAQ_Admin_Ajax {
 		}
 		
 		if ( ! wp_verify_nonce( $nonce, 'ai_faq_gen_save_workers' ) ) {
-			error_log( '[365i AI FAQ] Save workers - Nonce verification failed' );
 			wp_send_json_error( __( 'Security check failed.', '365i-ai-faq-generator' ) );
 		}
 
@@ -461,9 +403,6 @@ class AI_FAQ_Admin_Ajax {
 
 		// Get existing options
 		$existing_options = get_option( 'ai_faq_gen_options', array() );
-		
-		// Log for debugging
-		error_log( '[365i AI FAQ] Save workers - Input data: ' . print_r( $workers_data, true ) );
 		
 		// Sanitize worker data
 		$sanitized_workers = array();
@@ -486,21 +425,10 @@ class AI_FAQ_Admin_Ajax {
 
 		// Update option
 		$update_result = update_option( 'ai_faq_gen_options', $existing_options );
-
-		// Log the result
-		error_log( '[365i AI FAQ] Save workers - Update result: ' . ($update_result ? 'success' : 'failed') );
-		error_log( '[365i AI FAQ] Save workers - Final data: ' . print_r( $sanitized_workers, true ) );
 		
 		if ( $update_result ) {
 			// Reload worker configuration to ensure fresh URLs are used immediately
 			$this->reload_worker_configuration();
-			
-			// Log admin action for audit trail.
-			error_log( sprintf(
-				'[365i AI FAQ] Admin %s updated worker configurations for %d workers',
-				wp_get_current_user()->user_login,
-				count( $sanitized_workers )
-			) );
 
 			wp_send_json_success( array(
 				'message' => sprintf(
@@ -556,8 +484,6 @@ class AI_FAQ_Admin_Ajax {
 			}
 		}
 		
-		// Log if reload couldn't be performed
-		error_log( '[365i AI FAQ] Warning: Could not reload worker configuration - workers system not accessible' );
 		return false;
 	}
 
@@ -788,37 +714,26 @@ class AI_FAQ_Admin_Ajax {
 	 * @since 2.0.1
 	 */
 	public function ajax_reset_settings() {
-		// Log the start of reset process
-		error_log( '[365i AI FAQ] Reset settings AJAX handler started' );
-		
 		// Check user capabilities.
 		if ( ! current_user_can( 'manage_options' ) ) {
-			error_log( '[365i AI FAQ] Reset settings failed: Insufficient permissions' );
 			wp_send_json_error( __( 'Insufficient permissions.', '365i-ai-faq-generator' ) );
 		}
 
 		// Verify nonce.
 		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( $_POST['nonce'] ) : '';
-		error_log( '[365i AI FAQ] Reset settings nonce check: ' . ( empty( $nonce ) ? 'EMPTY' : 'PROVIDED' ) );
-		
 		if ( ! wp_verify_nonce( $nonce, 'ai_faq_gen_nonce' ) ) {
-			error_log( '[365i AI FAQ] Reset settings failed: Security check failed' );
 			wp_send_json_error( __( 'Security check failed.', '365i-ai-faq-generator' ) );
 		}
 
 		// Check if constants are defined
 		if ( ! defined( 'AI_FAQ_GEN_DIR' ) ) {
-			error_log( '[365i AI FAQ] Reset settings failed: AI_FAQ_GEN_DIR constant not defined' );
 			wp_send_json_error( __( 'Plugin configuration error. Please contact support.', '365i-ai-faq-generator' ) );
 		}
 
-		// Log the file path we're trying to load
 		$settings_file = AI_FAQ_GEN_DIR . 'includes/admin/class-ai-faq-admin-settings.php';
-		error_log( '[365i AI FAQ] Attempting to load settings file: ' . $settings_file );
 		
 		// Check if file exists before requiring
 		if ( ! file_exists( $settings_file ) ) {
-			error_log( '[365i AI FAQ] Reset settings failed: Settings class file does not exist' );
 			wp_send_json_error( __( 'Settings class file not found. Please contact support.', '365i-ai-faq-generator' ) );
 		}
 
@@ -827,25 +742,17 @@ class AI_FAQ_Admin_Ajax {
 		
 		// Check if class exists after requiring
 		if ( ! class_exists( 'AI_FAQ_Admin_Settings' ) ) {
-			error_log( '[365i AI FAQ] Reset settings failed: AI_FAQ_Admin_Settings class not found after require' );
 			wp_send_json_error( __( 'Settings class not found. Please contact support.', '365i-ai-faq-generator' ) );
 		}
 		
-		error_log( '[365i AI FAQ] Creating AI_FAQ_Admin_Settings instance' );
 		$settings = new AI_FAQ_Admin_Settings();
-		
-		error_log( '[365i AI FAQ] Calling reset_settings method' );
 		$result = $settings->reset_settings();
-		
-		error_log( '[365i AI FAQ] Reset settings result: ' . wp_json_encode( $result ) );
 
 		if ( $result['success'] ) {
-			error_log( '[365i AI FAQ] Reset settings completed successfully' );
 			wp_send_json_success( array(
 				'message' => $result['message'],
 			) );
 		} else {
-			error_log( '[365i AI FAQ] Reset settings failed: ' . $result['message'] );
 			wp_send_json_error( $result['message'] );
 		}
 	}

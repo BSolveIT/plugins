@@ -96,25 +96,7 @@
             // Clean URL - remove trailing slashes
             workerUrl = workerUrl.replace(/\/+$/, '');
             
-            console.log('APPROACH: Using GET request to /health endpoint');
-            console.log('Worker URL:', workerUrl);
-            console.log('Health endpoint:', workerUrl + '/health');
-            console.log('- Workers implement a /health endpoint that responds to GET requests');
-            console.log('- This provides standardized health check functionality');
-            
             $button.prop('disabled', true).text(aiFaqGen.strings.loading);
-            
-            // Debug: Log request URL and data
-            console.log('Test connection request details:');
-            console.log('AJAX endpoint:', aiFaqGen.ajaxUrl);
-            console.log('Worker name:', workerName);
-            console.log('Worker URL being tested:', workerUrl);
-            console.log('Full request data:', {
-                action: 'ai_faq_test_worker',
-                nonce: aiFaqGen.nonce,
-                worker_name: workerName,
-                worker_url: workerUrl
-            });
             
             // Make AJAX request to test connection
             $.ajax({
@@ -127,11 +109,6 @@
                     worker_url: workerUrl
                 },
                 success: function(response) {
-                    // Debug: Log response details
-                    console.log('Test connection response received:', response);
-                    console.log('Response success:', response.success);
-                    console.log('Response data:', response.data);
-                    
                     if (response.success) {
                         // Global notification
                         AIFaqGenAdmin.showNotice('success', 'Worker connection successful!');
@@ -266,13 +243,6 @@
                     }
                 },
                 error: function(xhr, status, error) {
-                    // Debug: Log error details
-                    console.log('Test connection error:');
-                    console.log('Status:', status);
-                    console.log('Error:', error);
-                    console.log('Response text:', xhr.responseText);
-                    console.log('Status code:', xhr.status);
-                    
                     AIFaqGenAdmin.showNotice('error', aiFaqGen.strings.error);
                 },
                 complete: function() {
@@ -297,20 +267,12 @@
             // Show loading state
             $submitButton.prop('disabled', true).text(aiFaqGen.strings.loading);
             
-            // Debug logging
-            console.log('Worker config submission started');
-            console.log('Form data:', $form.serialize());
-            
-            // Debug logging - print form data that will be sent
-            console.log('Form data being serialized:', $form.serializeArray());
-            
             // Make AJAX request
             $.ajax({
                 url: aiFaqGen.ajaxUrl,
                 type: 'POST',
                 data: $form.serialize() + '&action=ai_faq_save_workers',
                 success: function(response) {
-                    console.log('Worker config response:', response);
                     
                     if (response.success) {
                         AIFaqGenAdmin.showNotice('success', response.data.message || aiFaqGen.strings.success);
@@ -322,13 +284,6 @@
                     }
                 },
                 error: function(xhr, status, error) {
-                    // Debug: Log error details
-                    console.log('Worker config error:');
-                    console.log('Status:', status);
-                    console.log('Error:', error);
-                    console.log('Response text:', xhr.responseText);
-                    console.log('Status code:', xhr.status);
-                    
                     AIFaqGenAdmin.showNotice('error', aiFaqGen.strings.error);
                 },
                 complete: function() {
@@ -393,7 +348,7 @@
                     }
                 },
                 error: function() {
-                    console.warn('Failed to refresh worker status');
+                    // Error silently handled
                 },
                 complete: function() {
                     $statusSection.removeClass('loading');

@@ -5,6 +5,16 @@ All notable changes to the 365i AI FAQ Generator plugin will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.1] - 2025-06-18
+
+### Improved
+- Removed debug logging statements from JavaScript and PHP files for cleaner production code:
+  - Removed console.log statements from admin.js in testWorkerConnection, saveSettings, and saveWorkerConfig functions
+  - Removed console.warn statement in refreshWorkerStatus function
+  - Removed error_log statements from class-ai-faq-admin-ajax.php in ajax_test_worker, ajax_reset_worker_usage, ajax_save_settings, and ajax_reset_settings methods
+  - Removed error_log statement from reload_worker_configuration method
+  - Code now maintains all functionality without unnecessary debugging output
+
 ## [2.1.0] - 2025-06-18
 
 ### Added
