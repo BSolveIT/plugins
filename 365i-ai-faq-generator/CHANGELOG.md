@@ -8,6 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.1.3] - 2025-06-18
 
 ### Fixed
+- **CRITICAL: Worker Configuration Save Fix:** Resolved "Save Configuration" button functionality on Rate Limiting page
+  - Fixed missing JavaScript event handlers for worker configuration forms causing blank page errors
+  - Added `initRateLimitingConfig()` function to properly initialize rate limiting configuration interface
+  - Implemented `handleWorkerConfigSave()` method for AJAX worker configuration submissions
+  - Added `handleGlobalSettingsSave()` method for global settings form processing
+  - Fixed field name mismatch between template and PHP handler (hourlyLimit vs requests_per_hour, etc.)
+  - Updated `handle_rate_limit_update()` method to accept template field names (hourlyLimit, dailyLimit, weeklyLimit, monthlyLimit)
+  - Added support for violation thresholds configuration (soft, hard, ban levels)
+  - Updated `get_default_worker_config()` to match template field structure and expectations
+  - Fixed badge persistence issue: configurations now properly marked as 'custom' in KV storage
+  - Added `source: 'custom'` field to saved configurations ensuring badge shows "CUSTOM" after page reload
+  - Fixed "Reset to Defaults" functionality to properly delete custom configurations from KV storage
+  - Added `handle_worker_config_reset()` AJAX handler and `reset_worker_config_in_kv()` method
+  - Updated `handleWorkerConfigReset()` JavaScript to call backend API instead of just resetting form fields
+  - "Reset to Defaults" now properly changes badge from "CUSTOM" back to "DEFAULT" and removes timestamps
+  - Worker configuration forms now save successfully with proper visual feedback and status updates
+  - "Save Configuration" buttons now change worker status from "DEFAULT" to "CUSTOM" upon successful save and persist after reload
 - **"Demo Data" Display Fix:** Resolved misleading "Demo data" display in Usage Analytics when Cloudflare KV is connected but empty
   - Fixed analytics template to properly handle `kv_empty` data source status
   - Added proper distinction between actual demo data and connected KV with no analytics data yet

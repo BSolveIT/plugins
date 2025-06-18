@@ -21,6 +21,7 @@
         
         initIPManagement();
         initAnalytics();
+        initRateLimitingConfig();
     });
 
     /**
@@ -172,6 +173,193 @@
         // Analytics filter changes - disable automatic refresh to prevent security errors
         $('#analytics-filters select').on('change', function() {
             showMessage('info', 'Analytics filters updated. Click "Refresh Analytics" to reload data.');
+        });
+    }
+
+    /**
+     * Initialize Rate Limiting Configuration functionality
+     */
+    function initRateLimitingConfig() {
+        // Only initialize if we're on the rate limiting config page
+        if ($('.worker-config-form').length === 0 && $('#global-settings-form').length === 0) {
+            return;
+        }
+
+        // Global settings form submission
+        $('#global-settings-form').on('submit', function(e) {
+            e.preventDefault();
+            handleGlobalSettingsSave($(this));
+        });
+
+        // Worker configuration form submissions
+        $('.worker-config-form').on('submit', function(e) {
+            e.preventDefault();
+            handleWorkerConfigSave($(this));
+        });
+
+        // Reset worker config buttons
+        $('.reset-worker-config').on('click', function(e) {
+            e.preventDefault();
+            handleWorkerConfigReset($(this));
+        });
+    }
+
+    /**
+     * Handle global settings form submission
+     */
+    function handleGlobalSettingsSave($form) {
+        var $button = $form.find('#global_settings_submit');
+        var originalText = $button.text();
+        $button.prop('disabled', true).text('Saving...');
+
+        var formData = {
+            action: 'ai_faq_rl_save_global_settings',
+            nonce: $form.find('#global_settings_nonce').val(),
+            enableRateLimiting: $form.find('#global_enable_rate_limiting').is(':checked'),
+            enableIPWhitelist: $form.find('#global_enable_ip_whitelist').is(':checked'),
+            enableIPBlacklist: $form.find('#global_enable_ip_blacklist').is(':checked'),
+            adminNotificationEmail: $form.find('#global_admin_notification_email').val(),
+            notifyOnViolations: $form.find('#global_notify_on_violations').is(':checked')
+        };
+
+        $.ajax({
+            url: aiFAQRateLimit.ajax_url,
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                if (response.success) {
+                    showMessage('success', response.data.message);
+                } else {
+                    showMessage('error', response.data.message || 'Failed to save global settings.');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('AJAX Error:', error);
+                showMessage('error', 'Network error occurred. Please try again.');
+            },
+            complete: function() {
+                $button.prop('disabled', false).text(originalText);
+            }
+        });
+    }
+
+    /**
+     * Handle worker configuration form submission
+     */
+    function handleWorkerConfigSave($form) {
+        var workerId = $form.data('worker');
+        var $button = $form.find('.save-worker-config');
+        var originalText = $button.text();
+        $button.prop('disabled', true).text('Saving...');
+
+        var formData = {
+            action: 'ai_faq_rl_update_rate_limits',
+            nonce: $form.find('input[name$="_nonce"]').val(),
+            worker_id: workerId,
+            hourlyLimit: parseInt($form.find('input[name="hourlyLimit"]').val()) || 10,
+            dailyLimit: parseInt($form.find('input[name="dailyLimit"]').val()) || 50,
+            weeklyLimit: parseInt($form.find('input[name="weeklyLimit"]').val()) || 250,
+            monthlyLimit: parseInt($form.find('input[name="monthlyLimit"]').val()) || 1000,
+            violationThresholds: {
+                soft: parseInt($form.find('input[name="violationThresholds[soft]"]').val()) || 3,
+                hard: parseInt($form.find('input[name="violationThresholds[hard]"]').val()) || 6,
+                ban: parseInt($form.find('input[name="violationThresholds[ban]"]').val()) || 12
+            }
+        };
+
+        $.ajax({
+            url: aiFAQRateLimit.ajax_url,
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                if (response.success) {
+                    showMessage('success', response.data.message);
+                    
+                    // Update the config source indicator
+                    var $card = $form.closest('.ai-faq-worker-card');
+                    var $sourceSpan = $card.find('.config-source');
+                    $sourceSpan.removeClass('default').addClass('custom').text('Custom');
+                    
+                    // Update last updated timestamp
+                    var currentTime = new Date().toLocaleString();
+                    var $metaDiv = $form.find('.config-meta');
+                    if ($metaDiv.length === 0) {
+                        $metaDiv = $('<div class="config-meta"><small></small></div>');
+                        $form.append($metaDiv);
+                    }
+                    $metaDiv.find('small').text('Last updated: ' + currentTime + ' by Current User');
+                } else {
+                    showMessage('error', response.data.message || 'Failed to save worker configuration.');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('AJAX Error:', error);
+                showMessage('error', 'Network error occurred. Please try again.');
+            },
+            complete: function() {
+                $button.prop('disabled', false).text(originalText);
+            }
+        });
+    }
+
+    /**
+     * Handle worker configuration reset
+     */
+    function handleWorkerConfigReset($button) {
+        var workerId = $button.data('worker');
+        var $form = $button.closest('.worker-config-form');
+        
+        if (!confirm('Are you sure you want to reset this worker configuration to defaults?')) {
+            return;
+        }
+
+        var originalText = $button.text();
+        $button.prop('disabled', true).text('Resetting...');
+
+        var formData = {
+            action: 'ai_faq_rl_reset_worker_config',
+            nonce: aiFAQRateLimit.nonce,
+            worker_id: workerId
+        };
+
+        $.ajax({
+            url: aiFAQRateLimit.ajax_url,
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                if (response.success) {
+                    showMessage('success', response.data.message);
+                    
+                    // Reset form fields to default values
+                    $form.find('input[name="hourlyLimit"]').val(10);
+                    $form.find('input[name="dailyLimit"]').val(50);
+                    $form.find('input[name="weeklyLimit"]').val(250);
+                    $form.find('input[name="monthlyLimit"]').val(1000);
+                    $form.find('input[name="violationThresholds[soft]"]').val(3);
+                    $form.find('input[name="violationThresholds[hard]"]').val(6);
+                    $form.find('input[name="violationThresholds[ban]"]').val(12);
+                    
+                    // Update the config source indicator to default
+                    var $card = $form.closest('.ai-faq-worker-card');
+                    var $sourceSpan = $card.find('.config-source');
+                    $sourceSpan.removeClass('custom').addClass('default').text('Default');
+                    
+                    // Remove last updated timestamp
+                    var $metaDiv = $form.find('.config-meta');
+                    if ($metaDiv.length > 0) {
+                        $metaDiv.remove();
+                    }
+                } else {
+                    showMessage('error', response.data.message || 'Failed to reset worker configuration.');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('AJAX Error:', error);
+                showMessage('error', 'Network error occurred. Please try again.');
+            },
+            complete: function() {
+                $button.prop('disabled', false).text(originalText);
+            }
         });
     }
 

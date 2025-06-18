@@ -70,6 +70,7 @@ class AI_FAQ_Rate_Limiting_Admin {
 		// Use unique action names to avoid conflicts with main plugin AJAX handlers
 		add_action( 'wp_ajax_ai_faq_rl_update_rate_limits', array( $this, 'handle_rate_limit_update' ) );
 		add_action( 'wp_ajax_ai_faq_rl_save_global_settings', array( $this, 'handle_global_settings_save' ) );
+		add_action( 'wp_ajax_ai_faq_rl_reset_worker_config', array( $this, 'handle_worker_config_reset' ) );
 		add_action( 'wp_ajax_ai_faq_rl_manage_ip', array( $this, 'handle_ip_management' ) );
 		add_action( 'wp_ajax_ai_faq_rl_get_analytics', array( $this, 'handle_analytics_request' ) );
 		add_action( 'wp_ajax_ai_faq_rl_export_analytics', array( $this, 'handle_analytics_export' ) );
@@ -91,12 +92,21 @@ class AI_FAQ_Rate_Limiting_Admin {
 		}
 
 		$worker_id = sanitize_text_field( $_POST['worker_id'] ?? '' );
+		
+		// Parse violation thresholds
+		$violation_thresholds = array(
+			'soft' => absint( $_POST['violationThresholds']['soft'] ?? 3 ),
+			'hard' => absint( $_POST['violationThresholds']['hard'] ?? 6 ),
+			'ban'  => absint( $_POST['violationThresholds']['ban'] ?? 12 ),
+		);
+		
 		$config = array(
-			'requests_per_minute' => absint( $_POST['requests_per_minute'] ?? 60 ),
-			'requests_per_hour'   => absint( $_POST['requests_per_hour'] ?? 1000 ),
-			'requests_per_day'    => absint( $_POST['requests_per_day'] ?? 10000 ),
-			'burst_limit'         => absint( $_POST['burst_limit'] ?? 10 ),
-			'enabled'             => filter_var( $_POST['enabled'] ?? true, FILTER_VALIDATE_BOOLEAN ),
+			'hourlyLimit'          => absint( $_POST['hourlyLimit'] ?? 10 ),
+			'dailyLimit'           => absint( $_POST['dailyLimit'] ?? 50 ),
+			'weeklyLimit'          => absint( $_POST['weeklyLimit'] ?? 250 ),
+			'monthlyLimit'         => absint( $_POST['monthlyLimit'] ?? 1000 ),
+			'violationThresholds'  => $violation_thresholds,
+			'enabled'              => filter_var( $_POST['enabled'] ?? true, FILTER_VALIDATE_BOOLEAN ),
 		);
 
 		// Validate worker ID
@@ -105,6 +115,37 @@ class AI_FAQ_Rate_Limiting_Admin {
 		}
 
 		$result = $this->save_worker_rate_config_to_kv( $worker_id, $config );
+
+		if ( $result['success'] ) {
+			wp_send_json_success( array( 'message' => $result['message'] ) );
+		} else {
+			wp_send_json_error( array( 'message' => $result['message'] ) );
+		}
+	}
+
+	/**
+	 * Handle worker configuration reset via AJAX
+	 *
+	 * @since 2.1.3
+	 */
+	public function handle_worker_config_reset() {
+		// Verify nonce and permissions
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'ai_faq_rate_limit_nonce' ) ) {
+			wp_send_json_error( array( 'message' => 'Security check failed.' ) );
+		}
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => 'Insufficient permissions' ) );
+		}
+
+		$worker_id = sanitize_text_field( $_POST['worker_id'] ?? '' );
+
+		// Validate worker ID
+		if ( ! array_key_exists( $worker_id, $this->workers ) ) {
+			wp_send_json_error( array( 'message' => 'Invalid worker ID' ) );
+		}
+
+		$result = $this->reset_worker_config_in_kv( $worker_id );
 
 		if ( $result['success'] ) {
 			wp_send_json_success( array( 'message' => $result['message'] ) );
@@ -1284,11 +1325,17 @@ class AI_FAQ_Rate_Limiting_Admin {
 	private function get_default_worker_config( $worker_id ) {
 		return array(
 			'worker_id'           => $worker_id,
-			'requests_per_minute' => 60,
-			'requests_per_hour'   => 1000,
-			'requests_per_day'    => 10000,
-			'burst_limit'         => 10,
+			'hourlyLimit'         => 10,
+			'dailyLimit'          => 50,
+			'weeklyLimit'         => 250,
+			'monthlyLimit'        => 1000,
+			'violationThresholds' => array(
+				'soft' => 3,
+				'hard' => 6,
+				'ban'  => 12,
+			),
 			'enabled'             => true,
+			'source'              => 'default',
 			'last_updated'        => current_time( 'mysql' ),
 		);
 	}
@@ -1401,6 +1448,7 @@ class AI_FAQ_Rate_Limiting_Admin {
 		// Prepare config data
 		$config_data = array_merge( $config, array(
 			'worker_id'    => $worker_id,
+			'source'       => 'custom',
 			'last_updated' => current_time( 'mysql' ),
 			'updated_by'   => get_current_user_id(),
 		) );
@@ -1531,6 +1579,90 @@ class AI_FAQ_Rate_Limiting_Admin {
 		}
 		
 		return implode( "\n", $csv );
+	}
+
+	/**
+		* Reset worker configuration to defaults by deleting custom config from KV
+		*
+		* @since 2.1.3
+		* @param string $worker_id Worker identifier.
+		* @return array Result with success status and message
+		*/
+	private function reset_worker_config_in_kv( $worker_id ) {
+		// Validate Cloudflare configuration
+		if ( empty( $this->cloudflare_config['account_id'] ) || empty( $this->cloudflare_config['api_token'] ) ) {
+			return array(
+				'success' => false,
+				'message' => esc_html__( 'Cloudflare API credentials not configured.', '365i-ai-faq-generator' ),
+			);
+		}
+
+		$namespace_id = $this->kv_namespaces['FAQ_RATE_LIMITS'];
+		$account_id = $this->cloudflare_config['account_id'];
+		$api_token = $this->cloudflare_config['api_token'];
+
+		// Build API URL to delete the custom configuration
+		$kv_key = 'worker_config_' . $worker_id;
+		$api_url = sprintf(
+			'https://api.cloudflare.com/client/v4/accounts/%s/storage/kv/namespaces/%s/values/%s',
+			$account_id,
+			$namespace_id,
+			$kv_key
+		);
+
+		// Make DELETE request to remove custom configuration
+		$response = wp_remote_request( $api_url, array(
+			'method'  => 'DELETE',
+			'headers' => array(
+				'Authorization' => 'Bearer ' . $api_token,
+				'Content-Type'  => 'application/json',
+			),
+			'timeout' => 30,
+		) );
+
+		if ( is_wp_error( $response ) ) {
+			return array(
+				'success' => false,
+				'message' => sprintf(
+					/* translators: %s: Error message */
+					esc_html__( 'Failed to reset worker config in Cloudflare KV: %s', '365i-ai-faq-generator' ),
+					$response->get_error_message()
+				),
+			);
+		}
+
+		$response_code = wp_remote_retrieve_response_code( $response );
+		
+		// Accept both 200 (deleted) and 404 (already didn't exist) as success
+		if ( ! in_array( $response_code, array( 200, 204, 404 ), true ) ) {
+			$response_body = wp_remote_retrieve_body( $response );
+			$error_data = json_decode( $response_body, true );
+			$error_message = isset( $error_data['errors'][0]['message'] )
+				? $error_data['errors'][0]['message']
+				: 'Unknown API error';
+
+			return array(
+				'success' => false,
+				'message' => sprintf(
+					/* translators: 1: HTTP code, 2: Error message */
+					esc_html__( 'Cloudflare API error (%1$d): %2$s', '365i-ai-faq-generator' ),
+					$response_code,
+					$error_message
+				),
+			);
+		}
+
+		// Clear cache
+		delete_transient( 'ai_faq_rate_configs' );
+
+		return array(
+			'success' => true,
+			'message' => sprintf(
+				/* translators: %s: Worker name */
+				esc_html__( 'Configuration reset to defaults for %s.', '365i-ai-faq-generator' ),
+				$this->workers[ $worker_id ] ?? $worker_id
+			),
+		);
 	}
 
 }
