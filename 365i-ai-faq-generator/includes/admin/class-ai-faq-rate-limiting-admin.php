@@ -76,6 +76,84 @@ class AI_FAQ_Rate_Limiting_Admin {
 	}
 
 	/**
+	 * Handle rate limit configuration updates via AJAX
+	 *
+	 * @since 2.1.2
+	 */
+	public function handle_rate_limit_update() {
+		// Verify nonce and permissions
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'ai_faq_rate_limit_nonce' ) ) {
+			wp_send_json_error( array( 'message' => 'Security check failed.' ) );
+		}
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => 'Insufficient permissions' ) );
+		}
+
+		$worker_id = sanitize_text_field( $_POST['worker_id'] ?? '' );
+		$config = array(
+			'requests_per_minute' => absint( $_POST['requests_per_minute'] ?? 60 ),
+			'requests_per_hour'   => absint( $_POST['requests_per_hour'] ?? 1000 ),
+			'requests_per_day'    => absint( $_POST['requests_per_day'] ?? 10000 ),
+			'burst_limit'         => absint( $_POST['burst_limit'] ?? 10 ),
+			'enabled'             => filter_var( $_POST['enabled'] ?? true, FILTER_VALIDATE_BOOLEAN ),
+		);
+
+		// Validate worker ID
+		if ( ! array_key_exists( $worker_id, $this->workers ) ) {
+			wp_send_json_error( array( 'message' => 'Invalid worker ID' ) );
+		}
+
+		$result = $this->save_worker_rate_config_to_kv( $worker_id, $config );
+
+		if ( $result['success'] ) {
+			wp_send_json_success( array( 'message' => $result['message'] ) );
+		} else {
+			wp_send_json_error( array( 'message' => $result['message'] ) );
+		}
+	}
+
+	/**
+	 * Handle global settings save via AJAX
+	 *
+	 * @since 2.1.2
+	 */
+	public function handle_global_settings_save() {
+		// Verify nonce and permissions
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'ai_faq_rate_limit_nonce' ) ) {
+			wp_send_json_error( array( 'message' => 'Security check failed.' ) );
+		}
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => 'Insufficient permissions' ) );
+		}
+
+		$settings = array(
+			'enableRateLimiting'              => filter_var( $_POST['enableRateLimiting'] ?? true, FILTER_VALIDATE_BOOLEAN ),
+			'enableIPWhitelist'               => filter_var( $_POST['enableIPWhitelist'] ?? true, FILTER_VALIDATE_BOOLEAN ),
+			'enableIPBlacklist'               => filter_var( $_POST['enableIPBlacklist'] ?? true, FILTER_VALIDATE_BOOLEAN ),
+			'enableViolationTracking'         => filter_var( $_POST['enableViolationTracking'] ?? true, FILTER_VALIDATE_BOOLEAN ),
+			'enableAnalytics'                 => filter_var( $_POST['enableAnalytics'] ?? true, FILTER_VALIDATE_BOOLEAN ),
+			'adminNotificationEmail'          => sanitize_email( $_POST['adminNotificationEmail'] ?? get_option( 'admin_email' ) ),
+			'notifyOnViolations'              => filter_var( $_POST['notifyOnViolations'] ?? true, FILTER_VALIDATE_BOOLEAN ),
+			'violationNotificationThreshold' => absint( $_POST['violationNotificationThreshold'] ?? 5 ),
+		);
+
+		// Validate email
+		if ( ! is_email( $settings['adminNotificationEmail'] ) ) {
+			wp_send_json_error( array( 'message' => 'Invalid email address provided.' ) );
+		}
+
+		$result = $this->save_global_settings_to_kv( $settings );
+
+		if ( $result['success'] ) {
+			wp_send_json_success( array( 'message' => $result['message'] ) );
+		} else {
+			wp_send_json_error( array( 'message' => $result['message'] ) );
+		}
+	}
+
+	/**
 	 * Get Cloudflare configuration from plugin settings
 	 *
 	 * @since 2.1.0
@@ -308,13 +386,106 @@ class AI_FAQ_Rate_Limiting_Admin {
 	}
 
 	/**
-	 * Get global rate limiting settings
+	 * Get global rate limiting settings from Cloudflare KV
 	 *
 	 * @since 2.1.0
 	 * @return array Global settings
 	 */
 	private function get_global_settings() {
-		// Return default global settings
+		// Check for cached data first (cache for 15 minutes)
+		$cache_key = 'ai_faq_global_rate_settings';
+		$cached_data = get_transient( $cache_key );
+		
+		if ( $cached_data !== false ) {
+			return $cached_data;
+		}
+
+		// Validate Cloudflare configuration
+		if ( empty( $this->cloudflare_config['account_id'] ) || empty( $this->cloudflare_config['api_token'] ) ) {
+			return $this->get_default_global_settings();
+		}
+
+		// Fetch global settings from KV
+		$global_settings = $this->fetch_global_settings_from_kv();
+		
+		// If API call failed, return default settings
+		if ( empty( $global_settings ) || ! is_array( $global_settings ) ) {
+			return $this->get_default_global_settings();
+		}
+
+		// Cache the result for 15 minutes
+		set_transient( $cache_key, $global_settings, 900 );
+
+		return $global_settings;
+	}
+
+	/**
+	 * Fetch global settings from Cloudflare KV
+	 *
+	 * @since 2.1.2
+	 * @return array|false Global settings or false on failure
+	 */
+	private function fetch_global_settings_from_kv() {
+		$namespace_id = $this->kv_namespaces['FAQ_RATE_LIMITS'];
+		$account_id = $this->cloudflare_config['account_id'];
+		$api_token = $this->cloudflare_config['api_token'];
+
+		// KV key for global settings
+		$kv_key = 'global_settings';
+		
+		// Build API URL
+		$api_url = sprintf(
+			'https://api.cloudflare.com/client/v4/accounts/%s/storage/kv/namespaces/%s/values/%s',
+			$account_id,
+			$namespace_id,
+			$kv_key
+		);
+
+		// Make API request
+		$response = wp_remote_get( $api_url, array(
+			'headers' => array(
+				'Authorization' => 'Bearer ' . $api_token,
+				'Content-Type'  => 'application/json',
+			),
+			'timeout' => 30,
+		) );
+
+		if ( is_wp_error( $response ) ) {
+			error_log( 'AI FAQ Rate Limiting: Failed to fetch global settings from KV: ' . $response->get_error_message() );
+			return false;
+		}
+
+		$response_code = wp_remote_retrieve_response_code( $response );
+		$response_body = wp_remote_retrieve_body( $response );
+
+		// Handle 404 (key not found) - return defaults
+		if ( 404 === $response_code ) {
+			return $this->get_default_global_settings();
+		}
+
+		if ( 200 !== $response_code ) {
+			error_log( 'AI FAQ Rate Limiting: KV API returned ' . $response_code . ' for global settings: ' . $response_body );
+			return false;
+		}
+
+		$settings_data = json_decode( $response_body, true );
+		
+		if ( json_last_error() !== JSON_ERROR_NONE ) {
+			error_log( 'AI FAQ Rate Limiting: Failed to parse global settings JSON: ' . json_last_error_msg() );
+			return false;
+		}
+
+		// Merge with defaults to ensure all required fields exist
+		return array_merge( $this->get_default_global_settings(), $settings_data );
+	}
+
+	/**
+	 * Get default global settings
+	 *
+	 * @since 2.1.2
+	 * @return array Default global settings
+	 */
+	private function get_default_global_settings() {
 		return array(
 			'enableRateLimiting'            => true,
 			'enableIPWhitelist'             => true,
@@ -325,23 +496,117 @@ class AI_FAQ_Rate_Limiting_Admin {
 			'notifyOnViolations'            => true,
 			'violationNotificationThreshold' => 5,
 			'source'                        => 'default',
+			'last_updated'                  => current_time( 'mysql' ),
 		);
 	}
 
 	/**
-	 * Get IP list (whitelist or blacklist)
+	 * Get IP list (whitelist or blacklist) from Cloudflare KV
 	 *
 	 * @since 2.1.0
 	 * @param string $list_type Type of list ('whitelist' or 'blacklist').
 	 * @return array IP list
 	 */
 	private function get_ip_list( $list_type ) {
-		// Return empty array for demo purposes
-		return array();
+		// Validate list type
+		if ( ! in_array( $list_type, array( 'whitelist', 'blacklist' ), true ) ) {
+			return array();
+		}
+
+		// Check for cached data first (cache for 10 minutes)
+		$cache_key = 'ai_faq_ip_' . $list_type;
+		$cached_data = get_transient( $cache_key );
+		
+		if ( $cached_data !== false ) {
+			return $cached_data;
+		}
+
+		// Validate Cloudflare configuration
+		if ( empty( $this->cloudflare_config['account_id'] ) || empty( $this->cloudflare_config['api_token'] ) ) {
+			return array();
+		}
+
+		// Get namespace ID for the list type
+		$namespace_key = 'whitelist' === $list_type ? 'FAQ_IP_WHITELIST' : 'FAQ_IP_BLACKLIST';
+		$namespace_id = $this->kv_namespaces[ $namespace_key ];
+		
+		// Fetch IP list from KV
+		$ip_list = $this->fetch_ip_list_from_kv( $namespace_id, $list_type );
+		
+		// Cache the result for 10 minutes
+		set_transient( $cache_key, $ip_list, 600 );
+
+		return $ip_list;
 	}
 
 	/**
-	 * Manage IP address (add/remove from whitelist/blacklist)
+	 * Fetch IP list from Cloudflare KV namespace
+	 *
+	 * @since 2.1.2
+	 * @param string $namespace_id KV namespace ID.
+	 * @param string $list_type Type of list for logging.
+	 * @return array IP list
+	 */
+	private function fetch_ip_list_from_kv( $namespace_id, $list_type ) {
+		$account_id = $this->cloudflare_config['account_id'];
+		$api_token = $this->cloudflare_config['api_token'];
+
+		// List all keys in the namespace
+		$api_url = sprintf(
+			'https://api.cloudflare.com/client/v4/accounts/%s/storage/kv/namespaces/%s/keys',
+			$account_id,
+			$namespace_id
+		);
+
+		$response = wp_remote_get( $api_url, array(
+			'headers' => array(
+				'Authorization' => 'Bearer ' . $api_token,
+				'Content-Type'  => 'application/json',
+			),
+			'timeout' => 30,
+		) );
+
+		if ( is_wp_error( $response ) ) {
+			error_log( 'AI FAQ Rate Limiting: Failed to fetch ' . $list_type . ' from KV: ' . $response->get_error_message() );
+			return array();
+		}
+
+		$response_code = wp_remote_retrieve_response_code( $response );
+		$response_body = wp_remote_retrieve_body( $response );
+
+		if ( 200 !== $response_code ) {
+			error_log( 'AI FAQ Rate Limiting: KV API returned ' . $response_code . ' for ' . $list_type . ': ' . $response_body );
+			return array();
+		}
+
+		$data = json_decode( $response_body, true );
+		
+		if ( json_last_error() !== JSON_ERROR_NONE || ! isset( $data['result'] ) ) {
+			error_log( 'AI FAQ Rate Limiting: Failed to parse ' . $list_type . ' JSON: ' . json_last_error_msg() );
+			return array();
+		}
+
+		// Convert KV keys to IP list with metadata
+		$ip_list = array();
+		foreach ( $data['result'] as $key_info ) {
+			$ip_address = $key_info['name'];
+			
+			// Validate IP address
+			if ( filter_var( $ip_address, FILTER_VALIDATE_IP ) ) {
+				$ip_list[] = array(
+					'ip'           => $ip_address,
+					'added_date'   => isset( $key_info['modified'] ) ? $key_info['modified'] : 'Unknown',
+					'reason'       => '', // Would need separate API call to get value for reason
+					'list_type'    => $list_type,
+				);
+			}
+		}
+
+		return $ip_list;
+	}
+
+	/**
+	 * Manage IP address (add/remove from whitelist/blacklist) in Cloudflare KV
 	 *
 	 * @since 2.1.0
 	 * @param string $action Action to perform.
@@ -350,20 +615,169 @@ class AI_FAQ_Rate_Limiting_Admin {
 	 * @return array Result with success status and message
 	 */
 	private function manage_ip_address( $action, $ip_address, $reason ) {
-		// Simulate successful IP management for demo
+		// Validate Cloudflare configuration
+		if ( empty( $this->cloudflare_config['account_id'] ) || empty( $this->cloudflare_config['api_token'] ) ) {
+			return array(
+				'success' => false,
+				'message' => esc_html__( 'Cloudflare API credentials not configured. Please check your settings.', '365i-ai-faq-generator' ),
+			);
+		}
+
+		// Determine namespace and operation based on action
+		$operation_result = $this->execute_ip_management_operation( $action, $ip_address, $reason );
+		
+		// Clear relevant cache
+		$this->clear_ip_management_cache( $action );
+
+		return $operation_result;
+	}
+
+	/**
+	 * Execute IP management operation in Cloudflare KV
+	 *
+	 * @since 2.1.2
+	 * @param string $action Action to perform.
+	 * @param string $ip_address IP address.
+	 * @param string $reason Reason for action.
+	 * @return array Result with success status and message
+	 */
+	private function execute_ip_management_operation( $action, $ip_address, $reason ) {
+		$account_id = $this->cloudflare_config['account_id'];
+		$api_token = $this->cloudflare_config['api_token'];
+
+		// Determine namespace and HTTP method based on action
+		switch ( $action ) {
+			case 'add_to_whitelist':
+				$namespace_id = $this->kv_namespaces['FAQ_IP_WHITELIST'];
+				$method = 'PUT';
+				$success_message = esc_html__( 'Successfully added IP to whitelist', '365i-ai-faq-generator' );
+				break;
+			
+			case 'add_to_blacklist':
+				$namespace_id = $this->kv_namespaces['FAQ_IP_BLACKLIST'];
+				$method = 'PUT';
+				$success_message = esc_html__( 'Successfully added IP to blacklist', '365i-ai-faq-generator' );
+				break;
+			
+			case 'remove_from_whitelist':
+				$namespace_id = $this->kv_namespaces['FAQ_IP_WHITELIST'];
+				$method = 'DELETE';
+				$success_message = esc_html__( 'Successfully removed IP from whitelist', '365i-ai-faq-generator' );
+				break;
+			
+			case 'remove_from_blacklist':
+				$namespace_id = $this->kv_namespaces['FAQ_IP_BLACKLIST'];
+				$method = 'DELETE';
+				$success_message = esc_html__( 'Successfully removed IP from blacklist', '365i-ai-faq-generator' );
+				break;
+			
+			default:
+				return array(
+					'success' => false,
+					'message' => esc_html__( 'Invalid action specified.', '365i-ai-faq-generator' ),
+				);
+		}
+
+		// Build API URL
+		$api_url = sprintf(
+			'https://api.cloudflare.com/client/v4/accounts/%s/storage/kv/namespaces/%s/values/%s',
+			$account_id,
+			$namespace_id,
+			$ip_address
+		);
+
+		// Prepare request arguments
+		$request_args = array(
+			'method'  => $method,
+			'headers' => array(
+				'Authorization' => 'Bearer ' . $api_token,
+				'Content-Type'  => 'application/json',
+			),
+			'timeout' => 30,
+		);
+
+		// Add body for PUT requests (adding IPs)
+		if ( 'PUT' === $method ) {
+			$ip_data = array(
+				'ip'         => $ip_address,
+				'reason'     => sanitize_textarea_field( $reason ),
+				'added_date' => current_time( 'mysql' ),
+				'added_by'   => get_current_user_id(),
+			);
+			$request_args['body'] = wp_json_encode( $ip_data );
+		}
+
+		// Make API request
+		$response = wp_remote_request( $api_url, $request_args );
+
+		// Check for errors
+		if ( is_wp_error( $response ) ) {
+			return array(
+				'success' => false,
+				'message' => sprintf(
+					/* translators: %s: Error message */
+					esc_html__( 'Failed to connect to Cloudflare API: %s', '365i-ai-faq-generator' ),
+					$response->get_error_message()
+				),
+			);
+		}
+
+		$response_code = wp_remote_retrieve_response_code( $response );
+		$response_body = wp_remote_retrieve_body( $response );
+
+		// Check response code
+		if ( ! in_array( $response_code, array( 200, 204 ), true ) ) {
+			$error_data = json_decode( $response_body, true );
+			$error_message = isset( $error_data['errors'][0]['message'] )
+				? $error_data['errors'][0]['message']
+				: 'Unknown API error';
+
+			return array(
+				'success' => false,
+				'message' => sprintf(
+					/* translators: 1: HTTP code, 2: Error message */
+					esc_html__( 'Cloudflare API error (%1$d): %2$s', '365i-ai-faq-generator' ),
+					$response_code,
+					$error_message
+				),
+			);
+		}
+
 		return array(
 			'success' => true,
 			'message' => sprintf(
-				/* translators: 1: Action, 2: IP address */
-				esc_html__( 'Successfully %1$s IP address %2$s', '365i-ai-faq-generator' ),
-				str_replace( '_', ' ', $action ),
+				/* translators: 1: Success message, 2: IP address */
+				'%1$s: %2$s',
+				$success_message,
 				$ip_address
 			),
 		);
 	}
 
 	/**
-	 * Get analytics data
+	 * Clear IP management cache after operations
+	 *
+	 * @since 2.1.2
+	 * @param string $action Action that was performed.
+	 */
+	private function clear_ip_management_cache( $action ) {
+		// Clear cache for both whitelist and blacklist as operations might affect both
+		delete_transient( 'ai_faq_ip_whitelist' );
+		delete_transient( 'ai_faq_ip_blacklist' );
+		
+		// Also clear analytics cache as IP changes might affect analytics
+		$timeframes = array( 'hourly', 'daily', 'weekly', 'monthly' );
+		$workers = array_merge( array( 'all' ), array_keys( $this->workers ) );
+		
+		foreach ( $timeframes as $timeframe ) {
+			foreach ( $workers as $worker ) {
+				delete_transient( 'ai_faq_analytics_' . $timeframe . '_' . $worker );
+			}
+		}
+	}
+
+	/**
+	 * Get analytics data from Cloudflare KV storage
 	 *
 	 * @since 2.1.0
 	 * @param string $timeframe Timeframe for analytics.
@@ -371,58 +785,520 @@ class AI_FAQ_Rate_Limiting_Admin {
 	 * @return array Analytics data
 	 */
 	private function get_analytics_data( $timeframe = 'daily', $worker = 'all' ) {
-		// Return demo analytics data
+		// Check for cached data first (cache for 5 minutes)
+		$cache_key = 'ai_faq_analytics_' . $timeframe . '_' . $worker;
+		$cached_data = get_transient( $cache_key );
+		
+		if ( $cached_data !== false ) {
+			return $cached_data;
+		}
+
+		// Validate Cloudflare configuration
+		if ( empty( $this->cloudflare_config['account_id'] ) || empty( $this->cloudflare_config['api_token'] ) ) {
+			return $this->get_fallback_analytics_data( $timeframe, $worker );
+		}
+
+		// Get analytics data from Cloudflare KV
+		$analytics_data = $this->fetch_analytics_from_kv( $timeframe, $worker );
+		
+		// If API call failed, return fallback data
+		if ( empty( $analytics_data ) || ! is_array( $analytics_data ) ) {
+			return $this->get_fallback_analytics_data( $timeframe, $worker );
+		}
+
+		// Cache the result for 5 minutes
+		set_transient( $cache_key, $analytics_data, 300 );
+
+		return $analytics_data;
+	}
+
+	/**
+	 * Fetch analytics data from Cloudflare KV namespace
+	 *
+	 * @since 2.1.2
+	 * @param string $timeframe Timeframe for analytics.
+	 * @param string $worker Specific worker or 'all'.
+	 * @return array|false Analytics data or false on failure
+	 */
+	private function fetch_analytics_from_kv( $timeframe, $worker ) {
+		$namespace_id = $this->kv_namespaces['FAQ_ANALYTICS'];
+		$account_id = $this->cloudflare_config['account_id'];
+		$api_token = $this->cloudflare_config['api_token'];
+
+		// Construct KV key based on timeframe and worker
+		$kv_key = $this->build_analytics_kv_key( $timeframe, $worker );
+		
+		// Build API URL for KV value retrieval
+		$api_url = sprintf(
+			'https://api.cloudflare.com/client/v4/accounts/%s/storage/kv/namespaces/%s/values/%s',
+			$account_id,
+			$namespace_id,
+			$kv_key
+		);
+
+		// Make API request
+		$response = wp_remote_get( $api_url, array(
+			'headers' => array(
+				'Authorization' => 'Bearer ' . $api_token,
+				'Content-Type'  => 'application/json',
+			),
+			'timeout' => 30,
+		) );
+
+		// Check for errors
+		if ( is_wp_error( $response ) ) {
+			error_log( 'AI FAQ Rate Limiting: Failed to fetch analytics from KV: ' . $response->get_error_message() );
+			return false;
+		}
+
+		$response_code = wp_remote_retrieve_response_code( $response );
+		$response_body = wp_remote_retrieve_body( $response );
+
+		// Handle 404 (key not found) - return empty analytics
+		if ( 404 === $response_code ) {
+			return $this->get_empty_analytics_structure( $timeframe, $worker );
+		}
+
+		// Handle other errors
+		if ( $response_code !== 200 ) {
+			error_log( 'AI FAQ Rate Limiting: KV API returned ' . $response_code . ': ' . $response_body );
+			return false;
+		}
+
+		// Parse JSON response
+		$analytics_data = json_decode( $response_body, true );
+		
+		if ( json_last_error() !== JSON_ERROR_NONE ) {
+			error_log( 'AI FAQ Rate Limiting: Failed to parse analytics JSON: ' . json_last_error_msg() );
+			return false;
+		}
+
+		// Ensure data structure is valid and add metadata
+		return $this->validate_and_enhance_analytics_data( $analytics_data, $timeframe, $worker );
+	}
+
+	/**
+	 * Build KV key for analytics data
+	 *
+	 * @since 2.1.2
+	 * @param string $timeframe Timeframe for analytics.
+	 * @param string $worker Specific worker or 'all'.
+	 * @return string KV key
+	 */
+	private function build_analytics_kv_key( $timeframe, $worker ) {
+		$date_suffix = '';
+		
+		switch ( $timeframe ) {
+			case 'hourly':
+				$date_suffix = gmdate( 'Y-m-d-H' );
+				break;
+			case 'daily':
+				$date_suffix = gmdate( 'Y-m-d' );
+				break;
+			case 'weekly':
+				$date_suffix = gmdate( 'Y-W' );
+				break;
+			case 'monthly':
+				$date_suffix = gmdate( 'Y-m' );
+				break;
+			default:
+				$date_suffix = gmdate( 'Y-m-d' );
+		}
+
+		return sprintf( 'analytics_%s_%s_%s', $timeframe, $worker, $date_suffix );
+	}
+
+	/**
+	 * Get empty analytics structure for new periods
+	 *
+	 * @since 2.1.2
+	 * @param string $timeframe Timeframe for analytics.
+	 * @param string $worker Specific worker or 'all'.
+	 * @return array Empty analytics structure
+	 */
+	private function get_empty_analytics_structure( $timeframe, $worker ) {
 		return array(
 			'timeframe'        => $timeframe,
 			'worker'           => $worker,
-			'total_requests'   => 1250,
-			'blocked_requests' => 45,
-			'violations'       => 23,
-			'unique_ips'       => 156,
-			'top_violators'    => array(
-				array(
-					'ip' => '192.168.1.100',
-					'violation_count' => 15,
-					'last_violation' => '2025-06-18 12:30:00',
-					'status' => 'active',
-				),
-				array(
-					'ip' => '10.0.0.50',
-					'violation_count' => 8,
-					'last_violation' => '2025-06-18 11:45:00',
-					'status' => 'blocked',
-				),
-			),
-			'worker_usage'     => array(
-				'faq-answer-generator-worker' => array(
-					'total' => 450,
-					'successful' => 425,
-					'blocked' => 25,
-				),
-				'faq-realtime-assistant-worker' => array(
-					'total' => 300,
-					'successful' => 290,
-					'blocked' => 10,
-				),
-				'faq-enhancement-worker' => array(
-					'total' => 200,
-					'successful' => 190,
-					'blocked' => 10,
-				),
-			),
+			'total_requests'   => 0,
+			'blocked_requests' => 0,
+			'violations'       => 0,
+			'unique_ips'       => 0,
+			'top_violators'    => array(),
+			'worker_usage'     => array(),
 			'last_updated'     => current_time( 'mysql' ),
+			'data_source'      => 'kv_empty',
 		);
 	}
 
 	/**
-	 * Get current rate limit configurations
+	 * Validate and enhance analytics data from KV
+	 *
+	 * @since 2.1.2
+	 * @param array  $data Raw analytics data from KV.
+	 * @param string $timeframe Timeframe for analytics.
+	 * @param string $worker Specific worker or 'all'.
+	 * @return array Enhanced analytics data
+	 */
+	private function validate_and_enhance_analytics_data( $data, $timeframe, $worker ) {
+		// Ensure required fields exist with defaults
+		$validated_data = array(
+			'timeframe'        => $timeframe,
+			'worker'           => $worker,
+			'total_requests'   => isset( $data['total_requests'] ) ? absint( $data['total_requests'] ) : 0,
+			'blocked_requests' => isset( $data['blocked_requests'] ) ? absint( $data['blocked_requests'] ) : 0,
+			'violations'       => isset( $data['violations'] ) ? absint( $data['violations'] ) : 0,
+			'unique_ips'       => isset( $data['unique_ips'] ) ? absint( $data['unique_ips'] ) : 0,
+			'top_violators'    => isset( $data['top_violators'] ) && is_array( $data['top_violators'] ) ? $data['top_violators'] : array(),
+			'worker_usage'     => isset( $data['worker_usage'] ) && is_array( $data['worker_usage'] ) ? $data['worker_usage'] : array(),
+			'last_updated'     => isset( $data['last_updated'] ) ? sanitize_text_field( $data['last_updated'] ) : current_time( 'mysql' ),
+			'data_source'      => 'kv_live',
+		);
+
+		// Validate and sanitize top_violators array
+		if ( ! empty( $validated_data['top_violators'] ) ) {
+			$validated_data['top_violators'] = array_map( function( $violator ) {
+				return array(
+					'ip'              => filter_var( $violator['ip'] ?? '', FILTER_VALIDATE_IP ) ?: 'Invalid IP',
+					'violation_count' => absint( $violator['violation_count'] ?? 0 ),
+					'last_violation'  => sanitize_text_field( $violator['last_violation'] ?? 'Unknown' ),
+					'status'          => in_array( $violator['status'] ?? '', array( 'active', 'blocked' ), true ) ? $violator['status'] : 'active',
+				);
+			}, $validated_data['top_violators'] );
+		}
+
+		// Validate and sanitize worker_usage array
+		if ( ! empty( $validated_data['worker_usage'] ) ) {
+			$sanitized_usage = array();
+			foreach ( $validated_data['worker_usage'] as $worker_name => $usage ) {
+				$sanitized_name = sanitize_text_field( $worker_name );
+				$sanitized_usage[ $sanitized_name ] = array(
+					'total'      => absint( $usage['total'] ?? 0 ),
+					'successful' => absint( $usage['successful'] ?? 0 ),
+					'blocked'    => absint( $usage['blocked'] ?? 0 ),
+				);
+			}
+			$validated_data['worker_usage'] = $sanitized_usage;
+		}
+
+		return $validated_data;
+	}
+
+	/**
+	 * Get fallback analytics data when KV is unavailable
+	 *
+	 * @since 2.1.2
+	 * @param string $timeframe Timeframe for analytics.
+	 * @param string $worker Specific worker or 'all'.
+	 * @return array Fallback analytics data
+	 */
+	private function get_fallback_analytics_data( $timeframe, $worker ) {
+		return array(
+			'timeframe'        => $timeframe,
+			'worker'           => $worker,
+			'total_requests'   => 0,
+			'blocked_requests' => 0,
+			'violations'       => 0,
+			'unique_ips'       => 0,
+			'top_violators'    => array(),
+			'worker_usage'     => array(),
+			'last_updated'     => current_time( 'mysql' ),
+			'data_source'      => 'fallback',
+			'error_message'    => 'Unable to connect to Cloudflare KV. Please check your API credentials.',
+		);
+	}
+
+	/**
+	 * Get current rate limit configurations from Cloudflare KV
 	 *
 	 * @since 2.1.0
 	 * @return array Current configurations for all workers
 	 */
 	private function get_current_rate_configs() {
-		// Return demo configurations
-		return array();
+		// Check for cached data first (cache for 10 minutes)
+		$cache_key = 'ai_faq_rate_configs';
+		$cached_data = get_transient( $cache_key );
+		
+		if ( $cached_data !== false ) {
+			return $cached_data;
+		}
+
+		// Validate Cloudflare configuration
+		if ( empty( $this->cloudflare_config['account_id'] ) || empty( $this->cloudflare_config['api_token'] ) ) {
+			return array();
+		}
+
+		// Fetch rate configurations from KV
+		$rate_configs = $this->fetch_rate_configs_from_kv();
+		
+		// Cache the result for 10 minutes
+		set_transient( $cache_key, $rate_configs, 600 );
+
+		return $rate_configs;
+	}
+
+	/**
+	 * Fetch rate configurations from Cloudflare KV
+	 *
+	 * @since 2.1.2
+	 * @return array Rate configurations
+	 */
+	private function fetch_rate_configs_from_kv() {
+		$namespace_id = $this->kv_namespaces['FAQ_RATE_LIMITS'];
+		$account_id = $this->cloudflare_config['account_id'];
+		$api_token = $this->cloudflare_config['api_token'];
+
+		$rate_configs = array();
+
+		// Fetch configuration for each worker
+		foreach ( $this->workers as $worker_id => $worker_name ) {
+			$kv_key = 'worker_config_' . $worker_id;
+			
+			$api_url = sprintf(
+				'https://api.cloudflare.com/client/v4/accounts/%s/storage/kv/namespaces/%s/values/%s',
+				$account_id,
+				$namespace_id,
+				$kv_key
+			);
+
+			$response = wp_remote_get( $api_url, array(
+				'headers' => array(
+					'Authorization' => 'Bearer ' . $api_token,
+					'Content-Type'  => 'application/json',
+				),
+				'timeout' => 30,
+			) );
+
+			if ( is_wp_error( $response ) ) {
+				error_log( 'AI FAQ Rate Limiting: Failed to fetch config for ' . $worker_id . ': ' . $response->get_error_message() );
+				continue;
+			}
+
+			$response_code = wp_remote_retrieve_response_code( $response );
+			$response_body = wp_remote_retrieve_body( $response );
+
+			// Handle 404 (key not found) - use default config
+			if ( 404 === $response_code ) {
+				$rate_configs[ $worker_id ] = $this->get_default_worker_config( $worker_id );
+				continue;
+			}
+
+			if ( 200 !== $response_code ) {
+				error_log( 'AI FAQ Rate Limiting: KV API returned ' . $response_code . ' for ' . $worker_id . ': ' . $response_body );
+				continue;
+			}
+
+			$config_data = json_decode( $response_body, true );
+			
+			if ( json_last_error() !== JSON_ERROR_NONE ) {
+				error_log( 'AI FAQ Rate Limiting: Failed to parse config JSON for ' . $worker_id . ': ' . json_last_error_msg() );
+				$rate_configs[ $worker_id ] = $this->get_default_worker_config( $worker_id );
+				continue;
+			}
+
+			// Merge with defaults and validate
+			$rate_configs[ $worker_id ] = array_merge(
+				$this->get_default_worker_config( $worker_id ),
+				$config_data
+			);
+		}
+
+		return $rate_configs;
+	}
+
+	/**
+	 * Get default configuration for a worker
+	 *
+	 * @since 2.1.2
+	 * @param string $worker_id Worker identifier.
+	 * @return array Default worker configuration
+	 */
+	private function get_default_worker_config( $worker_id ) {
+		return array(
+			'worker_id'           => $worker_id,
+			'requests_per_minute' => 60,
+			'requests_per_hour'   => 1000,
+			'requests_per_day'    => 10000,
+			'burst_limit'         => 10,
+			'enabled'             => true,
+			'last_updated'        => current_time( 'mysql' ),
+		);
+	}
+
+	/**
+	 * Save global settings to Cloudflare KV
+	 *
+	 * @since 2.1.2
+	 * @param array $settings Global settings to save.
+	 * @return array Result with success status and message
+	 */
+	public function save_global_settings_to_kv( $settings ) {
+		// Validate Cloudflare configuration
+		if ( empty( $this->cloudflare_config['account_id'] ) || empty( $this->cloudflare_config['api_token'] ) ) {
+			return array(
+				'success' => false,
+				'message' => esc_html__( 'Cloudflare API credentials not configured.', '365i-ai-faq-generator' ),
+			);
+		}
+
+		$namespace_id = $this->kv_namespaces['FAQ_RATE_LIMITS'];
+		$account_id = $this->cloudflare_config['account_id'];
+		$api_token = $this->cloudflare_config['api_token'];
+
+		// Prepare settings data
+		$settings_data = array_merge( $settings, array(
+			'last_updated' => current_time( 'mysql' ),
+			'updated_by'   => get_current_user_id(),
+		) );
+
+		// Build API URL
+		$api_url = sprintf(
+			'https://api.cloudflare.com/client/v4/accounts/%s/storage/kv/namespaces/%s/values/global_settings',
+			$account_id,
+			$namespace_id
+		);
+
+		// Make API request
+		$response = wp_remote_request( $api_url, array(
+			'method'  => 'PUT',
+			'headers' => array(
+				'Authorization' => 'Bearer ' . $api_token,
+				'Content-Type'  => 'application/json',
+			),
+			'body'    => wp_json_encode( $settings_data ),
+			'timeout' => 30,
+		) );
+
+		if ( is_wp_error( $response ) ) {
+			return array(
+				'success' => false,
+				'message' => sprintf(
+					/* translators: %s: Error message */
+					esc_html__( 'Failed to save to Cloudflare KV: %s', '365i-ai-faq-generator' ),
+					$response->get_error_message()
+				),
+			);
+		}
+
+		$response_code = wp_remote_retrieve_response_code( $response );
+		
+		if ( ! in_array( $response_code, array( 200, 204 ), true ) ) {
+			$response_body = wp_remote_retrieve_body( $response );
+			$error_data = json_decode( $response_body, true );
+			$error_message = isset( $error_data['errors'][0]['message'] )
+				? $error_data['errors'][0]['message']
+				: 'Unknown API error';
+
+			return array(
+				'success' => false,
+				'message' => sprintf(
+					/* translators: 1: HTTP code, 2: Error message */
+					esc_html__( 'Cloudflare API error (%1$d): %2$s', '365i-ai-faq-generator' ),
+					$response_code,
+					$error_message
+				),
+			);
+		}
+
+		// Clear cache
+		delete_transient( 'ai_faq_global_rate_settings' );
+
+		return array(
+			'success' => true,
+			'message' => esc_html__( 'Global settings saved successfully to Cloudflare KV.', '365i-ai-faq-generator' ),
+		);
+	}
+
+	/**
+	 * Save rate configuration for a worker to Cloudflare KV
+	 *
+	 * @since 2.1.2
+	 * @param string $worker_id Worker identifier.
+	 * @param array  $config Worker configuration.
+	 * @return array Result with success status and message
+	 */
+	public function save_worker_rate_config_to_kv( $worker_id, $config ) {
+		// Validate Cloudflare configuration
+		if ( empty( $this->cloudflare_config['account_id'] ) || empty( $this->cloudflare_config['api_token'] ) ) {
+			return array(
+				'success' => false,
+				'message' => esc_html__( 'Cloudflare API credentials not configured.', '365i-ai-faq-generator' ),
+			);
+		}
+
+		$namespace_id = $this->kv_namespaces['FAQ_RATE_LIMITS'];
+		$account_id = $this->cloudflare_config['account_id'];
+		$api_token = $this->cloudflare_config['api_token'];
+
+		// Prepare config data
+		$config_data = array_merge( $config, array(
+			'worker_id'    => $worker_id,
+			'last_updated' => current_time( 'mysql' ),
+			'updated_by'   => get_current_user_id(),
+		) );
+
+		// Build API URL
+		$kv_key = 'worker_config_' . $worker_id;
+		$api_url = sprintf(
+			'https://api.cloudflare.com/client/v4/accounts/%s/storage/kv/namespaces/%s/values/%s',
+			$account_id,
+			$namespace_id,
+			$kv_key
+		);
+
+		// Make API request
+		$response = wp_remote_request( $api_url, array(
+			'method'  => 'PUT',
+			'headers' => array(
+				'Authorization' => 'Bearer ' . $api_token,
+				'Content-Type'  => 'application/json',
+			),
+			'body'    => wp_json_encode( $config_data ),
+			'timeout' => 30,
+		) );
+
+		if ( is_wp_error( $response ) ) {
+			return array(
+				'success' => false,
+				'message' => sprintf(
+					/* translators: %s: Error message */
+					esc_html__( 'Failed to save worker config to Cloudflare KV: %s', '365i-ai-faq-generator' ),
+					$response->get_error_message()
+				),
+			);
+		}
+
+		$response_code = wp_remote_retrieve_response_code( $response );
+		
+		if ( ! in_array( $response_code, array( 200, 204 ), true ) ) {
+			$response_body = wp_remote_retrieve_body( $response );
+			$error_data = json_decode( $response_body, true );
+			$error_message = isset( $error_data['errors'][0]['message'] )
+				? $error_data['errors'][0]['message']
+				: 'Unknown API error';
+
+			return array(
+				'success' => false,
+				'message' => sprintf(
+					/* translators: 1: HTTP code, 2: Error message */
+					esc_html__( 'Cloudflare API error (%1$d): %2$s', '365i-ai-faq-generator' ),
+					$response_code,
+					$error_message
+				),
+			);
+		}
+
+		// Clear cache
+		delete_transient( 'ai_faq_rate_configs' );
+
+		return array(
+			'success' => true,
+			'message' => sprintf(
+				/* translators: %s: Worker name */
+				esc_html__( 'Rate configuration saved successfully for %s.', '365i-ai-faq-generator' ),
+				$this->workers[ $worker_id ] ?? $worker_id
+			),
+		);
 	}
 
 	/**

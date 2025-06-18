@@ -76,6 +76,17 @@ require_once AI_FAQ_GEN_DIR . 'templates/partials/header.php';
 		</form>
 	</div>
 
+	<!-- Data Source Status -->
+	<?php if ( isset( $analytics_data['error_message'] ) ) : ?>
+	<div class="notice notice-warning">
+		<p><strong><?php esc_html_e( 'Connection Issue:', '365i-ai-faq-generator' ); ?></strong> <?php echo esc_html( $analytics_data['error_message'] ); ?></p>
+	</div>
+	<?php elseif ( isset( $analytics_data['data_source'] ) && 'kv_live' === $analytics_data['data_source'] ) : ?>
+	<div class="notice notice-success">
+		<p><strong><?php esc_html_e( 'Live Data:', '365i-ai-faq-generator' ); ?></strong> <?php esc_html_e( 'Analytics are being fetched in real-time from Cloudflare KV storage.', '365i-ai-faq-generator' ); ?></p>
+	</div>
+	<?php endif; ?>
+
 	<!-- Analytics Overview -->
 	<div class="ai-faq-admin-section">
 		<h2><?php esc_html_e( 'Analytics Overview', '365i-ai-faq-generator' ); ?></h2>
@@ -84,33 +95,64 @@ require_once AI_FAQ_GEN_DIR . 'templates/partials/header.php';
 			<div class="analytics-card">
 				<h3><?php esc_html_e( 'Total Requests', '365i-ai-faq-generator' ); ?></h3>
 				<div class="analytics-metric">
-					<span class="metric-value"><?php echo esc_html( $analytics_data['total_requests'] ?? 0 ); ?></span>
+					<span class="metric-value"><?php echo esc_html( number_format( $analytics_data['total_requests'] ?? 0 ) ); ?></span>
 					<span class="metric-label"><?php esc_html_e( 'requests', '365i-ai-faq-generator' ); ?></span>
 				</div>
+				<?php if ( isset( $analytics_data['data_source'] ) ) : ?>
+					<div class="data-source-indicator">
+						<?php if ( 'kv_live' === $analytics_data['data_source'] ) : ?>
+							<span class="status-green">● Live from KV</span>
+						<?php elseif ( 'fallback' === $analytics_data['data_source'] ) : ?>
+							<span class="status-orange">● Fallback data</span>
+						<?php else : ?>
+							<span class="status-blue">● Demo data</span>
+						<?php endif; ?>
+					</div>
+				<?php endif; ?>
 			</div>
 			
 			<div class="analytics-card">
 				<h3><?php esc_html_e( 'Blocked Requests', '365i-ai-faq-generator' ); ?></h3>
 				<div class="analytics-metric">
-					<span class="metric-value blocked"><?php echo esc_html( $analytics_data['blocked_requests'] ?? 0 ); ?></span>
+					<span class="metric-value blocked"><?php echo esc_html( number_format( $analytics_data['blocked_requests'] ?? 0 ) ); ?></span>
 					<span class="metric-label"><?php esc_html_e( 'blocked', '365i-ai-faq-generator' ); ?></span>
 				</div>
+				<?php if ( $analytics_data['total_requests'] > 0 ) : ?>
+					<?php $block_rate = round( ( $analytics_data['blocked_requests'] / $analytics_data['total_requests'] ) * 100, 1 ); ?>
+					<div class="data-source-indicator">
+						<span class="<?php echo $block_rate > 5 ? 'status-red' : 'status-green'; ?>">
+							<?php echo esc_html( $block_rate ); ?>% block rate
+						</span>
+					</div>
+				<?php endif; ?>
 			</div>
 			
 			<div class="analytics-card">
 				<h3><?php esc_html_e( 'Violations', '365i-ai-faq-generator' ); ?></h3>
 				<div class="analytics-metric">
-					<span class="metric-value violations"><?php echo esc_html( $analytics_data['violations'] ?? 0 ); ?></span>
+					<span class="metric-value violations"><?php echo esc_html( number_format( $analytics_data['violations'] ?? 0 ) ); ?></span>
 					<span class="metric-label"><?php esc_html_e( 'violations', '365i-ai-faq-generator' ); ?></span>
+				</div>
+				<div class="data-source-indicator">
+					<?php if ( $analytics_data['violations'] > 0 ) : ?>
+						<span class="status-red">Active violations</span>
+					<?php else : ?>
+						<span class="status-green">No violations</span>
+					<?php endif; ?>
 				</div>
 			</div>
 			
 			<div class="analytics-card">
 				<h3><?php esc_html_e( 'Unique IPs', '365i-ai-faq-generator' ); ?></h3>
 				<div class="analytics-metric">
-					<span class="metric-value"><?php echo esc_html( $analytics_data['unique_ips'] ?? 0 ); ?></span>
+					<span class="metric-value"><?php echo esc_html( number_format( $analytics_data['unique_ips'] ?? 0 ) ); ?></span>
 					<span class="metric-label"><?php esc_html_e( 'unique IPs', '365i-ai-faq-generator' ); ?></span>
 				</div>
+				<?php if ( isset( $analytics_data['last_updated'] ) ) : ?>
+					<div class="data-source-indicator">
+						<span class="status-blue">Updated: <?php echo esc_html( gmdate( 'H:i', strtotime( $analytics_data['last_updated'] ) ) ); ?></span>
+					</div>
+				<?php endif; ?>
 			</div>
 		</div>
 	</div>
