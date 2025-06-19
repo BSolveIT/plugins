@@ -7,8 +7,7 @@
 
 /* Main Container */
 .ai-faq-rate-limiting {
-	max-width: 1400px;
-	margin: 0 auto;
+	margin: 0;
 	padding: 20px;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
@@ -655,6 +654,13 @@ input[type="checkbox"]:hover {
 	font-size: 13px;
 	line-height: 1.5;
 	margin-top: 8px;
+}
+
+/* Large Screen Layout - 2 rows of 3 cards */
+@media (min-width: 1740px) {
+	.ai-faq-workers-grid {
+		grid-template-columns: repeat(3, 1fr);
+	}
 }
 
 /* Responsive Design */
