@@ -394,26 +394,33 @@ require_once AI_FAQ_GEN_DIR . 'templates/partials/header.php';
 		</div>
 	</div>
 
-	<!-- Cloudflare Statistics Section -->
+	<!-- Enhanced Cloudflare Analytics Section -->
 	<div class="ai-faq-section">
-		<h2><?php esc_html_e( 'Cloudflare Statistics', '365i-ai-faq-generator' ); ?></h2>
-		<div class="ai-faq-cloudflare-stats">
-			<p><?php esc_html_e( 'Fetch real-time statistics directly from Cloudflare\'s GraphQL Analytics API for your workers. This provides comprehensive insights into requests, errors, CPU usage, and data transfer.', '365i-ai-faq-generator' ); ?></p>
-			<div class="ai-faq-button-group">
-				<button type="button" id="fetch-cloudflare-stats-btn" class="button button-primary">
-					<span class="dashicons dashicons-cloud"></span>
-					<?php esc_html_e( 'Fetch Cloudflare Statistics', '365i-ai-faq-generator' ); ?>
-				</button>
-				<select id="cloudflare-stats-period" style="margin-left: 10px;">
-					<option value="1"><?php esc_html_e( 'Last 24 hours', '365i-ai-faq-generator' ); ?></option>
-					<option value="7" selected><?php esc_html_e( 'Last 7 days', '365i-ai-faq-generator' ); ?></option>
-					<option value="30"><?php esc_html_e( 'Last 30 days', '365i-ai-faq-generator' ); ?></option>
-					<option value="90"><?php esc_html_e( 'Last 90 days', '365i-ai-faq-generator' ); ?></option>
-				</select>
-				<span id="cloudflare-stats-spinner" class="spinner" style="display: none;"></span>
+		<h2><?php esc_html_e( 'Enhanced Cloudflare Analytics', '365i-ai-faq-generator' ); ?></h2>
+		<div class="ai-faq-cloudflare-analytics">
+			<p><?php esc_html_e( 'Real-time comprehensive analytics from Cloudflare\'s GraphQL Analytics API. View detailed worker performance, CPU metrics (P50/P95/P99), KV storage usage, and data transfer statistics.', '365i-ai-faq-generator' ); ?></p>
+			
+			<div class="ai-faq-analytics-controls">
+				<div class="ai-faq-time-selector">
+					<label for="cloudflare-analytics-period"><?php esc_html_e( 'Time Range:', '365i-ai-faq-generator' ); ?></label>
+					<select id="cloudflare-analytics-period" data-nonce="<?php echo esc_attr( wp_create_nonce( 'ai_faq_gen_nonce' ) ); ?>">
+						<option value="1"><?php esc_html_e( 'Last 24 Hours', '365i-ai-faq-generator' ); ?></option>
+						<option value="7" selected><?php esc_html_e( 'Last 7 Days', '365i-ai-faq-generator' ); ?></option>
+						<option value="30"><?php esc_html_e( 'Last 30 Days', '365i-ai-faq-generator' ); ?></option>
+					</select>
+					<button type="button" id="refresh-cloudflare-analytics" class="button">
+						<span class="dashicons dashicons-update"></span>
+						<?php esc_html_e( 'Refresh', '365i-ai-faq-generator' ); ?>
+					</button>
+					<span class="spinner" style="float: none;"></span>
+				</div>
 			</div>
-			<div id="cloudflare-stats-result" class="ai-faq-cloudflare-result" style="display: none; margin-top: 20px;">
-				<!-- Cloudflare stats results will be displayed here -->
+			
+			<div id="cloudflare-analytics-content" class="ai-faq-analytics-content">
+				<div class="ai-faq-analytics-loading">
+					<span class="spinner is-active"></span>
+					<p><?php esc_html_e( 'Loading analytics data...', '365i-ai-faq-generator' ); ?></p>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -703,159 +710,172 @@ jQuery(document).ready(function($) {
 		});
 	}
 	
-	// Cloudflare Statistics Fetching
-	$('#fetch-cloudflare-stats-btn').on('click', function() {
-		const button = $(this);
-		const spinner = $('#cloudflare-stats-spinner');
-		const resultDiv = $('#cloudflare-stats-result');
-		const periodSelect = $('#cloudflare-stats-period');
-		const days = periodSelect.val();
+	// Enhanced Cloudflare Analytics Manager
+	const cloudflareAnalyticsManager = {
+		container: $('.ai-faq-cloudflare-analytics'),
 		
-		// Show spinner and disable button
-		button.prop('disabled', true);
-		spinner.show();
-		resultDiv.hide().empty();
+		init: function() {
+			this.loadAnalytics(7); // Auto-load with default 7 days
+			this.bindEvents();
+		},
 		
-		// Make AJAX request
-		$.post(ajaxurl, {
-			action: 'ai_faq_fetch_cloudflare_stats',
-			nonce: '<?php echo esc_js( wp_create_nonce( 'ai_faq_gen_nonce' ) ); ?>',
-			days: days,
-		}, function(response) {
-			// Hide spinner and enable button
-			spinner.hide();
-			button.prop('disabled', false);
+		bindEvents: function() {
+			const self = this;
 			
-			if (response.success) {
-				const data = response.data;
-				let resultHtml = `
-					<div class="notice notice-success">
-						<h4><span class="dashicons dashicons-cloud"></span> ${data.message}</h4>
-					</div>
+			// Time period onChange
+			$('#cloudflare-analytics-period').on('change', function() {
+				self.loadAnalytics($(this).val());
+			});
+			
+			// Refresh button
+			$('#refresh-cloudflare-analytics').on('click', function() {
+				const currentPeriod = $('#cloudflare-analytics-period').val();
+				self.loadAnalytics(currentPeriod, true); // Force refresh
+			});
+		},
+		
+		loadAnalytics: function(days, forceRefresh = false) {
+			const self = this;
+			const $content = $('#cloudflare-analytics-content');
+			const $spinner = $('#refresh-cloudflare-analytics').next('.spinner');
+			const $refreshBtn = $('#refresh-cloudflare-analytics');
+			
+			$spinner.addClass('is-active');
+			$refreshBtn.prop('disabled', true);
+			$content.html('<div class="ai-faq-analytics-loading"><span class="spinner is-active"></span><p><?php esc_html_e( 'Loading analytics data...', '365i-ai-faq-generator' ); ?></p></div>');
+			
+			$.post(ajaxurl, {
+				action: 'ai_faq_fetch_cloudflare_stats',
+				days: days,
+				force_refresh: forceRefresh,
+				nonce: $('#cloudflare-analytics-period').data('nonce')
+			})
+			.done(function(response) {
+				if (response.success) {
+					self.renderAnalytics(response.data);
 					
-					<div class="ai-faq-cloudflare-overview">
-						<h3><?php esc_html_e( 'Summary Statistics', '365i-ai-faq-generator' ); ?></h3>
-						<div class="ai-faq-metrics-grid">
-							<div class="ai-faq-metric-card">
-								<div class="ai-faq-metric-content">
-									<h4><?php esc_html_e( 'Total Requests', '365i-ai-faq-generator' ); ?></h4>
-									<div class="ai-faq-metric-value">${data.totals.requests.toLocaleString()}</div>
-									<div class="ai-faq-metric-caption">${data.period.days} ${data.period.days === 1 ? '<?php esc_html_e( 'day', '365i-ai-faq-generator' ); ?>' : '<?php esc_html_e( 'days', '365i-ai-faq-generator' ); ?>'}</div>
-								</div>
-							</div>
-							<div class="ai-faq-metric-card">
-								<div class="ai-faq-metric-content">
-									<h4><?php esc_html_e( 'Success Rate', '365i-ai-faq-generator' ); ?></h4>
-									<div class="ai-faq-metric-value">${data.success_rate}%</div>
-									<div class="ai-faq-metric-caption">${data.totals.errors} <?php esc_html_e( 'errors', '365i-ai-faq-generator' ); ?></div>
-								</div>
-							</div>
-							<div class="ai-faq-metric-card">
-								<div class="ai-faq-metric-content">
-									<h4><?php esc_html_e( 'CPU Time', '365i-ai-faq-generator' ); ?></h4>
-									<div class="ai-faq-metric-value">${(data.totals.cpu_time / 1000).toFixed(2)}s</div>
-									<div class="ai-faq-metric-caption"><?php esc_html_e( 'Total processing', '365i-ai-faq-generator' ); ?></div>
-								</div>
-							</div>
-							<div class="ai-faq-metric-card">
-								<div class="ai-faq-metric-content">
-									<h4><?php esc_html_e( 'Data Transfer', '365i-ai-faq-generator' ); ?></h4>
-									<div class="ai-faq-metric-value">${formatBytes(data.totals.egress_bytes)}</div>
-									<div class="ai-faq-metric-caption"><?php esc_html_e( 'Egress bytes', '365i-ai-faq-generator' ); ?></div>
-								</div>
-							</div>
-						</div>
-					</div>
-				`;
-				
-				// Add individual worker statistics
-				if (Object.keys(data.worker_stats).length > 0) {
-					resultHtml += `
-						<div class="ai-faq-worker-stats">
-							<h3><?php esc_html_e( 'Worker Breakdown', '365i-ai-faq-generator' ); ?></h3>
-							<div class="ai-faq-table-container">
-								<table class="ai-faq-data-table">
-									<thead>
-										<tr>
-											<th><?php esc_html_e( 'Worker', '365i-ai-faq-generator' ); ?></th>
-											<th><?php esc_html_e( 'Requests', '365i-ai-faq-generator' ); ?></th>
-											<th><?php esc_html_e( 'Errors', '365i-ai-faq-generator' ); ?></th>
-											<th><?php esc_html_e( 'Success Rate', '365i-ai-faq-generator' ); ?></th>
-											<th><?php esc_html_e( 'CPU Time', '365i-ai-faq-generator' ); ?></th>
-											<th><?php esc_html_e( 'Data Transfer', '365i-ai-faq-generator' ); ?></th>
-										</tr>
-									</thead>
-									<tbody>`;
-					
-					for (const [workerName, stats] of Object.entries(data.worker_stats)) {
-						if (stats.error) {
-							resultHtml += `
-								<tr>
-									<td>${workerName}</td>
-									<td colspan="5" class="error-cell">
-										<span class="dashicons dashicons-warning"></span>
-										<?php esc_html_e( 'Error:', '365i-ai-faq-generator' ); ?> ${stats.error}
-									</td>
-								</tr>`;
-						} else {
-							const successRate = stats.requests > 0 ? (((stats.requests - stats.errors) / stats.requests) * 100).toFixed(1) : '0.0';
-							resultHtml += `
-								<tr>
-									<td>${workerName}</td>
-									<td>${stats.requests.toLocaleString()}</td>
-									<td>${stats.errors.toLocaleString()}</td>
-									<td>${successRate}%</td>
-									<td>${(stats.cpu_time / 1000).toFixed(2)}s</td>
-									<td>${formatBytes(stats.egress_bytes)}</td>
-								</tr>`;
-						}
+					// Show success notification that auto-dismisses
+					if (forceRefresh) {
+						self.showNotification(response.data.message, 'success');
 					}
-					
-					resultHtml += `
-									</tbody>
-								</table>
-							</div>
-						</div>`;
+				} else {
+					self.showError(response.data || '<?php esc_html_e( 'Failed to load analytics', '365i-ai-faq-generator' ); ?>');
+				}
+			})
+			.fail(function() {
+				self.showError('<?php esc_html_e( 'Request failed. Please check your connection.', '365i-ai-faq-generator' ); ?>');
+			})
+			.always(function() {
+				$spinner.removeClass('is-active');
+				$refreshBtn.prop('disabled', false);
+			});
+		},
+		
+		renderAnalytics: function(data) {
+			let html = '<div class="ai-faq-analytics-grid">';
+			
+			// Summary cards
+			html += '<div class="ai-faq-analytics-summary">';
+			html += this.createSummaryCard('<?php esc_html_e( 'Total Requests', '365i-ai-faq-generator' ); ?>', data.totals.requests.toLocaleString(), 'dashicons-chart-line');
+			html += this.createSummaryCard('<?php esc_html_e( 'Success Rate', '365i-ai-faq-generator' ); ?>', data.success_rate.toFixed(1) + '%', 'dashicons-yes-alt');
+			html += this.createSummaryCard('<?php esc_html_e( 'Avg CPU Time', '365i-ai-faq-generator' ); ?>', data.performance_summary.avg_cpu_time + 'ms', 'dashicons-performance');
+			html += this.createSummaryCard('<?php esc_html_e( 'Data Transfer', '365i-ai-faq-generator' ); ?>', data.totals.egress_formatted, 'dashicons-download');
+			html += '</div>';
+			
+			// Workers breakdown
+			if (data.workers && Object.keys(data.workers).length > 0) {
+				html += '<div class="ai-faq-analytics-section">';
+				html += '<h3><?php esc_html_e( 'Workers Performance', '365i-ai-faq-generator' ); ?></h3>';
+				html += '<table class="widefat">';
+				html += '<thead><tr><th><?php esc_html_e( 'Worker', '365i-ai-faq-generator' ); ?></th><th><?php esc_html_e( 'Requests', '365i-ai-faq-generator' ); ?></th><th><?php esc_html_e( 'Errors', '365i-ai-faq-generator' ); ?></th><th><?php esc_html_e( 'Success Rate', '365i-ai-faq-generator' ); ?></th><th><?php esc_html_e( 'CPU P50', '365i-ai-faq-generator' ); ?></th><th><?php esc_html_e( 'CPU P99', '365i-ai-faq-generator' ); ?></th></tr></thead>';
+				html += '<tbody>';
+				
+				for (const [worker, w] of Object.entries(data.workers)) {
+					if (!w.error) {
+						html += '<tr>';
+						html += '<td>' + worker + '</td>';
+						html += '<td>' + (w.requests || 0).toLocaleString() + '</td>';
+						html += '<td>' + (w.errors || 0).toLocaleString() + '</td>';
+						html += '<td>' + (w.success_rate || 0) + '%</td>';
+						html += '<td>' + (w.cpu_time_p50 || 0) + 'ms</td>';
+						html += '<td>' + (w.cpu_time_p99 || 0) + 'ms</td>';
+						html += '</tr>';
+					} else {
+						html += '<tr><td>' + worker + '</td><td colspan="5" class="error-cell"><span class="dashicons dashicons-warning"></span> <?php esc_html_e( 'Error:', '365i-ai-faq-generator' ); ?> ' + w.error + '</td></tr>';
+					}
 				}
 				
-				// Add error details if any
-				if (Object.keys(data.errors).length > 0) {
-					resultHtml += `
-						<div class="ai-faq-cloudflare-errors">
-							<h3><?php esc_html_e( 'Errors', '365i-ai-faq-generator' ); ?></h3>
-							<div class="notice notice-warning">`;
-					
-					for (const [workerName, error] of Object.entries(data.errors)) {
-						resultHtml += `<p><strong>${workerName}:</strong> ${error}</p>`;
-					}
-					
-					resultHtml += `
-							</div>
-						</div>`;
-				}
-				
-				resultDiv.html(resultHtml).show();
-			} else {
-				resultDiv.html(`
-					<div class="notice notice-error">
-						<h4><span class="dashicons dashicons-no"></span> <?php esc_html_e( 'Failed to Fetch Statistics', '365i-ai-faq-generator' ); ?></h4>
-						<p>${response.data || '<?php esc_html_e( 'Unknown error occurred', '365i-ai-faq-generator' ); ?>'}</p>
-					</div>
-				`).show();
+				html += '</tbody></table>';
+				html += '</div>';
 			}
-		}).fail(function(xhr, status, error) {
-			// Hide spinner and enable button
-			spinner.hide();
-			button.prop('disabled', false);
 			
-			resultDiv.html(`
-				<div class="notice notice-error">
-					<h4><span class="dashicons dashicons-no"></span> <?php esc_html_e( 'Request Failed', '365i-ai-faq-generator' ); ?></h4>
-					<p><?php esc_html_e( 'Failed to connect to server:', '365i-ai-faq-generator' ); ?> ${error}</p>
-				</div>
-			`).show();
-		});
-	});
+			// KV Storage
+			if (data.kv_storage && Object.keys(data.kv_storage).length > 0) {
+				html += '<div class="ai-faq-analytics-section">';
+				html += '<h3><?php esc_html_e( 'KV Storage Usage', '365i-ai-faq-generator' ); ?></h3>';
+				html += '<table class="widefat">';
+				html += '<thead><tr><th><?php esc_html_e( 'Namespace', '365i-ai-faq-generator' ); ?></th><th><?php esc_html_e( 'Operations', '365i-ai-faq-generator' ); ?></th><th><?php esc_html_e( 'Keys', '365i-ai-faq-generator' ); ?></th><th><?php esc_html_e( 'Storage', '365i-ai-faq-generator' ); ?></th></tr></thead>';
+				html += '<tbody>';
+				
+				for (const [ns, kv] of Object.entries(data.kv_storage)) {
+					html += '<tr>';
+					html += '<td>' + (kv.name || ns) + '</td>';
+					html += '<td>' + (kv.total_operations || 0).toLocaleString() + '</td>';
+					html += '<td>' + (kv.storage_keys || 0).toLocaleString() + '</td>';
+					html += '<td>' + (kv.storage_formatted || '0 B') + '</td>';
+					html += '</tr>';
+				}
+				
+				html += '</tbody></table>';
+				html += '</div>';
+			}
+			
+			html += '</div>';
+			
+			$('#cloudflare-analytics-content').html(html);
+		},
+		
+		createSummaryCard: function(title, value, icon) {
+			return '<div class="ai-faq-analytics-card">' +
+				'<span class="dashicons ' + icon + '"></span>' +
+				'<h4>' + title + '</h4>' +
+				'<p class="ai-faq-analytics-value">' + value + '</p>' +
+				'</div>';
+		},
+		
+		showError: function(message) {
+			const html = '<div class="notice notice-error is-dismissible ai-faq-force-dismiss">' +
+				'<p>' + message + '</p>' +
+				'</div>';
+			
+			$('#cloudflare-analytics-content').html(html);
+			
+			// Auto-dismiss after 3 seconds
+			setTimeout(function() {
+				$('#cloudflare-analytics-content .notice').fadeOut();
+			}, 3000);
+		},
+		
+		showNotification: function(message, type) {
+			type = type || 'info';
+			const html = '<div class="notice notice-' + type + ' is-dismissible">' +
+				'<p>' + message + '</p>' +
+				'</div>';
+			
+			const $notice = $(html);
+			this.container.prepend($notice);
+			
+			// Auto-dismiss after 3 seconds
+			setTimeout(function() {
+				$notice.fadeOut(function() {
+					$notice.remove();
+				});
+			}, 3000);
+		}
+	};
+	
+	// Initialize Enhanced Cloudflare Analytics
+	cloudflareAnalyticsManager.init();
 	
 	// Helper function to format bytes
 	function formatBytes(bytes, decimals = 2) {

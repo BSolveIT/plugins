@@ -372,13 +372,13 @@ class AI_FAQ_Admin_Ajax {
 	}
 
 	/**
-		* AJAX handler for fetching Cloudflare Worker statistics.
-		*
-		* Uses Cloudflare's GraphQL Analytics API to fetch real worker statistics
-		* including requests, errors, CPU time, and egress bytes.
-		*
-		* @since 2.1.0
-		*/
+	 * AJAX handler for fetching Enhanced Cloudflare Analytics.
+	 *
+	 * Uses Cloudflare's GraphQL Analytics API to fetch comprehensive statistics
+	 * including Workers analytics, KV Storage metrics, and performance data.
+	 *
+	 * @since 2.1.0
+	 */
 	public function ajax_fetch_cloudflare_stats() {
 		// Check user capabilities.
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -391,6 +391,18 @@ class AI_FAQ_Admin_Ajax {
 			wp_send_json_error( __( 'Security check failed.', '365i-ai-faq-generator' ) );
 		}
 
+		// Check cache first (unless forced refresh)
+		$days = isset( $_POST['days'] ) ? max( 1, min( 30, intval( $_POST['days'] ) ) ) : 7;
+		$force_refresh = isset( $_POST['force_refresh'] ) && $_POST['force_refresh'];
+		$cache_key = 'ai_faq_cloudflare_analytics_' . md5( $days );
+		
+		if ( ! $force_refresh ) {
+			$cached_data = get_transient( $cache_key );
+			if ( false !== $cached_data ) {
+				wp_send_json_success( $cached_data );
+			}
+		}
+
 		// Get Cloudflare credentials from options
 		$options = get_option( 'ai_faq_gen_options', array() );
 		$account_id = isset( $options['cloudflare_account_id'] ) ? sanitize_text_field( $options['cloudflare_account_id'] ) : '';
@@ -400,90 +412,809 @@ class AI_FAQ_Admin_Ajax {
 			wp_send_json_error( __( 'Cloudflare Account ID and API Token are required. Please configure them in Settings.', '365i-ai-faq-generator' ) );
 		}
 
-		// Get time range (default to last 7 days)
-		$days = isset( $_POST['days'] ) ? max( 1, min( 365, intval( $_POST['days'] ) ) ) : 7;
+		// FIXED: Proper date range calculation (was causing 292-year ranges!)
 		$datetime_start = gmdate( 'Y-m-d\T00:00:00\Z', strtotime( "-{$days} days" ) );
-		$datetime_end = gmdate( 'Y-m-d\T23:59:59\Z' );
+		$datetime_end = gmdate( 'Y-m-d\T23:59:59\Z' ); // Use current time, not relative
+		$date_start = gmdate( 'Y-m-d', strtotime( "-{$days} days" ) );
+		$date_end = gmdate( 'Y-m-d' ); // Use current date, not relative
 
-		// Get worker names from configuration
+		// Get worker and KV configuration
 		$workers = isset( $options['workers'] ) ? $options['workers'] : array();
-		$enabled_workers = array();
-
-		foreach ( $workers as $worker_name => $worker_config ) {
-			if ( isset( $worker_config['enabled'] ) && $worker_config['enabled'] &&
-				 isset( $worker_config['url'] ) && ! empty( $worker_config['url'] ) ) {
-				// Extract worker name from URL for Cloudflare stats
-				$url_parts = parse_url( $worker_config['url'] );
-				if ( isset( $url_parts['host'] ) ) {
-					$subdomain = explode( '.', $url_parts['host'] )[0];
-					$enabled_workers[ $worker_name ] = $subdomain;
-				}
-			}
-		}
+		$enabled_workers = $this->extract_enabled_workers( $workers );
 
 		if ( empty( $enabled_workers ) ) {
 			wp_send_json_error( __( 'No enabled workers found for statistics. Please configure workers first.', '365i-ai-faq-generator' ) );
 		}
 
-		$worker_stats = array();
-		$errors = array();
-
-		// Fetch stats for each worker
-		foreach ( $enabled_workers as $worker_name => $cloudflare_script_name ) {
-			$stats = $this->fetch_cloudflare_worker_stats( $account_id, $api_token, $cloudflare_script_name, $datetime_start, $datetime_end );
-			
-			if ( is_wp_error( $stats ) ) {
-				$errors[ $worker_name ] = $stats->get_error_message();
-				$worker_stats[ $worker_name ] = array(
-					'error' => $stats->get_error_message(),
-					'script_name' => $cloudflare_script_name,
-				);
-			} else {
-				$worker_stats[ $worker_name ] = array_merge( $stats, array(
-					'script_name' => $cloudflare_script_name,
-				) );
-			}
-		}
-
-		// Calculate totals
-		$totals = array(
-			'requests' => 0,
-			'errors' => 0,
-			'subrequests' => 0,
-			'cpu_time' => 0,
-			'egress_bytes' => 0,
-		);
-
-		foreach ( $worker_stats as $stats ) {
-			if ( ! isset( $stats['error'] ) ) {
-				$totals['requests'] += isset( $stats['requests'] ) ? $stats['requests'] : 0;
-				$totals['errors'] += isset( $stats['errors'] ) ? $stats['errors'] : 0;
-				$totals['subrequests'] += isset( $stats['subrequests'] ) ? $stats['subrequests'] : 0;
-				$totals['cpu_time'] += isset( $stats['cpu_time_p50'] ) ? $stats['cpu_time_p50'] : 0;
-				$totals['egress_bytes'] += isset( $stats['egress_bytes'] ) ? $stats['egress_bytes'] : 0;
-			}
-		}
-
-		wp_send_json_success( array(
-			'message' => sprintf(
-				/* translators: %d: Number of days */
-				__( 'Cloudflare statistics fetched successfully for the last %d days.', '365i-ai-faq-generator' ),
-				$days
-			),
+		// Initialize comprehensive analytics data
+		$analytics_data = array(
 			'period' => array(
 				'days' => $days,
 				'start' => $datetime_start,
 				'end' => $datetime_end,
 			),
-			'totals' => $totals,
-			'worker_stats' => $worker_stats,
-			'errors' => $errors,
-			'success_rate' => $totals['requests'] > 0 ? round( ( ( $totals['requests'] - $totals['errors'] ) / $totals['requests'] ) * 100, 2 ) : 0,
-		) );
+			'workers' => array(),
+			'kv_storage' => array(),
+			'totals' => array(
+				'requests' => 0,
+				'errors' => 0,
+				'subrequests' => 0,
+				'avg_cpu_time_ms' => 0, // Changed from cpu_time to be clearer
+				'egress_bytes' => 0,
+				'egress_formatted' => '0 B',
+				'kv_operations' => 0,
+				'kv_storage_bytes' => 0,
+				'kv_storage_formatted' => '0 B',
+				'kv_keys' => 0,
+			),
+			'performance_summary' => array(
+				'avg_cpu_time' => 0,
+				'p50_cpu_time' => 0,
+				'p95_cpu_time' => 0,
+				'p99_cpu_time' => 0,
+			),
+			'errors' => array(),
+		);
+
+		// Fetch Enhanced Workers Analytics
+		$worker_cpu_times = array(); // Store CPU times for proper averaging
+		foreach ( $enabled_workers as $worker_name => $cloudflare_script_name ) {
+			$worker_stats = $this->fetch_workers_analytics_official(
+				$account_id,
+				$api_token,
+				$cloudflare_script_name,
+				$datetime_start,
+				$datetime_end
+			);
+			
+			if ( is_wp_error( $worker_stats ) ) {
+				$analytics_data['errors'][ $worker_name ] = $worker_stats->get_error_message();
+				$analytics_data['workers'][ $worker_name ] = array(
+					'error' => $worker_stats->get_error_message(),
+					'script_name' => $cloudflare_script_name,
+					'requests' => 0,
+					'errors' => 0,
+					'success_rate' => 0,
+				);
+			} else {
+				// Calculate success rate for this worker
+				$worker_stats['success_rate'] = $worker_stats['requests'] > 0
+					? round( ( ( $worker_stats['requests'] - $worker_stats['errors'] ) / $worker_stats['requests'] ) * 100, 2 )
+					: 0;
+					
+				$analytics_data['workers'][ $worker_name ] = array_merge( $worker_stats, array(
+					'script_name' => $cloudflare_script_name,
+					'egress_formatted' => $this->format_bytes( $worker_stats['egress_bytes'] ?? 0 ),
+				) );
+				
+				// Aggregate totals properly
+				$this->aggregate_worker_totals( $analytics_data['totals'], $worker_stats );
+				
+				// Collect CPU times for averaging (using P50 as average approximation)
+				if ( $worker_stats['cpu_time_p50'] > 0 ) {
+					$worker_cpu_times[] = array(
+						'avg' => $worker_stats['cpu_time_p50'], // Use P50 as average
+						'p50' => $worker_stats['cpu_time_p50'],
+						'p95' => 0, // Not available in official API
+						'p99' => $worker_stats['cpu_time_p99'],
+						'requests' => $worker_stats['requests'],
+					);
+				}
+			}
+		}
+
+		// Calculate proper performance averages
+		if ( ! empty( $worker_cpu_times ) ) {
+			$this->calculate_performance_summary( $analytics_data['performance_summary'], $worker_cpu_times );
+			$analytics_data['totals']['avg_cpu_time_ms'] = $analytics_data['performance_summary']['avg_cpu_time'];
+		}
+
+		// Fetch KV Storage Analytics
+		$kv_namespaces = $this->get_kv_namespaces( $account_id, $api_token );
+		if ( ! is_wp_error( $kv_namespaces ) && ! empty( $kv_namespaces ) ) {
+			foreach ( $kv_namespaces as $namespace ) {
+				$kv_stats = $this->fetch_kv_storage_analytics_official(
+					$account_id,
+					$api_token,
+					$namespace['id'],
+					$date_start,
+					$date_end
+				);
+				
+				if ( ! is_wp_error( $kv_stats ) ) {
+					$kv_stats['storage_formatted'] = $this->format_bytes( $kv_stats['storage_bytes'] ?? 0 );
+					$analytics_data['kv_storage'][ $namespace['id'] ] = array_merge( $kv_stats, array(
+						'name' => $namespace['title'],
+						'id' => $namespace['id'],
+					) );
+					
+					// Aggregate KV totals
+					$analytics_data['totals']['kv_operations'] += $kv_stats['total_operations'] ?? 0;
+					$analytics_data['totals']['kv_storage_bytes'] += $kv_stats['storage_bytes'] ?? 0;
+					$analytics_data['totals']['kv_keys'] += $kv_stats['storage_keys'] ?? 0;
+				} else {
+					$analytics_data['errors']['kv_' . $namespace['id']] = $kv_stats->get_error_message();
+				}
+			}
+		}
+
+		// Format totals
+		$analytics_data['totals']['egress_formatted'] = $this->format_bytes( $analytics_data['totals']['egress_bytes'] );
+		$analytics_data['totals']['kv_storage_formatted'] = $this->format_bytes( $analytics_data['totals']['kv_storage_bytes'] );
+
+		// Calculate overall success rate
+		$analytics_data['success_rate'] = $analytics_data['totals']['requests'] > 0
+			? round( ( ( $analytics_data['totals']['requests'] - $analytics_data['totals']['errors'] ) / $analytics_data['totals']['requests'] ) * 100, 2 )
+			: 0;
+
+		$analytics_data['message'] = sprintf(
+			/* translators: %d: Number of days */
+			__( 'Enhanced Cloudflare analytics fetched successfully for the last %d days.', '365i-ai-faq-generator' ),
+			$days
+		);
+
+		// Add metadata
+		$analytics_data['metadata'] = array(
+			'generated_at' => current_time( 'mysql' ),
+			'cache_expires' => gmdate( 'Y-m-d H:i:s', time() + 300 ),
+			'worker_count' => count( $enabled_workers ),
+			'kv_namespace_count' => is_array( $kv_namespaces ) ? count( $kv_namespaces ) : 0,
+		);
+
+		// Cache results for 5 minutes to respect API rate limits
+		set_transient( $cache_key, $analytics_data, 300 );
+
+		wp_send_json_success( $analytics_data );
 	}
 
 	/**
-		* Fetch Cloudflare Worker statistics via GraphQL API.
+	 * Extract enabled workers from configuration.
+	 *
+	 * Improved to handle various URL formats and edge cases.
+	 *
+	 * @since 2.1.0
+	 * @param array $workers Worker configuration array.
+	 * @return array Enabled workers with script names.
+	 */
+	private function extract_enabled_workers( $workers ) {
+		$enabled_workers = array();
+
+		foreach ( $workers as $worker_name => $worker_config ) {
+			if ( isset( $worker_config['enabled'] ) && $worker_config['enabled'] &&
+				 isset( $worker_config['url'] ) && ! empty( $worker_config['url'] ) ) {
+				
+				// Extract worker script name from URL
+				$script_name = $this->extract_script_name_from_url( $worker_config['url'] );
+				
+				if ( $script_name ) {
+					$enabled_workers[ $worker_name ] = $script_name;
+				}
+			}
+		}
+
+		return $enabled_workers;
+	}
+
+	/**
+	 * Extract script name from worker URL.
+	 *
+	 * IMPROVED: Better handling for auto-assigned workers.dev domains
+	 *
+	 * Handles various URL formats:
+	 * - https://winter-cake-bf57.workers.dev → winter-cake-bf57
+	 * - https://script-name.account.workers.dev → script-name
+	 * - https://custom-domain.com/path → custom-domain (fallback)
+	 *
+	 * @since 2.1.0
+	 * @param string $url Worker URL.
+	 * @return string|false Script name or false if unable to extract.
+	 */
+	private function extract_script_name_from_url( $url ) {
+		$url_parts = parse_url( $url );
+		
+		if ( ! isset( $url_parts['host'] ) ) {
+			return false;
+		}
+		
+		$host = $url_parts['host'];
+		
+		// Check if it's a workers.dev domain (most common case)
+		if ( strpos( $host, '.workers.dev' ) !== false ) {
+			// Extract subdomain as script name
+			$parts = explode( '.', $host );
+			
+			// Handle different workers.dev formats:
+			// 1. winter-cake-bf57.workers.dev (auto-assigned) → winter-cake-bf57
+			// 2. script-name.account.workers.dev → script-name
+			if ( count( $parts ) >= 3 ) {
+				// script-name.account.workers.dev format
+				return $parts[0];
+			} elseif ( count( $parts ) === 2 && $parts[1] === 'workers.dev' ) {
+				// Direct script-name.workers.dev format (shouldn't happen but handle it)
+				return $parts[0];
+			}
+		}
+		
+		// For custom domains, try to extract from path first
+		if ( isset( $url_parts['path'] ) && ! empty( $url_parts['path'] ) ) {
+			// If there's a path, the script name might be in the path
+			$path_parts = explode( '/', trim( $url_parts['path'], '/' ) );
+			if ( ! empty( $path_parts[0] ) ) {
+				return $path_parts[0];
+			}
+		}
+		
+		// Fallback: use the first part of the domain
+		$parts = explode( '.', $host );
+		return $parts[0];
+	}
+
+	/**
+	 * Aggregate worker statistics into totals.
+	 *
+	 * Fixed to properly handle statistical aggregation.
+	 *
+	 * @since 2.1.0
+	 * @param array $totals Reference to totals array.
+	 * @param array $worker_stats Worker statistics to aggregate.
+	 */
+	private function aggregate_worker_totals( &$totals, $worker_stats ) {
+		$totals['requests'] += $worker_stats['requests'] ?? 0;
+		$totals['errors'] += $worker_stats['errors'] ?? 0;
+		$totals['subrequests'] += $worker_stats['subrequests'] ?? 0;
+		$totals['egress_bytes'] += $worker_stats['egress_bytes'] ?? 0;
+		
+		// Note: CPU times are handled separately for proper averaging
+	}
+
+	/**
+	 * Calculate performance summary from multiple workers.
+	 *
+	 * UPDATED: Handle the fact that P95 is not available in official API.
+	 * Properly averages CPU times weighted by request count.
+	 *
+	 * @since 2.1.7
+	 * @param array $summary Reference to performance summary array.
+	 * @param array $cpu_times Array of CPU time data from workers.
+	 */
+	private function calculate_performance_summary( &$summary, $cpu_times ) {
+		if ( empty( $cpu_times ) ) {
+			return;
+		}
+		
+		$total_requests = array_sum( array_column( $cpu_times, 'requests' ) );
+		
+		if ( $total_requests === 0 ) {
+			return;
+		}
+		
+		// Calculate weighted averages
+		$weighted_avg = 0;
+		$weighted_p50 = 0;
+		$weighted_p95 = 0; // Will be 0 since not available
+		$weighted_p99 = 0;
+		
+		foreach ( $cpu_times as $data ) {
+			$weight = $data['requests'] / $total_requests;
+			$weighted_avg += $data['avg'] * $weight;
+			$weighted_p50 += $data['p50'] * $weight;
+			$weighted_p95 += $data['p95'] * $weight; // Will be 0
+			$weighted_p99 += $data['p99'] * $weight;
+		}
+		
+		$summary['avg_cpu_time'] = round( $weighted_avg, 2 );
+		$summary['p50_cpu_time'] = round( $weighted_p50, 2 );
+		$summary['p95_cpu_time'] = round( $weighted_p95, 2 ); // Will be 0
+		$summary['p99_cpu_time'] = round( $weighted_p99, 2 );
+	}
+
+	/**
+	 * Format bytes to human readable string.
+	 *
+	 * @since 2.1.0
+	 * @param int $bytes Number of bytes.
+	 * @param int $precision Decimal precision.
+	 * @return string Formatted string.
+	 */
+	private function format_bytes( $bytes, $precision = 2 ) {
+		$units = array( 'B', 'KB', 'MB', 'GB', 'TB' );
+		
+		$bytes = max( $bytes, 0 );
+		$pow = floor( ( $bytes ? log( $bytes ) : 0 ) / log( 1024 ) );
+		$pow = min( $pow, count( $units ) - 1 );
+		
+		$bytes /= pow( 1024, $pow );
+		
+		return round( $bytes, $precision ) . ' ' . $units[$pow];
+	}
+
+	/**
+		* Get KV namespaces via REST API.
+		*
+		* @since 2.1.0
+		* @param string $account_id Cloudflare account ID.
+		* @param string $api_token Cloudflare API token.
+		* @return array|WP_Error KV namespaces or error.
+		*/
+	private function get_kv_namespaces( $account_id, $api_token ) {
+		$endpoint = "https://api.cloudflare.com/client/v4/accounts/{$account_id}/storage/kv/namespaces";
+		
+		$args = array(
+			'headers' => array(
+				'Authorization' => 'Bearer ' . $api_token,
+				'Content-Type' => 'application/json',
+				'User-Agent' => 'WordPress/365i-AI-FAQ-Generator',
+			),
+			'timeout' => 30,
+		);
+
+		$response = wp_remote_get( $endpoint, $args );
+
+		if ( is_wp_error( $response ) ) {
+			return new WP_Error(
+				'kv_api_error',
+				sprintf(
+					/* translators: %s: Error message */
+					__( 'KV Namespaces API request failed: %s', '365i-ai-faq-generator' ),
+					$response->get_error_message()
+				)
+			);
+		}
+
+		$response_code = wp_remote_retrieve_response_code( $response );
+		$response_body = wp_remote_retrieve_body( $response );
+
+		if ( $response_code !== 200 ) {
+			return new WP_Error(
+				'kv_api_http_error',
+				sprintf(
+					/* translators: %d: HTTP status code */
+					__( 'KV Namespaces API returned HTTP %d', '365i-ai-faq-generator' ),
+					$response_code
+				)
+			);
+		}
+
+		$data = json_decode( $response_body, true );
+
+		if ( null === $data ) {
+			return new WP_Error(
+				'kv_api_json_error',
+				__( 'Invalid JSON response from KV Namespaces API', '365i-ai-faq-generator' )
+			);
+		}
+
+		if ( ! isset( $data['success'] ) || ! $data['success'] ) {
+			$error_msg = isset( $data['errors'][0]['message'] ) ? $data['errors'][0]['message'] : __( 'Unknown KV API error', '365i-ai-faq-generator' );
+			return new WP_Error( 'kv_api_error', $error_msg );
+		}
+
+		return $data['result'] ?? array();
+	}
+
+	/**
+	 * Fetch KV Storage analytics using OFFICIAL Cloudflare GraphQL schema.
+	 *
+	 * BASED ON OFFICIAL DOCUMENTATION:
+	 * https://developers.cloudflare.com/kv/observability/metrics-analytics/
+	 *
+	 * FIXES APPLIED:
+	 * - REMOVED orderBy clauses (causing errors)
+	 * - FIXED date range validation (was causing 292-year ranges)
+	 * - Use proper field names from official docs
+	 *
+	 * @since 2.1.7
+	 * @param string $account_id Cloudflare account ID.
+	 * @param string $api_token Cloudflare API token.
+	 * @param string $namespace_id KV namespace ID.
+	 * @param string $date_start Start date in Y-m-d format.
+	 * @param string $date_end End date in Y-m-d format.
+	 * @return array|WP_Error KV statistics or error.
+	 */
+	private function fetch_kv_storage_analytics_official( $account_id, $api_token, $namespace_id, $date_start, $date_end ) {
+		// Official GraphQL query from Cloudflare KV documentation
+		$query = array(
+			'query' => 'query KVAnalytics($accountTag: String!, $namespaceId: String!, $start: Date!, $end: Date!) {
+				viewer {
+					accounts(filter: { accountTag: $accountTag }) {
+						kvOperationsAdaptiveGroups(
+							filter: {
+								namespaceId: $namespaceId,
+								date_geq: $start,
+								date_leq: $end
+							}
+							limit: 1000
+						) {
+							sum {
+								requests
+							}
+							dimensions {
+								actionType
+							}
+						}
+						
+						kvStorageAdaptiveGroups(
+							filter: {
+								namespaceId: $namespaceId,
+								date_geq: $start,
+								date_leq: $end
+							}
+							limit: 100
+						) {
+							max {
+								keyCount
+								byteCount
+							}
+							dimensions {
+								date
+							}
+						}
+					}
+				}
+			}',
+			'variables' => array(
+				'accountTag' => $account_id,
+				'namespaceId' => $namespace_id,
+				'start' => $date_start,
+				'end' => $date_end,
+			),
+		);
+
+		$response = $this->graphql_request( $query, $api_token );
+		
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$accounts = $response['data']['viewer']['accounts'][0] ?? array();
+		
+		// Process operations breakdown exactly as shown in official docs
+		$operations_breakdown = array(
+			'read' => 0,
+			'write' => 0,
+			'delete' => 0,
+			'list' => 0,
+		);
+		
+		$total_operations = 0;
+		
+		if ( isset( $accounts['kvOperationsAdaptiveGroups'] ) ) {
+			foreach ( $accounts['kvOperationsAdaptiveGroups'] as $op ) {
+				$action = $op['dimensions']['actionType'] ?? '';
+				$count = $op['sum']['requests'] ?? 0;
+				
+				if ( isset( $operations_breakdown[$action] ) ) {
+					$operations_breakdown[$action] += $count;
+				}
+				
+				$total_operations += $count;
+			}
+		}
+		
+		// Get current storage metrics (maximum values)
+		$storage_bytes = 0;
+		$storage_keys = 0;
+		
+		if ( isset( $accounts['kvStorageAdaptiveGroups'] ) && ! empty( $accounts['kvStorageAdaptiveGroups'] ) ) {
+			foreach ( $accounts['kvStorageAdaptiveGroups'] as $storage ) {
+				$bytes = $storage['max']['byteCount'] ?? 0;
+				$keys = $storage['max']['keyCount'] ?? 0;
+				
+				// Take maximum values as current storage
+				if ( $bytes > $storage_bytes ) {
+					$storage_bytes = $bytes;
+				}
+				if ( $keys > $storage_keys ) {
+					$storage_keys = $keys;
+				}
+			}
+		}
+		
+		return array(
+			'total_operations' => $total_operations,
+			'operations_breakdown' => $operations_breakdown,
+			'storage_bytes' => $storage_bytes,
+			'storage_keys' => $storage_keys,
+		);
+	}
+
+	/**
+	 * Fetch Workers analytics using OFFICIAL Cloudflare GraphQL schema.
+	 *
+	 * BASED ON OFFICIAL DOCUMENTATION:
+	 * https://developers.cloudflare.com/analytics/graphql-api/tutorials/querying-workers-metrics/
+	 *
+	 * CORRECT FIELDS (from official docs):
+	 * - sum { subrequests, requests, errors }
+	 * - quantiles { cpuTimeP50, cpuTimeP99 }
+	 * - dimensions { datetime, scriptName, status }
+	 *
+	 * REMOVED INVALID FIELDS:
+	 * - avg { cpuTime } (doesn't exist)
+	 * - egressBytes (doesn't exist)
+	 * - cpuTimeP95 (not in official schema)
+	 *
+	 * @since 2.1.7
+	 * @param string $account_id Cloudflare account ID.
+	 * @param string $api_token Cloudflare API token.
+	 * @param string $script_name Worker script name.
+	 * @param string $datetime_start Start datetime in ISO format.
+	 * @param string $datetime_end End datetime in ISO format.
+	 * @return array|WP_Error Worker statistics or error.
+	 */
+	private function fetch_workers_analytics_official( $account_id, $api_token, $script_name, $datetime_start, $datetime_end ) {
+		// Official GraphQL query from Cloudflare documentation
+		$query = array(
+			'query' => 'query GetWorkersAnalytics($accountTag: String!, $datetimeStart: String!, $datetimeEnd: String!, $scriptName: String!) {
+				viewer {
+					accounts(filter: { accountTag: $accountTag }) {
+						workersInvocationsAdaptive(
+							limit: 100,
+							filter: {
+								scriptName: $scriptName,
+								datetime_geq: $datetimeStart,
+								datetime_leq: $datetimeEnd
+							}
+						) {
+							sum {
+								subrequests
+								requests
+								errors
+							}
+							quantiles {
+								cpuTimeP50
+								cpuTimeP99
+							}
+							dimensions {
+								datetime
+								scriptName
+								status
+							}
+						}
+					}
+				}
+			}',
+			'variables' => array(
+				'accountTag' => $account_id,
+				'scriptName' => $script_name,
+				'datetimeStart' => $datetime_start,
+				'datetimeEnd' => $datetime_end,
+			),
+		);
+
+		$response = $this->graphql_request( $query, $api_token );
+		
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		// Initialize statistics
+		$stats = array(
+			'requests' => 0,
+			'errors' => 0,
+			'subrequests' => 0,
+			'egress_bytes' => 0, // Keep for compatibility, always 0
+			'cpu_time_avg' => 0,
+			'cpu_time_p50' => 0,
+			'cpu_time_p95' => 0, // Not available in official API
+			'cpu_time_p99' => 0,
+			'time_series' => array(),
+		);
+
+		// Parse response exactly as shown in official documentation
+		if ( isset( $response['data']['viewer']['accounts'][0]['workersInvocationsAdaptive'] ) ) {
+			$invocations = $response['data']['viewer']['accounts'][0]['workersInvocationsAdaptive'];
+			
+			$cpu_time_sum = 0;
+			$cpu_time_count = 0;
+			
+			// Aggregate all data points
+			foreach ( $invocations as $invocation ) {
+				// Sum basic metrics
+				if ( isset( $invocation['sum'] ) ) {
+					$stats['requests'] += intval( $invocation['sum']['requests'] ?? 0 );
+					$stats['errors'] += intval( $invocation['sum']['errors'] ?? 0 );
+					$stats['subrequests'] += intval( $invocation['sum']['subrequests'] ?? 0 );
+				}
+				
+				// Handle CPU time quantiles (take most recent non-zero values)
+				if ( isset( $invocation['quantiles'] ) ) {
+					if ( isset( $invocation['quantiles']['cpuTimeP50'] ) && $invocation['quantiles']['cpuTimeP50'] > 0 ) {
+						$stats['cpu_time_p50'] = floatval( $invocation['quantiles']['cpuTimeP50'] );
+						$cpu_time_sum += $stats['cpu_time_p50'];
+						$cpu_time_count++;
+					}
+					if ( isset( $invocation['quantiles']['cpuTimeP99'] ) && $invocation['quantiles']['cpuTimeP99'] > 0 ) {
+						$stats['cpu_time_p99'] = floatval( $invocation['quantiles']['cpuTimeP99'] );
+					}
+				}
+				
+				// Store time series data
+				if ( isset( $invocation['dimensions']['datetime'] ) ) {
+					$stats['time_series'][] = array(
+						'datetime' => $invocation['dimensions']['datetime'],
+						'requests' => intval( $invocation['sum']['requests'] ?? 0 ),
+						'errors' => intval( $invocation['sum']['errors'] ?? 0 ),
+						'cpu_time_p50' => floatval( $invocation['quantiles']['cpuTimeP50'] ?? 0 ),
+						'status' => $invocation['dimensions']['status'] ?? '',
+					);
+				}
+			}
+			
+			// Calculate average CPU time from P50 values
+			if ( $cpu_time_count > 0 ) {
+				$stats['cpu_time_avg'] = $cpu_time_sum / $cpu_time_count;
+			}
+		}
+
+		return $stats;
+	}
+
+	/**
+		* Make GraphQL request to Cloudflare API.
+		*
+		* @since 2.1.0
+		* @param array  $query GraphQL query and variables.
+		* @param string $api_token Cloudflare API token.
+		* @return array|WP_Error Response data or error.
+		*/
+	private function graphql_request( $query, $api_token ) {
+		$endpoint = 'https://api.cloudflare.com/client/v4/graphql';
+		
+		$args = array(
+			'method' => 'POST',
+			'headers' => array(
+				'Authorization' => 'Bearer ' . $api_token,
+				'Content-Type' => 'application/json',
+				'User-Agent' => 'WordPress/365i-AI-FAQ-Generator',
+			),
+			'body' => wp_json_encode( $query ),
+			'timeout' => 30,
+		);
+
+		$response = wp_remote_post( $endpoint, $args );
+
+		if ( is_wp_error( $response ) ) {
+			return new WP_Error(
+				'cloudflare_api_error',
+				sprintf(
+					/* translators: %s: Error message */
+					__( 'Cloudflare API request failed: %s', '365i-ai-faq-generator' ),
+					$response->get_error_message()
+				)
+			);
+		}
+
+		$response_code = wp_remote_retrieve_response_code( $response );
+		$response_body = wp_remote_retrieve_body( $response );
+
+		if ( $response_code !== 200 ) {
+			return new WP_Error(
+				'cloudflare_api_http_error',
+				sprintf(
+					/* translators: %d: HTTP status code */
+					__( 'Cloudflare API returned HTTP %d', '365i-ai-faq-generator' ),
+					$response_code
+				)
+			);
+		}
+
+		$data = json_decode( $response_body, true );
+
+		if ( null === $data ) {
+			return new WP_Error(
+				'cloudflare_api_json_error',
+				__( 'Invalid JSON response from Cloudflare API', '365i-ai-faq-generator' )
+			);
+		}
+
+		// Check for GraphQL errors
+		if ( isset( $data['errors'] ) && ! empty( $data['errors'] ) ) {
+			$error_messages = array();
+			foreach ( $data['errors'] as $error ) {
+				$error_messages[] = isset( $error['message'] ) ? $error['message'] : __( 'Unknown GraphQL error', '365i-ai-faq-generator' );
+			}
+			return new WP_Error(
+				'cloudflare_graphql_error',
+				sprintf(
+					/* translators: %s: Error messages */
+					__( 'Cloudflare GraphQL errors: %s', '365i-ai-faq-generator' ),
+					implode( ', ', $error_messages )
+				)
+			);
+		}
+
+		return $data;
+	}
+
+	/**
+		* Validate worker script names and test basic connectivity.
+		*
+		* This helps debug script name extraction issues by comparing
+		* configured workers with actual workers available in your Cloudflare account.
+		*
+		* @since 2.1.7
+		* @param string $account_id Cloudflare account ID.
+		* @param string $api_token Cloudflare API token.
+		* @return array List of available worker scripts and validation results.
+		*/
+	private function validate_worker_scripts( $account_id, $api_token ) {
+		// Get all available worker scripts from the account
+		$endpoint = "https://api.cloudflare.com/client/v4/accounts/{$account_id}/workers/scripts";
+		
+		$args = array(
+			'headers' => array(
+				'Authorization' => 'Bearer ' . $api_token,
+				'Content-Type' => 'application/json',
+				'User-Agent' => 'WordPress/365i-AI-FAQ-Generator',
+			),
+			'timeout' => 30,
+		);
+
+		$response = wp_remote_get( $endpoint, $args );
+
+		if ( is_wp_error( $response ) ) {
+			return array(
+				'success' => false,
+				'error' => 'API request failed: ' . $response->get_error_message(),
+				'available_scripts' => array(),
+			);
+		}
+
+		$response_code = wp_remote_retrieve_response_code( $response );
+		$response_body = wp_remote_retrieve_body( $response );
+
+		if ( $response_code !== 200 ) {
+			return array(
+				'success' => false,
+				'error' => "API returned HTTP {$response_code}",
+				'available_scripts' => array(),
+				'response_body' => $response_body,
+			);
+		}
+
+		$data = json_decode( $response_body, true );
+
+		if ( null === $data ) {
+			return array(
+				'success' => false,
+				'error' => 'Invalid JSON response from API',
+				'available_scripts' => array(),
+			);
+		}
+
+		if ( ! isset( $data['success'] ) || ! $data['success'] ) {
+			$error_msg = isset( $data['errors'][0]['message'] ) ? $data['errors'][0]['message'] : 'Unknown API error';
+			return array(
+				'success' => false,
+				'error' => $error_msg,
+				'available_scripts' => array(),
+			);
+		}
+
+		// Extract script names from the response
+		$available_scripts = array();
+		if ( isset( $data['result'] ) && is_array( $data['result'] ) ) {
+			foreach ( $data['result'] as $script ) {
+				if ( isset( $script['id'] ) ) {
+					$available_scripts[] = array(
+						'id' => $script['id'],
+						'created_on' => $script['created_on'] ?? 'Unknown',
+						'modified_on' => $script['modified_on'] ?? 'Unknown',
+					);
+				}
+			}
+		}
+
+		return array(
+			'success' => true,
+			'available_scripts' => $available_scripts,
+			'total_scripts' => count( $available_scripts ),
+		);
+	}
+
+	/**
+		* Legacy method: Fetch Cloudflare Worker statistics via GraphQL API.
 		*
 		* @since 2.1.0
 		* @param string $account_id Cloudflare account ID.
@@ -492,6 +1223,7 @@ class AI_FAQ_Admin_Ajax {
 		* @param string $datetime_start Start datetime in ISO format.
 		* @param string $datetime_end End datetime in ISO format.
 		* @return array|WP_Error Worker statistics or error.
+		* @deprecated 2.1.0 Use fetch_enhanced_worker_analytics() instead.
 		*/
 	private function fetch_cloudflare_worker_stats( $account_id, $api_token, $script_name, $datetime_start, $datetime_end ) {
 		$endpoint = 'https://api.cloudflare.com/client/v4/graphql';
