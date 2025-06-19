@@ -344,7 +344,7 @@ class AI_FAQ_Workers_Analytics {
 
 	/**
 	 * Set analytics retention period.
-	 * 
+	 *
 	 * @since 2.1.0
 	 * @param int $days Number of days to retain analytics data.
 	 * @return bool Whether the setting was updated.
@@ -363,5 +363,43 @@ class AI_FAQ_Workers_Analytics {
 		}
 		
 		return false;
+	}
+
+	/**
+	 * Record a usage event (alias for track_usage for compatibility).
+	 *
+	 * @since 2.1.7
+	 * @param string $worker_name The name of the worker used.
+	 * @param string $event_type  The type of event.
+	 * @param array  $metadata    Additional metadata about the event.
+	 * @return bool Whether the event was recorded successfully.
+	 */
+	public function record_usage( $worker_name, $event_type, $metadata = array() ) {
+		// For compatibility, treat event_type as success indicator and metadata as start_time
+		$success = ( 'success' === $event_type );
+		$start_time = isset( $metadata['start_time'] ) ? $metadata['start_time'] : 0;
+		$ip_address = isset( $metadata['user_ip'] ) ? $metadata['user_ip'] : $this->get_client_ip();
+		
+		return $this->track_usage( $worker_name, $ip_address, $success, $start_time );
+	}
+
+	/**
+	 * Get client IP address.
+	 *
+	 * @since 2.1.7
+	 * @return string Client IP address.
+	 */
+	private function get_client_ip() {
+		// Simple IP detection for analytics
+		if ( ! empty( $_SERVER['HTTP_CF_CONNECTING_IP'] ) ) {
+			return sanitize_text_field( wp_unslash( $_SERVER['HTTP_CF_CONNECTING_IP'] ) );
+		}
+		
+		if ( ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
+			$ips = explode( ',', sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) );
+			return trim( $ips[0] );
+		}
+		
+		return isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '127.0.0.1';
 	}
 }

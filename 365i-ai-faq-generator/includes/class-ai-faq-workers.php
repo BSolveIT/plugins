@@ -464,7 +464,7 @@ class AI_FAQ_Workers {
 
 	/**
 	 * Record a usage event.
-	 * 
+	 *
 	 * @since 1.0.0
 	 * @param string $worker_name The name of the worker used.
 	 * @param string $event_type  The type of event.
@@ -472,6 +472,9 @@ class AI_FAQ_Workers {
 	 * @return bool Whether the event was recorded successfully.
 	 */
 	public function record_usage( $worker_name, $event_type, $metadata = array() ) {
+		if ( ! $this->analytics ) {
+			return false;
+		}
 		return $this->analytics->record_usage( $worker_name, $event_type, $metadata );
 	}
 

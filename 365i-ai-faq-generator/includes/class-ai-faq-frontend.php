@@ -505,7 +505,7 @@ class AI_FAQ_Frontend {
 					break;
 					
 				case 'url':
-					$generated_faqs = $workers->extract_faqs( $url, array( 'maxFaqs' => $num_questions ) );
+					$generated_faqs = $workers->extract_faq( $url );
 					$metadata['url'] = $url;
 					break;
 					
