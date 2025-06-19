@@ -134,11 +134,10 @@ class AI_FAQ_Admin_Settings {
 		}
 
 		// Sanitize other settings fields if they exist
-		$text_fields = array( 
-			'cloudflare_account_id', 
-			'cloudflare_api_token', 
-			'default_tone', 
-			'default_length', 
+		$text_fields = array(
+			'cloudflare_account_id',
+			'cloudflare_api_token',
+			'default_length',
 			'default_schema_type',
 			'log_level'
 		);
@@ -149,16 +148,29 @@ class AI_FAQ_Admin_Settings {
 			}
 		}
 		
+		// Validate and sanitize tone field with allowed values
+		if ( isset( $options['default_tone'] ) ) {
+			$allowed_tones = array( 'professional', 'friendly', 'casual', 'technical' );
+			$tone = sanitize_text_field( $options['default_tone'] );
+			$sanitized['default_tone'] = in_array( $tone, $allowed_tones, true ) ? $tone : 'professional';
+		}
+		
 		// Sanitize numeric fields
-		$numeric_fields = array( 
-			'max_questions_per_batch', 
-			'cache_duration' 
+		$numeric_fields = array(
+			'max_questions_per_batch',
+			'cache_duration'
 		);
 		
 		foreach ( $numeric_fields as $field ) {
 			if ( isset( $options[$field] ) ) {
 				$sanitized[$field] = intval( $options[$field] );
 			}
+		}
+		
+		// Sanitize default FAQ count field
+		if ( isset( $options['default_faq_count'] ) ) {
+			$count = intval( $options['default_faq_count'] );
+			$sanitized['default_faq_count'] = max( 6, min( 50, $count ) ); // Ensure 6-50 range
 		}
 		
 		// Sanitize boolean fields

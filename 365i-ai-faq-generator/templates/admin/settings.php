@@ -27,12 +27,13 @@ $cloudflare_api_token = isset( $options['cloudflare_api_token'] ) ? $options['cl
 $default_tone = isset( $options['default_tone'] ) ? $options['default_tone'] : 'professional';
 $default_length = isset( $options['default_length'] ) ? $options['default_length'] : 'medium';
 $default_schema_type = isset( $options['default_schema_type'] ) ? $options['default_schema_type'] : 'json-ld';
+$default_faq_count = isset( $options['default_faq_count'] ) ? $options['default_faq_count'] : 12;
 $enable_auto_schema = isset( $options['enable_auto_schema'] ) ? $options['enable_auto_schema'] : true;
 $enable_seo_optimization = isset( $options['enable_seo_optimization'] ) ? $options['enable_seo_optimization'] : true;
 $enable_rate_limiting = isset( $options['enable_rate_limiting'] ) ? $options['enable_rate_limiting'] : true;
 $enable_caching = isset( $options['enable_caching'] ) ? $options['enable_caching'] : true;
 $cache_duration = isset( $options['cache_duration'] ) ? $options['cache_duration'] : 3600;
-$max_questions_per_batch = isset( $options['max_questions_per_batch'] ) ? $options['max_questions_per_batch'] : 10;
+$max_questions_per_batch = isset( $options['max_questions_per_batch'] ) ? $options['max_questions_per_batch'] : 20;
 $enable_logging = isset( $options['enable_logging'] ) ? $options['enable_logging'] : false;
 $log_level = isset( $options['log_level'] ) ? $options['log_level'] : 'error';
 $enable_analytics = isset( $options['enable_analytics'] ) ? $options['enable_analytics'] : true;
@@ -96,6 +97,16 @@ $enable_analytics = isset( $options['enable_analytics'] ) ? $options['enable_ana
 			<table class="form-table">
 				<tr>
 					<th scope="row">
+						<label for="default_faq_count"><?php esc_html_e( 'Default FAQ Count', '365i-ai-faq-generator' ); ?></label>
+					</th>
+					<td>
+						<input type="number" id="default_faq_count" name="default_faq_count" value="<?php echo esc_attr( $default_faq_count ); ?>" min="6" max="50" class="small-text">
+						<p class="description"><?php esc_html_e( 'Default number of FAQs to generate (6-50). This appears as the initial value in the frontend form.', '365i-ai-faq-generator' ); ?></p>
+					</td>
+				</tr>
+
+				<tr>
+					<th scope="row">
 						<label for="default_tone"><?php esc_html_e( 'Default Tone', '365i-ai-faq-generator' ); ?></label>
 					</th>
 					<td>
@@ -104,7 +115,6 @@ $enable_analytics = isset( $options['enable_analytics'] ) ? $options['enable_ana
 							<option value="friendly" <?php selected( $default_tone, 'friendly' ); ?>><?php esc_html_e( 'Friendly', '365i-ai-faq-generator' ); ?></option>
 							<option value="casual" <?php selected( $default_tone, 'casual' ); ?>><?php esc_html_e( 'Casual', '365i-ai-faq-generator' ); ?></option>
 							<option value="technical" <?php selected( $default_tone, 'technical' ); ?>><?php esc_html_e( 'Technical', '365i-ai-faq-generator' ); ?></option>
-							<option value="conversational" <?php selected( $default_tone, 'conversational' ); ?>><?php esc_html_e( 'Conversational', '365i-ai-faq-generator' ); ?></option>
 						</select>
 						<p class="description"><?php esc_html_e( 'Default tone for generated FAQ content.', '365i-ai-faq-generator' ); ?></p>
 					</td>

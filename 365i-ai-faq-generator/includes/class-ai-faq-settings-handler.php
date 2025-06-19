@@ -203,7 +203,7 @@ class AI_FAQ_Settings_Handler {
 		$general_settings = isset( $settings['settings'] ) ? $settings['settings'] : array();
 		
 		return array(
-			'default_faq_count' => absint( $general_settings['default_faq_count'] ?? 12 ),
+			'default_faq_count' => absint( $settings['default_faq_count'] ?? $general_settings['default_faq_count'] ?? 12 ),
 			'auto_save_interval' => absint( $general_settings['auto_save_interval'] ?? 3 ),
 			'debug_mode' => (bool) ( $general_settings['debug_mode'] ?? false ),
 			'max_questions_per_batch' => absint( $settings['max_questions_per_batch'] ?? 20 ),
@@ -225,7 +225,6 @@ class AI_FAQ_Settings_Handler {
 			'friendly' => __( 'Friendly', '365i-ai-faq-generator' ),
 			'casual' => __( 'Casual', '365i-ai-faq-generator' ),
 			'technical' => __( 'Technical', '365i-ai-faq-generator' ),
-			'conversational' => __( 'Conversational', '365i-ai-faq-generator' ),
 		);
 		
 		// Length options with labels
@@ -417,12 +416,14 @@ class AI_FAQ_Settings_Handler {
 	 * @return array JavaScript configuration.
 	 */
 	private function generate_js_config( $settings ) {
+		$general_settings = isset( $settings['settings'] ) ? $settings['settings'] : array();
+		
 		$js_config = array(
 			'ajax_url' => admin_url( 'admin-ajax.php' ),
 			'nonce' => wp_create_nonce( 'ai_faq_generate_nonce' ),
 			'settings_nonce' => wp_create_nonce( 'ai_faq_settings_nonce' ),
-			'auto_save_interval' => absint( $settings['settings']['auto_save_interval'] ?? 3 ) * 60000, // Convert to milliseconds
-			'debug_mode' => (bool) ( $settings['settings']['debug_mode'] ?? false ),
+			'auto_save_interval' => absint( $settings['auto_save_interval'] ?? $general_settings['auto_save_interval'] ?? 3 ) * 60000, // Convert to milliseconds
+			'debug_mode' => (bool) ( $settings['debug_mode'] ?? $general_settings['debug_mode'] ?? false ),
 			'enable_animations' => (bool) ( $settings['enable_animations'] ?? true ),
 			'debounce_delay' => absint( $settings['debounce_delay'] ?? 300 ),
 			'max_questions' => absint( $settings['max_questions_per_batch'] ?? 20 ),

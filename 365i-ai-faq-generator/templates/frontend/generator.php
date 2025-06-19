@@ -15,15 +15,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Get shortcode attributes with defaults.
+// Get dynamic settings from the settings handler
+$settings_handler = new AI_FAQ_Settings_Handler();
+$admin_settings = $settings_handler->get_comprehensive_settings();
+
+// Get shortcode attributes with defaults from admin settings.
 $attributes = wp_parse_args( $attributes, array(
 	'show_form' => true,
 	'show_search' => true,
 	'layout' => 'accordion',
-	'schema_type' => 'json-ld',
+	'schema_type' => $admin_settings['generation']['default_schema_type'],
 	'auto_open' => false,
-	'theme' => 'default',
-	'max_questions' => 10,
+	'theme' => $admin_settings['ui']['theme'],
+	'max_questions' => $admin_settings['general']['max_questions_per_batch'],
 ) );
 
 // Convert string booleans to actual booleans.
@@ -257,93 +261,117 @@ $container_classes = apply_filters( 'ai_faq_generator_container_classes', array(
 						<div class="ai-faq-slider-group">
 							<div class="ai-faq-slider-header">
 								<label class="ai-faq-slider-label"><?php esc_html_e( 'Number of Questions', '365i-ai-faq-generator' ); ?></label>
-								<div class="ai-faq-slider-value" id="num_questions_value_<?php echo esc_attr( $instance_id ); ?>">10 questions</div>
+								<div class="ai-faq-slider-value" id="num_questions_value_<?php echo esc_attr( $instance_id ); ?>"><?php echo esc_html( $admin_settings['general']['default_faq_count'] ); ?> questions</div>
 							</div>
 							<div class="ai-faq-slider-container">
-								<input type="range" class="ai-faq-slider" id="num_questions_<?php echo esc_attr( $instance_id ); ?>" name="num_questions" min="6" max="20" value="10">
+								<input type="range" class="ai-faq-slider" id="num_questions_<?php echo esc_attr( $instance_id ); ?>" name="num_questions" min="6" max="<?php echo esc_attr( $admin_settings['general']['max_questions_per_batch'] ); ?>" value="<?php echo esc_attr( $admin_settings['general']['default_faq_count'] ); ?>">
 							</div>
 						</div>
 						
+						<?php
+						// Map default length to slider value
+						$length_mapping = array(
+							'short' => 1,
+							'medium' => 2,
+							'long' => 3,
+						);
+						$default_length_value = $length_mapping[ $admin_settings['generation']['default_length'] ] ?? 2;
+						?>
 						<div class="ai-faq-slider-group">
 							<div class="ai-faq-slider-header">
 								<label class="ai-faq-slider-label"><?php esc_html_e( 'Answer Length', '365i-ai-faq-generator' ); ?></label>
-								<div class="ai-faq-slider-value" id="length_value_<?php echo esc_attr( $instance_id ); ?>">Medium</div>
+								<div class="ai-faq-slider-value" id="length_value_<?php echo esc_attr( $instance_id ); ?>"><?php echo esc_html( $admin_settings['generation']['default_length_label'] ); ?></div>
 							</div>
 							<div class="ai-faq-slider-container">
-								<input type="range" class="ai-faq-slider" id="length_<?php echo esc_attr( $instance_id ); ?>" name="length" min="1" max="4" value="2">
+								<input type="range" class="ai-faq-slider" id="length_<?php echo esc_attr( $instance_id ); ?>" name="length" min="1" max="3" value="<?php echo esc_attr( $default_length_value ); ?>">
 								<div class="ai-faq-slider-labels">
 									<span><?php esc_html_e( 'Short', '365i-ai-faq-generator' ); ?></span>
 									<span><?php esc_html_e( 'Medium', '365i-ai-faq-generator' ); ?></span>
 									<span><?php esc_html_e( 'Long', '365i-ai-faq-generator' ); ?></span>
-									<span><?php esc_html_e( 'Detailed', '365i-ai-faq-generator' ); ?></span>
 								</div>
 							</div>
 						</div>
 					</div>
 					
+					<?php
+					// Get default tone from admin settings
+					$default_tone = $admin_settings['generation']['default_tone'];
+					$tone_options = array(
+						'professional' => array(
+							'icon' => '🎩',
+							'title' => __( 'Professional', '365i-ai-faq-generator' ),
+							'description' => __( 'Formal and business-focused', '365i-ai-faq-generator' ),
+						),
+						'friendly' => array(
+							'icon' => '😊',
+							'title' => __( 'Friendly', '365i-ai-faq-generator' ),
+							'description' => __( 'Warm and approachable', '365i-ai-faq-generator' ),
+						),
+						'casual' => array(
+							'icon' => '👋',
+							'title' => __( 'Casual', '365i-ai-faq-generator' ),
+							'description' => __( 'Relaxed and conversational', '365i-ai-faq-generator' ),
+						),
+						'technical' => array(
+							'icon' => '🔧',
+							'title' => __( 'Technical', '365i-ai-faq-generator' ),
+							'description' => __( 'Detailed and precise', '365i-ai-faq-generator' ),
+						),
+					);
+					?>
 					<div class="ai-faq-button-group">
 						<label class="ai-faq-form-label"><?php esc_html_e( 'Tone', '365i-ai-faq-generator' ); ?></label>
 						<div class="ai-faq-tone-selector">
-							<input type="radio" id="tone_professional_<?php echo esc_attr( $instance_id ); ?>" name="tone" value="professional" class="ai-faq-radio-input" checked>
-							<label for="tone_professional_<?php echo esc_attr( $instance_id ); ?>" class="ai-faq-tone-option active">
-								<div class="ai-faq-tone-icon">🎩</div>
-								<div class="ai-faq-tone-title"><?php esc_html_e( 'Professional', '365i-ai-faq-generator' ); ?></div>
-								<div class="ai-faq-tone-description"><?php esc_html_e( 'Formal and business-focused', '365i-ai-faq-generator' ); ?></div>
-							</label>
-							
-							<input type="radio" id="tone_friendly_<?php echo esc_attr( $instance_id ); ?>" name="tone" value="friendly" class="ai-faq-radio-input">
-							<label for="tone_friendly_<?php echo esc_attr( $instance_id ); ?>" class="ai-faq-tone-option">
-								<div class="ai-faq-tone-icon">😊</div>
-								<div class="ai-faq-tone-title"><?php esc_html_e( 'Friendly', '365i-ai-faq-generator' ); ?></div>
-								<div class="ai-faq-tone-description"><?php esc_html_e( 'Warm and approachable', '365i-ai-faq-generator' ); ?></div>
-							</label>
-							
-							<input type="radio" id="tone_casual_<?php echo esc_attr( $instance_id ); ?>" name="tone" value="casual" class="ai-faq-radio-input">
-							<label for="tone_casual_<?php echo esc_attr( $instance_id ); ?>" class="ai-faq-tone-option">
-								<div class="ai-faq-tone-icon">👋</div>
-								<div class="ai-faq-tone-title"><?php esc_html_e( 'Casual', '365i-ai-faq-generator' ); ?></div>
-								<div class="ai-faq-tone-description"><?php esc_html_e( 'Relaxed and conversational', '365i-ai-faq-generator' ); ?></div>
-							</label>
-							
-							<input type="radio" id="tone_authoritative_<?php echo esc_attr( $instance_id ); ?>" name="tone" value="authoritative" class="ai-faq-radio-input">
-							<label for="tone_authoritative_<?php echo esc_attr( $instance_id ); ?>" class="ai-faq-tone-option">
-								<div class="ai-faq-tone-icon">🎯</div>
-								<div class="ai-faq-tone-title"><?php esc_html_e( 'Authoritative', '365i-ai-faq-generator' ); ?></div>
-								<div class="ai-faq-tone-description"><?php esc_html_e( 'Expert and commanding', '365i-ai-faq-generator' ); ?></div>
-							</label>
+							<?php foreach ( $tone_options as $tone_value => $tone_data ) : ?>
+								<?php $is_default = ( $tone_value === $default_tone ); ?>
+								<input type="radio" id="tone_<?php echo esc_attr( $tone_value ); ?>_<?php echo esc_attr( $instance_id ); ?>" name="tone" value="<?php echo esc_attr( $tone_value ); ?>" class="ai-faq-radio-input" <?php checked( $is_default ); ?>>
+								<label for="tone_<?php echo esc_attr( $tone_value ); ?>_<?php echo esc_attr( $instance_id ); ?>" class="ai-faq-tone-option<?php echo $is_default ? ' active' : ''; ?>">
+									<div class="ai-faq-tone-icon"><?php echo esc_html( $tone_data['icon'] ); ?></div>
+									<div class="ai-faq-tone-title"><?php echo esc_html( $tone_data['title'] ); ?></div>
+									<div class="ai-faq-tone-description"><?php echo esc_html( $tone_data['description'] ); ?></div>
+								</label>
+							<?php endforeach; ?>
 						</div>
 					</div>
 					
+					<?php
+					// Get default schema type from admin settings
+					$default_schema = $admin_settings['generation']['default_schema_type'];
+					$schema_options = array(
+						'json-ld' => array(
+							'icon' => '📋',
+							'title' => __( 'JSON-LD', '365i-ai-faq-generator' ),
+							'description' => __( 'Google\'s preferred format', '365i-ai-faq-generator' ),
+						),
+						'microdata' => array(
+							'icon' => '🔍',
+							'title' => __( 'Microdata', '365i-ai-faq-generator' ),
+							'description' => __( 'HTML5 structured data', '365i-ai-faq-generator' ),
+						),
+						'rdfa' => array(
+							'icon' => '🔗',
+							'title' => __( 'RDFa', '365i-ai-faq-generator' ),
+							'description' => __( 'Semantic web standard', '365i-ai-faq-generator' ),
+						),
+						'html' => array(
+							'icon' => '📄',
+							'title' => __( 'HTML', '365i-ai-faq-generator' ),
+							'description' => __( 'Plain HTML format', '365i-ai-faq-generator' ),
+						),
+					);
+					?>
 					<div class="ai-faq-button-group">
 						<label class="ai-faq-form-label"><?php esc_html_e( 'Schema Format', '365i-ai-faq-generator' ); ?></label>
 						<div class="ai-faq-schema-selector">
-							<input type="radio" id="schema_json_ld_<?php echo esc_attr( $instance_id ); ?>" name="schema_output" value="json-ld" class="ai-faq-radio-input" checked>
-							<label for="schema_json_ld_<?php echo esc_attr( $instance_id ); ?>" class="ai-faq-schema-option active">
-								<div class="ai-faq-schema-icon">📋</div>
-								<div class="ai-faq-schema-title"><?php esc_html_e( 'JSON-LD', '365i-ai-faq-generator' ); ?></div>
-								<div class="ai-faq-schema-description"><?php esc_html_e( 'Google\'s preferred format', '365i-ai-faq-generator' ); ?></div>
-							</label>
-							
-							<input type="radio" id="schema_microdata_<?php echo esc_attr( $instance_id ); ?>" name="schema_output" value="microdata" class="ai-faq-radio-input">
-							<label for="schema_microdata_<?php echo esc_attr( $instance_id ); ?>" class="ai-faq-schema-option">
-								<div class="ai-faq-schema-icon">🔍</div>
-								<div class="ai-faq-schema-title"><?php esc_html_e( 'Microdata', '365i-ai-faq-generator' ); ?></div>
-								<div class="ai-faq-schema-description"><?php esc_html_e( 'HTML5 structured data', '365i-ai-faq-generator' ); ?></div>
-							</label>
-							
-							<input type="radio" id="schema_rdfa_<?php echo esc_attr( $instance_id ); ?>" name="schema_output" value="rdfa" class="ai-faq-radio-input">
-							<label for="schema_rdfa_<?php echo esc_attr( $instance_id ); ?>" class="ai-faq-schema-option">
-								<div class="ai-faq-schema-icon">🔗</div>
-								<div class="ai-faq-schema-title"><?php esc_html_e( 'RDFa', '365i-ai-faq-generator' ); ?></div>
-								<div class="ai-faq-schema-description"><?php esc_html_e( 'Semantic web standard', '365i-ai-faq-generator' ); ?></div>
-							</label>
-							
-							<input type="radio" id="schema_html_<?php echo esc_attr( $instance_id ); ?>" name="schema_output" value="html" class="ai-faq-radio-input">
-							<label for="schema_html_<?php echo esc_attr( $instance_id ); ?>" class="ai-faq-schema-option">
-								<div class="ai-faq-schema-icon">📄</div>
-								<div class="ai-faq-schema-title"><?php esc_html_e( 'HTML', '365i-ai-faq-generator' ); ?></div>
-								<div class="ai-faq-schema-description"><?php esc_html_e( 'Plain HTML format', '365i-ai-faq-generator' ); ?></div>
-							</label>
+							<?php foreach ( $schema_options as $schema_value => $schema_data ) : ?>
+								<?php $is_default = ( $schema_value === $default_schema ); ?>
+								<input type="radio" id="schema_<?php echo esc_attr( str_replace( '-', '_', $schema_value ) ); ?>_<?php echo esc_attr( $instance_id ); ?>" name="schema_output" value="<?php echo esc_attr( $schema_value ); ?>" class="ai-faq-radio-input" <?php checked( $is_default ); ?>>
+								<label for="schema_<?php echo esc_attr( str_replace( '-', '_', $schema_value ) ); ?>_<?php echo esc_attr( $instance_id ); ?>" class="ai-faq-schema-option<?php echo $is_default ? ' active' : ''; ?>">
+									<div class="ai-faq-schema-icon"><?php echo esc_html( $schema_data['icon'] ); ?></div>
+									<div class="ai-faq-schema-title"><?php echo esc_html( $schema_data['title'] ); ?></div>
+									<div class="ai-faq-schema-description"><?php echo esc_html( $schema_data['description'] ); ?></div>
+								</label>
+							<?php endforeach; ?>
 						</div>
 					</div>
 				</div>

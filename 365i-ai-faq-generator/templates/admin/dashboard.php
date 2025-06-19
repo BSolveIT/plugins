@@ -99,7 +99,7 @@ foreach ( $workers as $worker_name => $config ) {
 			</div>
 			
 			<div class="stat-box">
-				<div class="stat-number"><?php echo isset( $settings['default_faq_count'] ) ? esc_html( $settings['default_faq_count'] ) : '12'; ?></div>
+				<div class="stat-number"><?php echo isset( $options['default_faq_count'] ) ? esc_html( $options['default_faq_count'] ) : '12'; ?></div>
 				<div class="stat-label"><?php esc_html_e( 'Default FAQ Count', '365i-ai-faq-generator' ); ?></div>
 			</div>
 			
