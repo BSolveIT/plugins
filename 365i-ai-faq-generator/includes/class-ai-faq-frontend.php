@@ -17,31 +17,39 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Frontend functionality class.
- * 
+ *
  * Manages shortcode implementation, frontend asset loading,
- * and public-facing functionality.
- * 
+ * and public-facing functionality with dynamic settings integration.
+ *
  * @since 2.0.0
  */
 class AI_FAQ_Frontend {
 
 	/**
 	 * Shortcode tag.
-	 * 
+	 *
 	 * @since 2.0.0
 	 * @var string
 	 */
 	private $shortcode_tag = 'ai_faq_generator';
 
 	/**
+	 * Settings handler instance.
+	 *
+	 * @since 2.1.0
+	 * @var AI_FAQ_Settings_Handler
+	 */
+	private $settings_handler;
+
+	/**
 	 * Constructor.
-	 * 
+	 *
 	 * Initialize the frontend component.
-	 * 
+	 *
 	 * @since 2.0.0
 	 */
 	public function __construct() {
-		// Constructor logic if needed.
+		$this->settings_handler = new AI_FAQ_Settings_Handler();
 	}
 
 	/**
@@ -180,8 +188,8 @@ class AI_FAQ_Frontend {
 	}
 
 	/**
-	 * Enqueue frontend assets.
-	 * 
+	 * Enqueue frontend assets with dynamic settings integration.
+	 *
 	 * @since 2.0.0
 	 */
 	public function enqueue_frontend_assets() {
@@ -189,6 +197,9 @@ class AI_FAQ_Frontend {
 		if ( wp_script_is( 'ai-faq-gen-frontend', 'enqueued' ) ) {
 			return;
 		}
+
+		// Get comprehensive settings
+		$comprehensive_settings = $this->settings_handler->get_comprehensive_settings();
 
 		// Enqueue frontend CSS.
 		wp_enqueue_style(
@@ -207,33 +218,68 @@ class AI_FAQ_Frontend {
 			true
 		);
 
-		// Localize script with necessary data.
-		$localize_data = array(
-			'ajax_url' => admin_url( 'admin-ajax.php' ),
-			'nonce' => wp_create_nonce( 'ai_faq_generate_nonce' ),
-			'strings' => array(
-				'loading' => __( 'Loading...', '365i-ai-faq-generator' ),
-				'error' => __( 'An error occurred. Please try again.', '365i-ai-faq-generator' ),
-				'success' => __( 'Operation completed successfully.', '365i-ai-faq-generator' ),
-				'confirm' => __( 'Are you sure?', '365i-ai-faq-generator' ),
-				'generating' => __( 'Generating FAQ...', '365i-ai-faq-generator' ),
-				'enhancing' => __( 'Enhancing FAQ...', '365i-ai-faq-generator' ),
-				'analyzing' => __( 'Analyzing SEO...', '365i-ai-faq-generator' ),
-				'extracting' => __( 'Extracting FAQ...', '365i-ai-faq-generator' ),
-				'noResults' => __( 'No results found.', '365i-ai-faq-generator' ),
-				'invalidUrl' => __( 'Please enter a valid URL.', '365i-ai-faq-generator' ),
-				'topicRequired' => __( 'Please enter a topic.', '365i-ai-faq-generator' ),
-				'saved' => __( 'FAQ saved successfully.', '365i-ai-faq-generator' ),
-				'exported' => __( 'FAQ exported successfully.', '365i-ai-faq-generator' ),
-				'copied' => __( 'Copied to clipboard!', '365i-ai-faq-generator' ),
-				'schemaGenerated' => __( 'Schema markup generated successfully.', '365i-ai-faq-generator' ),
-			),
-			'settings' => array(
-				'autoSaveInterval' => $this->get_auto_save_interval(),
-				'defaultFaqCount' => $this->get_default_faq_count(),
-				'debugMode' => $this->is_debug_mode(),
-			),
+		// Enqueue settings synchronization JavaScript.
+		wp_enqueue_script(
+			'ai-faq-gen-settings-sync',
+			AI_FAQ_GEN_URL . 'assets/js/settings-sync.js',
+			array( 'jquery', 'ai-faq-gen-frontend' ),
+			AI_FAQ_GEN_VERSION,
+			true
 		);
+
+		// Prepare comprehensive localization data from settings handler
+		$localize_data = array_merge(
+			$comprehensive_settings['js_config'],
+			array(
+				'strings' => $comprehensive_settings['localization']['strings'],
+				'settings' => array(
+					'autoSaveInterval' => $comprehensive_settings['general']['auto_save_interval'],
+					'defaultFaqCount' => $comprehensive_settings['general']['default_faq_count'],
+					'debugMode' => $comprehensive_settings['general']['debug_mode'],
+					'maxQuestions' => $comprehensive_settings['general']['max_questions_per_batch'],
+					'cacheDuration' => $comprehensive_settings['general']['cache_duration'],
+					'enableAnimations' => $comprehensive_settings['ui']['enable_animations'],
+					'compactMode' => $comprehensive_settings['ui']['compact_mode'],
+					'theme' => $comprehensive_settings['ui']['theme'],
+					'colorScheme' => $comprehensive_settings['ui']['color_scheme'],
+				),
+				'generation' => array(
+					'defaultTone' => $comprehensive_settings['generation']['default_tone'],
+					'defaultLength' => $comprehensive_settings['generation']['default_length'],
+					'defaultSchema' => $comprehensive_settings['generation']['default_schema_type'],
+					'toneOptions' => $comprehensive_settings['generation']['tone_options'],
+					'lengthOptions' => $comprehensive_settings['generation']['length_options'],
+					'schemaOptions' => $comprehensive_settings['generation']['schema_options'],
+					'enableAutoSchema' => $comprehensive_settings['generation']['enable_auto_schema'],
+					'enableSeoOptimization' => $comprehensive_settings['generation']['enable_seo_optimization'],
+				),
+				'workers' => array(
+					'hasEnabledWorkers' => $comprehensive_settings['workers']['has_enabled_workers'],
+					'enabledCount' => $comprehensive_settings['workers']['enabled_count'],
+					'apiConfigured' => $comprehensive_settings['workers']['api_configured'],
+				),
+				'performance' => array(
+					'enableCaching' => $comprehensive_settings['performance']['enable_caching'],
+					'enableRateLimiting' => $comprehensive_settings['performance']['enable_rate_limiting'],
+					'debounceDelay' => $comprehensive_settings['performance']['debounce_delay'],
+					'lazyLoadFaqs' => $comprehensive_settings['performance']['lazy_load_faqs'],
+				),
+				'localization' => array(
+					'locale' => $comprehensive_settings['localization']['locale'],
+					'language' => $comprehensive_settings['localization']['language'],
+					'textDirection' => $comprehensive_settings['localization']['text_direction'],
+					'dateFormat' => $comprehensive_settings['localization']['date_format'],
+					'timeFormat' => $comprehensive_settings['localization']['time_format'],
+					'timezone' => $comprehensive_settings['localization']['timezone'],
+				),
+				'computed' => $comprehensive_settings['computed'],
+				'version' => $comprehensive_settings['version'],
+				'timestamp' => $comprehensive_settings['timestamp'],
+			)
+		);
+
+		// Apply filters for extensibility
+		$localize_data = apply_filters( 'ai_faq_gen_frontend_localize_data', $localize_data, $comprehensive_settings );
 
 		wp_localize_script( 'ai-faq-gen-frontend', 'ai_faq_frontend', $localize_data );
 	}

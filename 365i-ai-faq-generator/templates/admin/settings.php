@@ -42,7 +42,7 @@ $enable_analytics = isset( $options['enable_analytics'] ) ? $options['enable_ana
 	
 	<!-- Settings Form -->
 	<form id="settings-form" method="post" action="">
-		<?php wp_nonce_field( 'ai_faq_gen_save_settings', '_wpnonce' ); ?>
+		<?php wp_nonce_field( 'ai_faq_gen_nonce', '_wpnonce' ); ?>
 		
 		<!-- API Configuration -->
 		<div class="ai-faq-gen-section api-config-section">

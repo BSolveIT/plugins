@@ -64,131 +64,316 @@ $container_classes = apply_filters( 'ai_faq_generator_container_classes', array(
 	<?php if ( $show_form ) : ?>
 		<!-- FAQ Generation Form -->
 		<div class="ai-faq-form-container">
+			<!-- Header Section -->
+			<div class="ai-faq-header">
+				<h1 class="ai-faq-header-title">✨ <?php esc_html_e( 'AI FAQ Generator', '365i-ai-faq-generator' ); ?></h1>
+				<p class="ai-faq-header-subtitle"><?php esc_html_e( 'Create professional FAQs in seconds with the power of AI', '365i-ai-faq-generator' ); ?></p>
+			</div>
+			
 			<form class="ai-faq-form" method="post" data-max-questions="<?php echo esc_attr( $max_questions ); ?>">
 				<?php wp_nonce_field( 'ai_faq_generate_frontend', 'ai_faq_nonce' ); ?>
 				
-				<h3 class="ai-faq-form-title">
-					<?php esc_html_e( 'Generate AI-Powered FAQs', '365i-ai-faq-generator' ); ?>
-				</h3>
-				
-				<!-- Generation Method Selection -->
-				<div class="ai-faq-form-row">
-					<label class="ai-faq-form-label" for="generation_method_<?php echo esc_attr( $instance_id ); ?>">
-						<?php esc_html_e( 'Generation Method', '365i-ai-faq-generator' ); ?>
-					</label>
-					<select id="generation_method_<?php echo esc_attr( $instance_id ); ?>" name="generation_method" class="ai-faq-form-select" required>
-						<option value=""><?php esc_html_e( 'Select method...', '365i-ai-faq-generator' ); ?></option>
-						<option value="topic"><?php esc_html_e( 'From Topic/Keywords', '365i-ai-faq-generator' ); ?></option>
-						<option value="url"><?php esc_html_e( 'From Website URL', '365i-ai-faq-generator' ); ?></option>
-						<option value="enhance"><?php esc_html_e( 'Enhance Existing FAQ', '365i-ai-faq-generator' ); ?></option>
-					</select>
-					<p class="ai-faq-form-help"><?php esc_html_e( 'Choose how you want to generate your FAQs.', '365i-ai-faq-generator' ); ?></p>
-				</div>
-				
-				<!-- Topic Input (shown when method is 'topic') -->
-				<div class="ai-faq-form-row" data-show-when="generation_method" data-show-value="topic" style="display: none;">
-					<label class="ai-faq-form-label" for="topic_<?php echo esc_attr( $instance_id ); ?>">
-						<?php esc_html_e( 'Topic or Keywords', '365i-ai-faq-generator' ); ?>
-					</label>
-					<textarea id="topic_<?php echo esc_attr( $instance_id ); ?>" name="topic" class="ai-faq-form-textarea" rows="3" placeholder="<?php esc_attr_e( 'e.g., WordPress hosting, SEO optimization, e-commerce marketing...', '365i-ai-faq-generator' ); ?>"></textarea>
-					<p class="ai-faq-form-help"><?php esc_html_e( 'Describe your topic or provide keywords for FAQ generation.', '365i-ai-faq-generator' ); ?></p>
-				</div>
-				
-				<!-- URL Input (shown when method is 'url') -->
-				<div class="ai-faq-form-row" data-show-when="generation_method" data-show-value="url" style="display: none;">
-					<label class="ai-faq-form-label" for="url_<?php echo esc_attr( $instance_id ); ?>">
-						<?php esc_html_e( 'Website URL', '365i-ai-faq-generator' ); ?>
-					</label>
-					<input type="url" id="url_<?php echo esc_attr( $instance_id ); ?>" name="url" class="ai-faq-form-input" placeholder="https://example.com">
-					<p class="ai-faq-form-help"><?php esc_html_e( 'Enter the URL of the website to analyze and generate FAQs from.', '365i-ai-faq-generator' ); ?></p>
-				</div>
-				
-				<!-- Existing FAQ Input (shown when method is 'enhance') -->
-				<div class="ai-faq-form-row" data-show-when="generation_method" data-show-value="enhance" style="display: none;">
-					<label class="ai-faq-form-label" for="existing_faq_<?php echo esc_attr( $instance_id ); ?>">
-						<?php esc_html_e( 'Existing FAQ Content', '365i-ai-faq-generator' ); ?>
-					</label>
-					<textarea id="existing_faq_<?php echo esc_attr( $instance_id ); ?>" name="existing_faq" class="ai-faq-form-textarea" rows="5" placeholder="<?php esc_attr_e( 'Paste your existing FAQ content here...', '365i-ai-faq-generator' ); ?>"></textarea>
-					<p class="ai-faq-form-help"><?php esc_html_e( 'Provide existing FAQ content to enhance and improve.', '365i-ai-faq-generator' ); ?></p>
-				</div>
-				
-				<!-- Generation Options -->
-				<div class="ai-faq-form-options">
-					<div class="ai-faq-form-option">
-						<label class="ai-faq-form-label" for="num_questions_<?php echo esc_attr( $instance_id ); ?>">
-							<?php esc_html_e( 'Number of Questions', '365i-ai-faq-generator' ); ?>
-						</label>
-						<select id="num_questions_<?php echo esc_attr( $instance_id ); ?>" name="num_questions" class="ai-faq-form-select">
-							<option value="5">5 <?php esc_html_e( 'questions', '365i-ai-faq-generator' ); ?></option>
-							<option value="10" selected>10 <?php esc_html_e( 'questions', '365i-ai-faq-generator' ); ?></option>
-							<option value="15">15 <?php esc_html_e( 'questions', '365i-ai-faq-generator' ); ?></option>
-							<option value="20">20 <?php esc_html_e( 'questions', '365i-ai-faq-generator' ); ?></option>
-						</select>
+				<!-- Source Method Section -->
+				<div class="ai-faq-form-section">
+					<div class="ai-faq-section-title">
+						<div class="ai-faq-section-icon">1</div>
+						<?php esc_html_e( 'Choose FAQ Source Method', '365i-ai-faq-generator' ); ?>
 					</div>
 					
-					<div class="ai-faq-form-option">
-						<label class="ai-faq-form-label" for="tone_<?php echo esc_attr( $instance_id ); ?>">
-							<?php esc_html_e( 'Tone', '365i-ai-faq-generator' ); ?>
+					<div class="ai-faq-method-selector">
+						<input type="radio" id="method_import_url_<?php echo esc_attr( $instance_id ); ?>" name="generation_method" value="import_url" class="ai-faq-radio-input" checked>
+						<label for="method_import_url_<?php echo esc_attr( $instance_id ); ?>" class="ai-faq-method-card active">
+							<div class="ai-faq-method-icon">🌐</div>
+							<div class="ai-faq-method-content">
+								<div class="ai-faq-method-title"><?php esc_html_e( 'Import from URL', '365i-ai-faq-generator' ); ?></div>
+								<div class="ai-faq-method-description"><?php esc_html_e( 'Extract existing FAQs from a webpage', '365i-ai-faq-generator' ); ?></div>
+							</div>
 						</label>
-						<select id="tone_<?php echo esc_attr( $instance_id ); ?>" name="tone" class="ai-faq-form-select">
-							<option value="professional"><?php esc_html_e( 'Professional', '365i-ai-faq-generator' ); ?></option>
-							<option value="friendly"><?php esc_html_e( 'Friendly', '365i-ai-faq-generator' ); ?></option>
-							<option value="casual"><?php esc_html_e( 'Casual', '365i-ai-faq-generator' ); ?></option>
-							<option value="technical"><?php esc_html_e( 'Technical', '365i-ai-faq-generator' ); ?></option>
-							<option value="conversational"><?php esc_html_e( 'Conversational', '365i-ai-faq-generator' ); ?></option>
-						</select>
-					</div>
-					
-					<div class="ai-faq-form-option">
-						<label class="ai-faq-form-label" for="length_<?php echo esc_attr( $instance_id ); ?>">
-							<?php esc_html_e( 'Answer Length', '365i-ai-faq-generator' ); ?>
+						
+						<input type="radio" id="method_ai_url_<?php echo esc_attr( $instance_id ); ?>" name="generation_method" value="ai_url" class="ai-faq-radio-input">
+						<label for="method_ai_url_<?php echo esc_attr( $instance_id ); ?>" class="ai-faq-method-card">
+							<div class="ai-faq-method-icon">🤖</div>
+							<div class="ai-faq-method-content">
+								<div class="ai-faq-method-title"><?php esc_html_e( 'AI Generate from URL', '365i-ai-faq-generator' ); ?></div>
+								<div class="ai-faq-method-description"><?php esc_html_e( 'Create FAQs based on webpage content', '365i-ai-faq-generator' ); ?></div>
+							</div>
 						</label>
-						<select id="length_<?php echo esc_attr( $instance_id ); ?>" name="length" class="ai-faq-form-select">
-							<option value="short"><?php esc_html_e( 'Short', '365i-ai-faq-generator' ); ?></option>
-							<option value="medium" selected><?php esc_html_e( 'Medium', '365i-ai-faq-generator' ); ?></option>
-							<option value="long"><?php esc_html_e( 'Long', '365i-ai-faq-generator' ); ?></option>
-						</select>
+						
+						<input type="radio" id="method_import_schema_<?php echo esc_attr( $instance_id ); ?>" name="generation_method" value="import_schema" class="ai-faq-radio-input">
+						<label for="method_import_schema_<?php echo esc_attr( $instance_id ); ?>" class="ai-faq-method-card">
+							<div class="ai-faq-method-icon">📋</div>
+							<div class="ai-faq-method-content">
+								<div class="ai-faq-method-title"><?php esc_html_e( 'Import from Schema', '365i-ai-faq-generator' ); ?></div>
+								<div class="ai-faq-method-description"><?php esc_html_e( 'Import from existing FAQ schema markup', '365i-ai-faq-generator' ); ?></div>
+							</div>
+						</label>
+						
+						<input type="radio" id="method_manual_<?php echo esc_attr( $instance_id ); ?>" name="generation_method" value="manual" class="ai-faq-radio-input">
+						<label for="method_manual_<?php echo esc_attr( $instance_id ); ?>" class="ai-faq-method-card">
+							<div class="ai-faq-method-icon">✏️</div>
+							<div class="ai-faq-method-content">
+								<div class="ai-faq-method-title"><?php esc_html_e( 'Manual Creation', '365i-ai-faq-generator' ); ?></div>
+								<div class="ai-faq-method-description"><?php esc_html_e( 'Add and edit FAQs manually', '365i-ai-faq-generator' ); ?></div>
+							</div>
+						</label>
 					</div>
 				</div>
 				
-				<!-- Advanced Options -->
-				<details class="ai-faq-advanced-options">
-					<summary><?php esc_html_e( 'Advanced Options', '365i-ai-faq-generator' ); ?></summary>
+				<!-- URL Import Section -->
+				<div class="ai-faq-form-section" id="url-import-content">
+					<div class="ai-faq-section-title">
+						<div class="ai-faq-section-icon">2</div>
+						<?php esc_html_e( 'URL to Import From', '365i-ai-faq-generator' ); ?>
+					</div>
 					
-					<div class="ai-faq-form-options">
-						<div class="ai-faq-form-option">
-							<label class="ai-faq-form-label" for="schema_output_<?php echo esc_attr( $instance_id ); ?>">
-								<?php esc_html_e( 'Schema Format', '365i-ai-faq-generator' ); ?>
-							</label>
-							<select id="schema_output_<?php echo esc_attr( $instance_id ); ?>" name="schema_output" class="ai-faq-form-select">
-								<option value="json-ld" <?php selected( $schema_type, 'json-ld' ); ?>><?php esc_html_e( 'JSON-LD', '365i-ai-faq-generator' ); ?></option>
-								<option value="microdata" <?php selected( $schema_type, 'microdata' ); ?>><?php esc_html_e( 'Microdata', '365i-ai-faq-generator' ); ?></option>
-								<option value="rdfa" <?php selected( $schema_type, 'rdfa' ); ?>><?php esc_html_e( 'RDFa', '365i-ai-faq-generator' ); ?></option>
-								<option value="html" <?php selected( $schema_type, 'html' ); ?>><?php esc_html_e( 'Plain HTML', '365i-ai-faq-generator' ); ?></option>
+					<div class="ai-faq-form-group">
+						<label class="ai-faq-form-label"><?php esc_html_e( 'Enter the URL containing existing FAQs', '365i-ai-faq-generator' ); ?></label>
+						<input type="url" id="import_url_<?php echo esc_attr( $instance_id ); ?>" name="import_url" class="ai-faq-form-input" placeholder="<?php esc_attr_e( 'https://example.com/faq-page', '365i-ai-faq-generator' ); ?>">
+					</div>
+				</div>
+				
+				<!-- AI URL Generation Section -->
+				<div class="ai-faq-form-section" id="ai-url-content" style="display: none;">
+					<div class="ai-faq-section-title">
+						<div class="ai-faq-section-icon">2</div>
+						<?php esc_html_e( 'URL for AI Analysis', '365i-ai-faq-generator' ); ?>
+					</div>
+					
+					<div class="ai-faq-form-group">
+						<label class="ai-faq-form-label"><?php esc_html_e( 'Enter the URL to analyze for FAQ generation', '365i-ai-faq-generator' ); ?></label>
+						<input type="url" id="ai_url_<?php echo esc_attr( $instance_id ); ?>" name="ai_url" class="ai-faq-form-input" placeholder="<?php esc_attr_e( 'https://example.com/product-page', '365i-ai-faq-generator' ); ?>">
+					</div>
+				</div>
+				
+				<!-- Schema Import Section -->
+				<div class="ai-faq-form-section" id="schema-import-content" style="display: none;">
+					<div class="ai-faq-section-title">
+						<div class="ai-faq-section-icon">2</div>
+						<?php esc_html_e( 'FAQ Schema to Import', '365i-ai-faq-generator' ); ?>
+					</div>
+					
+					<div class="ai-faq-form-group">
+						<label class="ai-faq-form-label"><?php esc_html_e( 'Paste your existing FAQ schema markup (JSON-LD, Microdata, or RDFa)', '365i-ai-faq-generator' ); ?></label>
+						<textarea id="schema_import_<?php echo esc_attr( $instance_id ); ?>" name="schema_import" class="ai-faq-form-textarea" rows="8" placeholder="<?php esc_attr_e( 'Paste your FAQ schema here...', '365i-ai-faq-generator' ); ?>"></textarea>
+					</div>
+				</div>
+				
+				<!-- Manual Creation Section -->
+				<div class="ai-faq-form-section" id="manual-content" style="display: none;">
+					<div class="ai-faq-section-title">
+						<div class="ai-faq-section-icon">2</div>
+						<?php esc_html_e( 'Manual FAQ Creation', '365i-ai-faq-generator' ); ?>
+					</div>
+					
+					<div class="ai-faq-manual-editor">
+						<div class="ai-faq-manual-toolbar">
+							<button type="button" class="ai-faq-add-question-btn">
+								<span class="ai-faq-btn-icon">➕</span>
+								<?php esc_html_e( 'Add Question', '365i-ai-faq-generator' ); ?>
+							</button>
+							<button type="button" class="ai-faq-load-template-btn">
+								<span class="ai-faq-btn-icon">📄</span>
+								<?php esc_html_e( 'Load Template', '365i-ai-faq-generator' ); ?>
+							</button>
+						</div>
+						<div class="ai-faq-manual-questions" id="manual-questions-<?php echo esc_attr( $instance_id ); ?>">
+							<!-- Manual questions will be added here dynamically -->
+						</div>
+					</div>
+				</div>
+				
+				<!-- FAQ Page URL Section -->
+				<div class="ai-faq-form-section">
+					<div class="ai-faq-section-title">
+						<div class="ai-faq-section-icon">3</div>
+						<?php esc_html_e( 'FAQ Page URL', '365i-ai-faq-generator' ); ?>
+					</div>
+					
+					<div class="ai-faq-form-group">
+						<label class="ai-faq-form-label"><?php esc_html_e( 'Where will these FAQs appear? (Required for full schema links)', '365i-ai-faq-generator' ); ?></label>
+						<input type="url" id="faq_page_url_<?php echo esc_attr( $instance_id ); ?>" name="faq_page_url" class="ai-faq-form-input" placeholder="<?php esc_attr_e( 'https://yoursite.com/faq/', '365i-ai-faq-generator' ); ?>" value="<?php echo esc_attr( get_permalink() ); ?>">
+						<p class="ai-faq-form-help"><?php esc_html_e( 'This URL will be used to generate complete FAQ links in the schema markup.', '365i-ai-faq-generator' ); ?></p>
+					</div>
+				</div>
+				
+				<!-- Local Storage Management Section -->
+				<div class="ai-faq-form-section">
+					<div class="ai-faq-section-title ai-faq-collapsible-header" role="button" tabindex="0" aria-expanded="false" aria-controls="storage-controls-<?php echo esc_attr( $instance_id ); ?>">
+						<div class="ai-faq-section-icon">4</div>
+						<span class="ai-faq-section-title-text"><?php esc_html_e( 'Save & Load FAQs', '365i-ai-faq-generator' ); ?></span>
+						<span class="ai-faq-section-toggle-icon">💾</span>
+						<span class="ai-faq-section-arrow">▼</span>
+					</div>
+					
+					<div class="ai-faq-storage-controls ai-faq-collapsible-content" id="storage-controls-<?php echo esc_attr( $instance_id ); ?>" style="display: none;">
+						<div class="ai-faq-storage-actions">
+							<button type="button" class="ai-faq-storage-btn ai-faq-save-btn">
+								<span class="ai-faq-btn-icon">💾</span>
+								<span class="ai-faq-btn-text"><?php esc_html_e( 'Save Current', '365i-ai-faq-generator' ); ?></span>
+							</button>
+							<button type="button" class="ai-faq-storage-btn ai-faq-load-btn">
+								<span class="ai-faq-btn-icon">📂</span>
+								<span class="ai-faq-btn-text"><?php esc_html_e( 'Load Saved', '365i-ai-faq-generator' ); ?></span>
+							</button>
+							<button type="button" class="ai-faq-storage-btn ai-faq-export-btn">
+								<span class="ai-faq-btn-icon">📤</span>
+								<span class="ai-faq-btn-text"><?php esc_html_e( 'Export', '365i-ai-faq-generator' ); ?></span>
+							</button>
+							<button type="button" class="ai-faq-storage-btn ai-faq-import-btn">
+								<span class="ai-faq-btn-icon">📥</span>
+								<span class="ai-faq-btn-text"><?php esc_html_e( 'Import', '365i-ai-faq-generator' ); ?></span>
+							</button>
+						</div>
+						
+						<div class="ai-faq-version-history">
+							<label class="ai-faq-form-label"><?php esc_html_e( 'Version History', '365i-ai-faq-generator' ); ?></label>
+							<select class="ai-faq-version-select" id="version-history-<?php echo esc_attr( $instance_id ); ?>">
+								<option value=""><?php esc_html_e( 'Select a version to restore...', '365i-ai-faq-generator' ); ?></option>
 							</select>
+							<button type="button" class="ai-faq-version-restore-btn"><?php esc_html_e( 'Restore', '365i-ai-faq-generator' ); ?></button>
 						</div>
 						
-						<div class="ai-faq-form-option">
-							<label class="ai-faq-form-label">
-								<input type="checkbox" name="enable_seo" value="1" checked>
-								<?php esc_html_e( 'SEO Optimization', '365i-ai-faq-generator' ); ?>
+						<div class="ai-faq-storage-info">
+							<div class="ai-faq-storage-status">
+								<span class="ai-faq-storage-label"><?php esc_html_e( 'Storage Used:', '365i-ai-faq-generator' ); ?></span>
+								<span class="ai-faq-storage-value" id="storage-usage-<?php echo esc_attr( $instance_id ); ?>">0 KB</span>
+							</div>
+							<div class="ai-faq-last-saved">
+								<span class="ai-faq-storage-label"><?php esc_html_e( 'Last Saved:', '365i-ai-faq-generator' ); ?></span>
+								<span class="ai-faq-storage-value" id="last-saved-<?php echo esc_attr( $instance_id ); ?>"><?php esc_html_e( 'Never', '365i-ai-faq-generator' ); ?></span>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				<!-- Generation Settings Section -->
+				<div class="ai-faq-form-section">
+					<div class="ai-faq-section-title">
+						<div class="ai-faq-section-icon">5</div>
+						<?php esc_html_e( 'Generation Settings', '365i-ai-faq-generator' ); ?>
+					</div>
+					
+					<div class="ai-faq-settings-grid">
+						<div class="ai-faq-slider-group">
+							<div class="ai-faq-slider-header">
+								<label class="ai-faq-slider-label"><?php esc_html_e( 'Number of Questions', '365i-ai-faq-generator' ); ?></label>
+								<div class="ai-faq-slider-value" id="num_questions_value_<?php echo esc_attr( $instance_id ); ?>">10 questions</div>
+							</div>
+							<div class="ai-faq-slider-container">
+								<input type="range" class="ai-faq-slider" id="num_questions_<?php echo esc_attr( $instance_id ); ?>" name="num_questions" min="6" max="20" value="10">
+							</div>
+						</div>
+						
+						<div class="ai-faq-slider-group">
+							<div class="ai-faq-slider-header">
+								<label class="ai-faq-slider-label"><?php esc_html_e( 'Answer Length', '365i-ai-faq-generator' ); ?></label>
+								<div class="ai-faq-slider-value" id="length_value_<?php echo esc_attr( $instance_id ); ?>">Medium</div>
+							</div>
+							<div class="ai-faq-slider-container">
+								<input type="range" class="ai-faq-slider" id="length_<?php echo esc_attr( $instance_id ); ?>" name="length" min="1" max="4" value="2">
+								<div class="ai-faq-slider-labels">
+									<span><?php esc_html_e( 'Short', '365i-ai-faq-generator' ); ?></span>
+									<span><?php esc_html_e( 'Medium', '365i-ai-faq-generator' ); ?></span>
+									<span><?php esc_html_e( 'Long', '365i-ai-faq-generator' ); ?></span>
+									<span><?php esc_html_e( 'Detailed', '365i-ai-faq-generator' ); ?></span>
+								</div>
+							</div>
+						</div>
+					</div>
+					
+					<div class="ai-faq-button-group">
+						<label class="ai-faq-form-label"><?php esc_html_e( 'Tone', '365i-ai-faq-generator' ); ?></label>
+						<div class="ai-faq-tone-selector">
+							<input type="radio" id="tone_professional_<?php echo esc_attr( $instance_id ); ?>" name="tone" value="professional" class="ai-faq-radio-input" checked>
+							<label for="tone_professional_<?php echo esc_attr( $instance_id ); ?>" class="ai-faq-tone-option active">
+								<div class="ai-faq-tone-icon">🎩</div>
+								<div class="ai-faq-tone-title"><?php esc_html_e( 'Professional', '365i-ai-faq-generator' ); ?></div>
+								<div class="ai-faq-tone-description"><?php esc_html_e( 'Formal and business-focused', '365i-ai-faq-generator' ); ?></div>
 							</label>
-						</div>
-						
-						<div class="ai-faq-form-option">
-							<label class="ai-faq-form-label">
-								<input type="checkbox" name="prevent_duplicates" value="1" checked>
-								<?php esc_html_e( 'Prevent Duplicates', '365i-ai-faq-generator' ); ?>
+							
+							<input type="radio" id="tone_friendly_<?php echo esc_attr( $instance_id ); ?>" name="tone" value="friendly" class="ai-faq-radio-input">
+							<label for="tone_friendly_<?php echo esc_attr( $instance_id ); ?>" class="ai-faq-tone-option">
+								<div class="ai-faq-tone-icon">😊</div>
+								<div class="ai-faq-tone-title"><?php esc_html_e( 'Friendly', '365i-ai-faq-generator' ); ?></div>
+								<div class="ai-faq-tone-description"><?php esc_html_e( 'Warm and approachable', '365i-ai-faq-generator' ); ?></div>
+							</label>
+							
+							<input type="radio" id="tone_casual_<?php echo esc_attr( $instance_id ); ?>" name="tone" value="casual" class="ai-faq-radio-input">
+							<label for="tone_casual_<?php echo esc_attr( $instance_id ); ?>" class="ai-faq-tone-option">
+								<div class="ai-faq-tone-icon">👋</div>
+								<div class="ai-faq-tone-title"><?php esc_html_e( 'Casual', '365i-ai-faq-generator' ); ?></div>
+								<div class="ai-faq-tone-description"><?php esc_html_e( 'Relaxed and conversational', '365i-ai-faq-generator' ); ?></div>
+							</label>
+							
+							<input type="radio" id="tone_authoritative_<?php echo esc_attr( $instance_id ); ?>" name="tone" value="authoritative" class="ai-faq-radio-input">
+							<label for="tone_authoritative_<?php echo esc_attr( $instance_id ); ?>" class="ai-faq-tone-option">
+								<div class="ai-faq-tone-icon">🎯</div>
+								<div class="ai-faq-tone-title"><?php esc_html_e( 'Authoritative', '365i-ai-faq-generator' ); ?></div>
+								<div class="ai-faq-tone-description"><?php esc_html_e( 'Expert and commanding', '365i-ai-faq-generator' ); ?></div>
 							</label>
 						</div>
 					</div>
-				</details>
+					
+					<div class="ai-faq-button-group">
+						<label class="ai-faq-form-label"><?php esc_html_e( 'Schema Format', '365i-ai-faq-generator' ); ?></label>
+						<div class="ai-faq-schema-selector">
+							<input type="radio" id="schema_json_ld_<?php echo esc_attr( $instance_id ); ?>" name="schema_output" value="json-ld" class="ai-faq-radio-input" checked>
+							<label for="schema_json_ld_<?php echo esc_attr( $instance_id ); ?>" class="ai-faq-schema-option active">
+								<div class="ai-faq-schema-icon">📋</div>
+								<div class="ai-faq-schema-title"><?php esc_html_e( 'JSON-LD', '365i-ai-faq-generator' ); ?></div>
+								<div class="ai-faq-schema-description"><?php esc_html_e( 'Google\'s preferred format', '365i-ai-faq-generator' ); ?></div>
+							</label>
+							
+							<input type="radio" id="schema_microdata_<?php echo esc_attr( $instance_id ); ?>" name="schema_output" value="microdata" class="ai-faq-radio-input">
+							<label for="schema_microdata_<?php echo esc_attr( $instance_id ); ?>" class="ai-faq-schema-option">
+								<div class="ai-faq-schema-icon">🔍</div>
+								<div class="ai-faq-schema-title"><?php esc_html_e( 'Microdata', '365i-ai-faq-generator' ); ?></div>
+								<div class="ai-faq-schema-description"><?php esc_html_e( 'HTML5 structured data', '365i-ai-faq-generator' ); ?></div>
+							</label>
+							
+							<input type="radio" id="schema_rdfa_<?php echo esc_attr( $instance_id ); ?>" name="schema_output" value="rdfa" class="ai-faq-radio-input">
+							<label for="schema_rdfa_<?php echo esc_attr( $instance_id ); ?>" class="ai-faq-schema-option">
+								<div class="ai-faq-schema-icon">🔗</div>
+								<div class="ai-faq-schema-title"><?php esc_html_e( 'RDFa', '365i-ai-faq-generator' ); ?></div>
+								<div class="ai-faq-schema-description"><?php esc_html_e( 'Semantic web standard', '365i-ai-faq-generator' ); ?></div>
+							</label>
+							
+							<input type="radio" id="schema_html_<?php echo esc_attr( $instance_id ); ?>" name="schema_output" value="html" class="ai-faq-radio-input">
+							<label for="schema_html_<?php echo esc_attr( $instance_id ); ?>" class="ai-faq-schema-option">
+								<div class="ai-faq-schema-icon">📄</div>
+								<div class="ai-faq-schema-title"><?php esc_html_e( 'HTML', '365i-ai-faq-generator' ); ?></div>
+								<div class="ai-faq-schema-description"><?php esc_html_e( 'Plain HTML format', '365i-ai-faq-generator' ); ?></div>
+							</label>
+						</div>
+					</div>
+				</div>
 				
-				<!-- Submit Button -->
-				<button type="submit" class="ai-faq-generate-btn">
-					<span class="text"><?php esc_html_e( 'Generate FAQs', '365i-ai-faq-generator' ); ?></span>
-					<span class="spinner"></span>
-				</button>
+				<!-- Generate Action -->
+				<div class="ai-faq-form-section">
+					<div class="ai-faq-section-title">
+						<div class="ai-faq-section-icon">6</div>
+						<?php esc_html_e( 'Generate Your FAQs', '365i-ai-faq-generator' ); ?>
+					</div>
+					
+					<div class="ai-faq-generation-action">
+						<button type="submit" class="ai-faq-generate-btn">
+							<div class="ai-faq-btn-content">
+								<div class="ai-faq-btn-icon">✨</div>
+								<div class="ai-faq-btn-text">
+									<span class="ai-faq-btn-title"><?php esc_html_e( 'Generate FAQs', '365i-ai-faq-generator' ); ?></span>
+									<span class="ai-faq-btn-subtitle"><?php esc_html_e( 'Create AI-powered FAQ content', '365i-ai-faq-generator' ); ?></span>
+								</div>
+							</div>
+						</button>
+						
+						<div class="ai-faq-generation-status" style="display: none;">
+							<div class="ai-faq-progress-bar">
+								<div class="ai-faq-progress-fill"></div>
+							</div>
+							<div class="ai-faq-status-text"><?php esc_html_e( 'Generating your FAQs...', '365i-ai-faq-generator' ); ?></div>
+						</div>
+					</div>
+				</div>
 			</form>
 		</div>
 	<?php endif; ?>
@@ -334,26 +519,3 @@ $container_classes = apply_filters( 'ai_faq_generator_container_classes', array(
 	<?php endif; ?>
 
 </div><!-- .ai-faq-generator -->
-
-<script type="text/javascript">
-document.addEventListener('DOMContentLoaded', function() {
-	// Show/hide conditional form fields
-	const methodSelect = document.getElementById('generation_method_<?php echo esc_js( $instance_id ); ?>');
-	if (methodSelect) {
-		methodSelect.addEventListener('change', function() {
-			// Hide all conditional fields first
-			document.querySelectorAll('[data-show-when="generation_method"]').forEach(function(field) {
-				field.style.display = 'none';
-			});
-			
-			// Show the relevant field
-			if (this.value) {
-				const targetField = document.querySelector('[data-show-when="generation_method"][data-show-value="' + this.value + '"]');
-				if (targetField) {
-					targetField.style.display = 'block';
-				}
-			}
-		});
-	}
-});
-</script>

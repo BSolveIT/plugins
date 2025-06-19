@@ -313,9 +313,9 @@ class AI_FAQ_Admin_Ajax {
 
 	/**
 	 * AJAX handler for saving admin settings.
-	 * 
+	 *
 	 * Validates and saves all plugin configuration settings.
-	 * 
+	 *
 	 * @since 2.0.0
 	 */
 	public function ajax_save_settings() {
@@ -336,19 +336,24 @@ class AI_FAQ_Admin_Ajax {
 			wp_send_json_error( __( 'Settings data is required.', '365i-ai-faq-generator' ) );
 		}
 
-		// Get existing options
+		// Get existing options to preserve structure
 		$existing_options = get_option( 'ai_faq_gen_options', array() );
 		
-		// Update existing options with new settings while preserving worker settings
-		if ( isset( $existing_options['workers'] ) ) {
-			// Ensure workers are preserved
-			if ( ! isset( $settings_data['workers'] ) ) {
-				$settings_data['workers'] = $existing_options['workers'];
-			}
+		// Merge new settings with existing options while preserving worker settings
+		$merged_settings = wp_parse_args( $settings_data, $existing_options );
+		
+		// Load the admin settings class for proper sanitization
+		if ( ! class_exists( 'AI_FAQ_Admin_Settings' ) ) {
+			require_once AI_FAQ_GEN_DIR . 'includes/admin/class-ai-faq-admin-settings.php';
 		}
-
-		// Update option
-		$update_result = update_option( 'ai_faq_gen_options', $settings_data );
+		
+		$admin_settings = new AI_FAQ_Admin_Settings();
+		
+		// Sanitize the merged settings using the proper sanitization method
+		$sanitized_settings = $admin_settings->sanitize_options( $merged_settings );
+		
+		// Update option with sanitized data
+		$update_result = update_option( 'ai_faq_gen_options', $sanitized_settings );
 		
 		if ( $update_result ) {
 			wp_send_json_success( array(
@@ -361,7 +366,7 @@ class AI_FAQ_Admin_Ajax {
 			// Check if it's a permission issue, database issue, or same data
 			if ( ! current_user_can( 'manage_options' ) ) {
 				wp_send_json_error( __( 'Failed to save settings: Insufficient permissions.', '365i-ai-faq-generator' ) );
-			} elseif ( $current_options === $settings_data ) {
+			} elseif ( $current_options === $sanitized_settings ) {
 				wp_send_json_success( array(
 					'message' => __( 'Settings were already up to date - no changes needed.', '365i-ai-faq-generator' ),
 				) );

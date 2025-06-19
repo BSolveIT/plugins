@@ -58,11 +58,19 @@ class AI_FAQ_Core {
 
 	/**
 	 * Workers class instance.
-	 * 
+	 *
 	 * @since 2.0.0
 	 * @var AI_FAQ_Workers
 	 */
 	public $workers;
+
+	/**
+	 * Settings handler instance.
+	 *
+	 * @since 2.1.0
+	 * @var AI_FAQ_Settings_Handler
+	 */
+	public $settings_handler;
 
 	/**
 	 * Constructor.
@@ -99,12 +107,15 @@ class AI_FAQ_Core {
 
 	/**
 	 * Load required dependencies.
-	 * 
+	 *
 	 * Include all necessary class files.
-	 * 
+	 *
 	 * @since 2.0.0
 	 */
 	private function load_dependencies() {
+		// Load settings handler first (needed by other components).
+		require_once AI_FAQ_GEN_DIR . 'includes/class-ai-faq-settings-handler.php';
+		
 		// Load admin class.
 		require_once AI_FAQ_GEN_DIR . 'includes/class-ai-faq-admin.php';
 		
@@ -117,12 +128,15 @@ class AI_FAQ_Core {
 
 	/**
 	 * Initialize plugin components.
-	 * 
+	 *
 	 * Create instances of main plugin components.
-	 * 
+	 *
 	 * @since 2.0.0
 	 */
 	private function init_components() {
+		// Initialize settings handler first (needed by other components).
+		$this->settings_handler = new AI_FAQ_Settings_Handler();
+		
 		// Initialize admin component.
 		$this->admin = new AI_FAQ_Admin();
 		

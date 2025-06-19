@@ -462,6 +462,23 @@ class AI_FAQ_Admin_Settings {
 				AI_FAQ_GEN_VERSION,
 				true
 			);
+			
+			// Localize script for settings page specifically.
+			wp_localize_script(
+				'ai-faq-gen-settings-admin',
+				'aiFaqGen',
+				array(
+					'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+					'adminUrl' => admin_url( 'admin.php' ),
+					'nonce' => wp_create_nonce( 'ai_faq_gen_nonce' ),
+					'strings' => array(
+						'loading' => __( 'Loading...', '365i-ai-faq-generator' ),
+						'error' => __( 'An error occurred. Please try again.', '365i-ai-faq-generator' ),
+						'success' => __( 'Operation completed successfully.', '365i-ai-faq-generator' ),
+						'confirm' => __( 'Are you sure?', '365i-ai-faq-generator' ),
+					),
+				)
+			);
 		}
 		
 		// Enqueue analytics-specific assets for analytics page.
