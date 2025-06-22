@@ -117,7 +117,7 @@ class AI_FAQ_Core {
 		require_once AI_FAQ_GEN_DIR . 'includes/class-ai-faq-settings-handler.php';
 		
 		// Load admin class.
-		require_once AI_FAQ_GEN_DIR . 'includes/class-ai-faq-admin.php';
+		require_once AI_FAQ_GEN_DIR . 'includes/admin/class-ai-faq-admin.php';
 		
 		// Load frontend class.
 		require_once AI_FAQ_GEN_DIR . 'includes/class-ai-faq-frontend.php';
@@ -137,8 +137,17 @@ class AI_FAQ_Core {
 		// Initialize settings handler first (needed by other components).
 		$this->settings_handler = new AI_FAQ_Settings_Handler();
 		
+		// DEBUG: Log which admin class we're about to instantiate
+		error_log('AI_FAQ_Core: About to instantiate AI_FAQ_Admin class');
+		error_log('AI_FAQ_Core: AI_FAQ_Admin class exists: ' . (class_exists('AI_FAQ_Admin') ? 'YES' : 'NO'));
+		
 		// Initialize admin component.
 		$this->admin = new AI_FAQ_Admin();
+		
+		// DEBUG: Log admin class type and methods
+		error_log('AI_FAQ_Core: Admin instance created - Class: ' . get_class($this->admin));
+		error_log('AI_FAQ_Core: Admin has init method: ' . (method_exists($this->admin, 'init') ? 'YES' : 'NO'));
+		error_log('AI_FAQ_Core: Admin class methods: ' . implode(', ', get_class_methods($this->admin)));
 		
 		// Initialize frontend component.
 		$this->frontend = new AI_FAQ_Frontend();
@@ -159,7 +168,14 @@ class AI_FAQ_Core {
 		// AJAX handlers must be registered for admin-ajax.php requests.
 		// Using DOING_AJAX constant as it's available earlier than wp_doing_ajax().
 		if ( is_admin() || ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ) {
+			// DEBUG: Log admin initialization context
+			error_log('AI_FAQ_Core: Calling admin->init() - is_admin: ' . (is_admin() ? 'YES' : 'NO') . ', DOING_AJAX: ' . (defined('DOING_AJAX') && DOING_AJAX ? 'YES' : 'NO'));
+			error_log('AI_FAQ_Core: Current action: ' . (isset($_POST['action']) ? $_POST['action'] : 'none'));
+			
 			$this->admin->init();
+			
+			// DEBUG: Log if admin init completed
+			error_log('AI_FAQ_Core: Admin init completed');
 		}
 		
 		// Initialize frontend hooks.
@@ -231,6 +247,14 @@ class AI_FAQ_Core {
 				'default_faq_count' => 12,
 				'auto_save_interval' => 3,
 				'debug_mode' => false,
+			),
+			'ai_models' => array(
+				'faq_answer_generator' => '@cf/meta/llama-3.1-8b-instruct',
+				'faq_enhancement_worker' => '@cf/meta/llama-3.1-8b-instruct',
+				'faq_seo_analyzer_worker' => '@cf/meta/llama-3.1-8b-instruct',
+				'faq_realtime_assistant_worker' => '@cf/meta/llama-3.1-8b-instruct',
+				'url_to_faq_generator_worker' => '@cf/meta/llama-3.1-70b-instruct',
+				'faq_proxy_fetch' => '@cf/meta/llama-3.1-8b-instruct',
 			),
 		);
 

@@ -56,6 +56,10 @@ class AI_FAQ_Admin_Ajax {
 		add_action( 'wp_ajax_ai_faq_reset_settings', array( $this, 'ajax_reset_settings' ) );
 		add_action( 'wp_ajax_ai_faq_run_tests', array( $this, 'ajax_run_tests' ) );
 		add_action( 'wp_ajax_ai_faq_fetch_cloudflare_stats', array( $this, 'ajax_fetch_cloudflare_stats' ) );
+		// NOTE: AI model AJAX handlers moved to AI_FAQ_Admin_AI_Models class to avoid conflicts
+		// add_action( 'wp_ajax_ai_faq_save_ai_models', array( $this, 'ajax_save_ai_models' ) );
+		// add_action( 'wp_ajax_ai_faq_reset_ai_models', array( $this, 'ajax_reset_ai_models' ) );
+		// add_action( 'wp_ajax_ai_faq_test_model_performance', array( $this, 'ajax_test_model_performance' ) );
 	}
 
 	/**
@@ -1216,6 +1220,197 @@ class AI_FAQ_Admin_Ajax {
 			'available_scripts' => $available_scripts,
 			'total_scripts' => count( $available_scripts ),
 		);
+	}
+
+	/**
+	 * AJAX handler for saving AI model configurations.
+	 *
+	 * @deprecated 2.3.0 Use AI_FAQ_Admin_AI_Models::handle_save_models_ajax() instead
+	 * @since 2.2.0
+	 */
+	public function ajax_save_ai_models() {
+		// NOTE: This method is deprecated. AI model AJAX handlers moved to AI_FAQ_Admin_AI_Models class.
+		// Check user capabilities.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Insufficient permissions.', '365i-ai-faq-generator' ) );
+		}
+
+		// Verify nonce.
+		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( $_POST['nonce'] ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'ai_faq_gen_nonce' ) ) {
+			wp_send_json_error( __( 'Security check failed.', '365i-ai-faq-generator' ) );
+		}
+
+		$model_configs = isset( $_POST['ai_models'] ) ? $_POST['ai_models'] : array();
+
+		if ( empty( $model_configs ) || ! is_array( $model_configs ) ) {
+			wp_send_json_error( __( 'AI model configuration data is required.', '365i-ai-faq-generator' ) );
+		}
+
+		// Load AI models management class
+		if ( ! class_exists( 'AI_FAQ_Admin_AI_Models' ) ) {
+			require_once AI_FAQ_GEN_DIR . 'includes/admin/class-ai-faq-admin-ai-models.php';
+		}
+		
+		$ai_models_admin = new AI_FAQ_Admin_AI_Models();
+		$result = $ai_models_admin->save_model_configurations( $model_configs );
+
+		if ( $result['success'] ) {
+			wp_send_json_success( array(
+				'message' => $result['message'],
+				'changed_count' => $result['changed_count'],
+				'configurations' => $result['configurations'],
+			) );
+		} else {
+			wp_send_json_error( $result['message'] );
+		}
+	}
+
+	/**
+		* AJAX handler for resetting AI model configurations to defaults.
+		*
+		* Resets all AI model configurations to recommended defaults.
+		*
+		* @since 2.2.0
+		*/
+	public function ajax_reset_ai_models() {
+		// Check user capabilities.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Insufficient permissions.', '365i-ai-faq-generator' ) );
+		}
+
+		// Verify nonce.
+		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( $_POST['nonce'] ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'ai_faq_gen_nonce' ) ) {
+			wp_send_json_error( __( 'Security check failed.', '365i-ai-faq-generator' ) );
+		}
+
+		// Load AI models management class
+		if ( ! class_exists( 'AI_FAQ_Admin_AI_Models' ) ) {
+			require_once AI_FAQ_GEN_DIR . 'includes/admin/class-ai-faq-admin-ai-models.php';
+		}
+		
+		$ai_models_admin = new AI_FAQ_Admin_AI_Models();
+		$result = $ai_models_admin->reset_to_defaults();
+
+		if ( $result['success'] ) {
+			wp_send_json_success( array(
+				'message' => $result['message'],
+				'configurations' => $result['configurations'],
+			) );
+		} else {
+			wp_send_json_error( $result['message'] );
+		}
+	}
+
+	/**
+		* AJAX handler for testing AI model performance.
+		*
+		* Tests response times and capabilities of selected AI models.
+		*
+		* @since 2.2.0
+		*/
+	public function ajax_test_model_performance() {
+		// Check user capabilities.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Insufficient permissions.', '365i-ai-faq-generator' ) );
+		}
+
+		// Verify nonce.
+		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( $_POST['nonce'] ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'ai_faq_gen_nonce' ) ) {
+			wp_send_json_error( __( 'Security check failed.', '365i-ai-faq-generator' ) );
+		}
+
+		$worker_type = isset( $_POST['worker_type'] ) ? sanitize_key( $_POST['worker_type'] ) : '';
+		$model_id = isset( $_POST['model_id'] ) ? sanitize_text_field( $_POST['model_id'] ) : '';
+
+		if ( empty( $worker_type ) || empty( $model_id ) ) {
+			wp_send_json_error( __( 'Worker type and model ID are required for testing.', '365i-ai-faq-generator' ) );
+		}
+
+		// Get worker configuration to test the model
+		$options = get_option( 'ai_faq_gen_options', array() );
+		$workers = isset( $options['workers'] ) ? $options['workers'] : array();
+
+		if ( ! isset( $workers[ $worker_type ] ) ) {
+			wp_send_json_error( __( 'Worker not configured for testing.', '365i-ai-faq-generator' ) );
+		}
+
+		$worker_config = $workers[ $worker_type ];
+		$worker_url = $worker_config['url'];
+
+		if ( empty( $worker_url ) ) {
+			wp_send_json_error( __( 'Worker URL not configured.', '365i-ai-faq-generator' ) );
+		}
+
+		// Create test payload with model specification
+		$test_payload = array(
+			'question' => 'What are the benefits of AI-powered FAQ generation?',
+			'mode' => 'test',
+			'model' => $model_id,
+			'test_mode' => true,
+		);
+
+		$start_time = microtime( true );
+
+		// Make test request to worker
+		$response = wp_remote_post( $worker_url, array(
+			'timeout' => 30,
+			'headers' => array(
+				'Content-Type' => 'application/json',
+				'User-Agent' => 'WordPress/365i-AI-FAQ-Generator-Model-Test',
+			),
+			'body' => wp_json_encode( $test_payload ),
+		) );
+
+		$response_time = round( ( microtime( true ) - $start_time ) * 1000, 2 );
+
+		if ( is_wp_error( $response ) ) {
+			wp_send_json_error( array(
+				'message' => sprintf(
+					/* translators: %s: Error message */
+					__( 'Model test failed: %s', '365i-ai-faq-generator' ),
+					$response->get_error_message()
+				),
+				'response_time' => $response_time,
+			) );
+		}
+
+		$response_code = wp_remote_retrieve_response_code( $response );
+		$response_body = wp_remote_retrieve_body( $response );
+
+		if ( $response_code >= 200 && $response_code < 300 ) {
+			$response_data = json_decode( $response_body, true );
+			
+			wp_send_json_success( array(
+				'message' => sprintf(
+					/* translators: %1$s: Model ID, %2$d: Response time */
+					__( 'Model %1$s test completed successfully in %2$dms', '365i-ai-faq-generator' ),
+					$model_id,
+					$response_time
+				),
+				'response_time' => $response_time,
+				'model_id' => $model_id,
+				'worker_type' => $worker_type,
+				'response_preview' => is_array( $response_data ) ?
+					( isset( $response_data['answer'] ) ? substr( $response_data['answer'], 0, 100 ) . '...' : 'Response received' ) :
+					'Response received',
+				'full_response' => $response_data,
+			) );
+		} else {
+			wp_send_json_error( array(
+				'message' => sprintf(
+					/* translators: %1$s: Model ID, %2$d: HTTP status code */
+					__( 'Model %1$s test failed with HTTP %2$d', '365i-ai-faq-generator' ),
+					$model_id,
+					$response_code
+				),
+				'response_time' => $response_time,
+				'http_code' => $response_code,
+				'response_body' => substr( $response_body, 0, 200 ),
+			) );
+		}
 	}
 
 	/**

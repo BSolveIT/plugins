@@ -1218,6 +1218,16 @@ class AI_FAQ_Rate_Limiting_Admin {
 	}
 
 	/**
+	 * Get current rate limit configurations from Cloudflare KV (public access)
+	 *
+	 * @since 2.1.4
+	 * @return array Current configurations for all workers
+	 */
+	public function get_rate_configs_for_display() {
+		return $this->get_current_rate_configs();
+	}
+
+	/**
 	 * Get current rate limit configurations from Cloudflare KV
 	 *
 	 * @since 2.1.0

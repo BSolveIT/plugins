@@ -74,12 +74,18 @@
                 }
                 
                 if (response.success) {
-                    // Format the test results
+                    // Format the test results with comprehensive worker data
                     var healthData = response.data;
                     var resultHtml = '<div class="test-result-success">';
                     resultHtml += '<span class="dashicons dashicons-yes-alt"></span> ';
                     resultHtml += '<span class="test-status">Connection successful</span>';
                     resultHtml += '</div>';
+                    
+                    // Create responsive grid layout
+                    resultHtml += '<div class="worker-test-grid">';
+                    
+                    // Left column
+                    resultHtml += '<div class="worker-test-column">';
                     
                     // Add response time if available
                     if (healthData.response_time) {
@@ -87,14 +93,120 @@
                             healthData.response_time + ' ms</div>';
                     }
                     
-                    // Add note about favicon.ico 404 errors and health endpoint details
-                    resultHtml += '<div class="test-detail note"><small>Note: Cloudflare logs may show 404 errors for favicon.ico requests - these are normal browser behavior and can be ignored. <strong>Health Check:</strong> Workers implement a standardized /health endpoint that responds to GET requests with detailed status information.</small></div>';
-                    
-                    // Add health data if available
-                    if (healthData.data && healthData.data.status) {
-                        resultHtml += '<div class="test-detail"><strong>Status:</strong> ' + 
-                            healthData.data.status + '</div>';
+                    // Display comprehensive worker health data
+                    if (healthData.data) {
+                        var workerData = healthData.data;
+                        
+                        // Worker status and basic info
+                        if (workerData.status) {
+                            resultHtml += '<div class="test-detail"><strong>Status:</strong> ' +
+                                workerData.status + '</div>';
+                        }
+                        
+                        if (workerData.model) {
+                            resultHtml += '<div class="test-detail"><strong>Model:</strong> ' +
+                                workerData.model + '</div>';
+                        }
+                        
+                        if (workerData.service) {
+                            resultHtml += '<div class="test-detail"><strong>Service:</strong> ' + workerData.service + '</div>';
+                        }
+                        
+                        if (workerData.response_time) {
+                            resultHtml += '<div class="test-detail"><strong>Expected Response Time:</strong> ' +
+                                workerData.response_time + '</div>';
+                        }
+                        
+                        // Additional worker information
+                        if (workerData.version) {
+                            resultHtml += '<div class="test-detail"><strong>Version:</strong> ' + workerData.version + '</div>';
+                        }
+                        
+                        if (workerData.environment) {
+                            resultHtml += '<div class="test-detail"><strong>Environment:</strong> ' + workerData.environment + '</div>';
+                        }
+                        
+                        // Rate limiting information from worker
+                        if (workerData.rate_limits) {
+                            resultHtml += '<div class="test-detail-section"><strong>Rate Limits:</strong>';
+                            if (workerData.rate_limits.hourly) {
+                                resultHtml += '<br><span style="margin-left: 10px;">Hourly: ' + workerData.rate_limits.hourly + '</span>';
+                            }
+                            if (workerData.rate_limits.daily) {
+                                resultHtml += '<br><span style="margin-left: 10px;">Daily: ' + workerData.rate_limits.daily + '</span>';
+                            }
+                            if (workerData.rate_limits.weekly) {
+                                resultHtml += '<br><span style="margin-left: 10px;">Weekly: ' + workerData.rate_limits.weekly + '</span>';
+                            }
+                            if (workerData.rate_limits.monthly) {
+                                resultHtml += '<br><span style="margin-left: 10px;">Monthly: ' + workerData.rate_limits.monthly + '</span>';
+                            }
+                            resultHtml += '</div>';
+                        }
+                        
+                        resultHtml += '</div>'; // End left column
+                        
+                        // Right column
+                        resultHtml += '<div class="worker-test-column">';
+                        
+                        // Model, Service, and Timestamp in RIGHT column
+                        if (workerData.model) {
+                            resultHtml += '<div class="test-detail"><strong>Model:</strong> ' +
+                                workerData.model + '</div>';
+                        }
+                        
+                        if (workerData.service) {
+                            resultHtml += '<div class="test-detail"><strong>Service:</strong> ' + workerData.service + '</div>';
+                        }
+                        
+                        if (workerData.timestamp) {
+                            resultHtml += '<div class="test-detail"><strong>Timestamp:</strong> ' + workerData.timestamp + '</div>';
+                        }
+                        
+                        // Violation thresholds from worker
+                        if (workerData.violation_thresholds) {
+                            resultHtml += '<div class="test-detail-section"><strong>Violation Thresholds:</strong>';
+                            if (workerData.violation_thresholds.soft_warning) {
+                                resultHtml += '<br><span style="margin-left: 10px;">Soft Warning: ' + workerData.violation_thresholds.soft_warning + '</span>';
+                            }
+                            if (workerData.violation_thresholds.hard_block) {
+                                resultHtml += '<br><span style="margin-left: 10px;">Hard Block: ' + workerData.violation_thresholds.hard_block + '</span>';
+                            }
+                            if (workerData.violation_thresholds.permanent_ban) {
+                                resultHtml += '<br><span style="margin-left: 10px;">Permanent Ban: ' + workerData.violation_thresholds.permanent_ban + '</span>';
+                            }
+                            resultHtml += '</div>';
+                        }
+                        
+                        // Display any other key-value pairs from the worker response
+                        Object.keys(workerData).forEach(function(key) {
+                            if (!['status', 'model', 'service', 'timestamp', 'response_time', 'rate_limits', 'violation_thresholds', 'version', 'environment'].includes(key)) {
+                                var value = workerData[key];
+                                var keyLabel = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                
+                                if (typeof value === 'string' || typeof value === 'number') {
+                                    resultHtml += '<div class="test-detail"><strong>' + keyLabel + ':</strong> ' + value + '</div>';
+                                } else if (Array.isArray(value)) {
+                                    // Handle arrays (like features) specially with chips/badges
+                                    if (value.length > 0) {
+                                        resultHtml += '<div class="test-detail-section"><strong>' + keyLabel + ':</strong>';
+                                        resultHtml += '<div class="feature-chips">';
+                                        value.forEach(function(item) {
+                                            var displayItem = typeof item === 'string' ? item.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : item;
+                                            resultHtml += '<span class="feature-chip">' + displayItem + '</span>';
+                                        });
+                                        resultHtml += '</div></div>';
+                                    }
+                                } else if (typeof value === 'object' && value !== null) {
+                                    resultHtml += '<div class="test-detail"><strong>' + keyLabel + ':</strong> ' + JSON.stringify(value) + '</div>';
+                                }
+                            }
+                        });
+                        
+                        resultHtml += '</div>'; // End right column
                     }
+                    
+                    resultHtml += '</div>'; // End grid
                     
                     $testResults.html(resultHtml).show().addClass('fade-in');
                     $workerCard.addClass('tested-success').removeClass('tested-error');

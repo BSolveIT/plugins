@@ -16,7 +16,7 @@
 }
 
 .dashicons-warning {
-    color: #dc3232 !important;
+    color: #46b450 !important;
     font-size: 18px !important;
 }
 
@@ -88,13 +88,176 @@
 /* Test result details */
 .test-detail {
     margin: 5px 0 5px 24px;
+    padding: 4px 8px;
     font-size: 13px;
     color: #606060;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 4px;
+    line-height: 1.4;
+}
+
+.test-detail strong {
+    color: #2271b1;
+    font-weight: 600;
+}
+
+.test-detail.note {
+    background: rgba(255, 193, 7, 0.1);
+    border-left: 3px solid #ffc107;
+    font-style: italic;
+    margin-left: 20px;
+}
+
+.test-detail.note small {
+    opacity: 0.8;
+}
+
+/* Test detail section styling for grouped information */
+.test-detail-section {
+    margin: 8px 0 8px 24px;
+    padding: 8px 12px;
+    background: rgba(46, 162, 204, 0.1);
+    border-left: 4px solid #2ea2cc;
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.test-detail-section strong {
+    color: #2271b1;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.test-detail-section span {
+    display: block;
+    margin: 2px 0;
+    color: #646970;
 }
 
 /* Space between icon and text */
 .test-status {
     margin-left: 5px;
+}
+
+/* Responsive grid layout for worker test results */
+.worker-test-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 12px;
+}
+
+.worker-test-column {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Responsive behavior - switch to single column on smaller screens */
+@media (max-width: 768px) {
+    .worker-test-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+}
+
+/* Feature chips styling */
+.feature-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.feature-chip {
+    display: inline-block;
+    padding: 4px 10px;
+    background: #f0f6fc;
+    color: #0969da;
+    border: 1px solid #d1d9e0;
+    border-radius: 14px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: capitalize;
+    white-space: nowrap;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.feature-chip:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    background: #dbeafe;
+    border-color: #b4c7d1;
+}
+
+/* Alternative chip colors for variety with light backgrounds and dark text */
+.feature-chip:nth-child(6n+1) {
+    background: #f0f6fc;
+    color: #0969da;
+    border-color: #d1d9e0;
+}
+
+.feature-chip:nth-child(6n+2) {
+    background: #ffeaea;
+    color: #d1242f;
+    border-color: #f7c6c7;
+}
+
+.feature-chip:nth-child(6n+3) {
+    background: #e8f5e8;
+    color: #0550ae;
+    border-color: #68de7c;
+}
+
+.feature-chip:nth-child(6n+4) {
+    background: #f6f8fa;
+    color: #656d76;
+    border-color: #d1d9e0;
+}
+
+.feature-chip:nth-child(6n+5) {
+    background: #f7f0ff;
+    color: #6639ba;
+    border-color: #e1d7ff;
+}
+
+.feature-chip:nth-child(6n+6) {
+    background: #fff4e6;
+    color: #bc4c00;
+    border-color: #ffcc85;
+}
+
+/* Hover states for each color with slightly darker backgrounds */
+.feature-chip:nth-child(6n+1):hover {
+    background: #dbeafe;
+    border-color: #b4c7d1;
+}
+
+.feature-chip:nth-child(6n+2):hover {
+    background: #fdd5d5;
+    border-color: #e49ca0;
+}
+
+.feature-chip:nth-child(6n+3):hover {
+    background: #d4edd4;
+    border-color: #46c65b;
+}
+
+.feature-chip:nth-child(6n+4):hover {
+    background: #eaeef2;
+    border-color: #afb8c1;
+}
+
+.feature-chip:nth-child(6n+5):hover {
+    background: #ede7f6;
+    border-color: #c8b5e8;
+}
+
+.feature-chip:nth-child(6n+6):hover {
+    background: #ffeaa7;
+    border-color: #dbb157;
 }
 
 /* Spin animation (already defined in JS but included here for completeness) */

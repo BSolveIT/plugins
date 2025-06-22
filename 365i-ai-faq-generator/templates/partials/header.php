@@ -24,6 +24,7 @@ $page_titles = array(
 	'ai-faq-generator' => __( 'Dashboard', '365i-ai-faq-generator' ),
 	'ai-faq-generator-tool' => __( 'FAQ Generator', '365i-ai-faq-generator' ),
 	'ai-faq-generator-workers' => __( 'Worker Configuration', '365i-ai-faq-generator' ),
+	'ai-faq-generator-ai-models' => __( 'AI Models', '365i-ai-faq-generator' ),
 	'ai-faq-generator-settings' => __( 'Settings', '365i-ai-faq-generator' ),
 );
 
@@ -51,13 +52,19 @@ $page_title = isset( $page_titles[ $page_slug ] ) ? $page_titles[ $page_slug ] :
 					
 
 					
-					<a href="<?php echo esc_url( admin_url( 'admin.php?page=ai-faq-generator-workers' ) ); ?>" 
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=ai-faq-generator-workers' ) ); ?>"
 					   class="nav-tab <?php echo 'ai-faq-generator-workers' === $page_slug ? 'nav-tab-active' : ''; ?>">
 						<span class="dashicons dashicons-networking"></span>
 						<?php esc_html_e( 'Workers', '365i-ai-faq-generator' ); ?>
 					</a>
 					
-					<a href="<?php echo esc_url( admin_url( 'admin.php?page=ai-faq-generator-settings' ) ); ?>" 
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=ai-faq-generator-ai-models' ) ); ?>"
+					   class="nav-tab <?php echo 'ai-faq-generator-ai-models' === $page_slug ? 'nav-tab-active' : ''; ?>">
+						<span class="dashicons dashicons-admin-generic"></span>
+						<?php esc_html_e( 'AI Models', '365i-ai-faq-generator' ); ?>
+					</a>
+					
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=ai-faq-generator-settings' ) ); ?>"
 					   class="nav-tab <?php echo 'ai-faq-generator-settings' === $page_slug ? 'nav-tab-active' : ''; ?>">
 						<span class="dashicons dashicons-admin-settings"></span>
 						<?php esc_html_e( 'Settings', '365i-ai-faq-generator' ); ?>

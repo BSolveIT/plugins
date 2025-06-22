@@ -22,45 +22,127 @@ include AI_FAQ_GEN_DIR . 'templates/partials/header.php';
 $options = get_option( 'ai_faq_gen_options', array() );
 $workers = isset( $options['workers'] ) ? $options['workers'] : array();
 
-// Worker definitions with descriptions.
+// Get rate limiting configurations for comprehensive display.
+$rate_limiting_admin = new AI_FAQ_Rate_Limiting_Admin();
+$rate_configs = $rate_limiting_admin->get_rate_configs_for_display();
+
+// Map workers template keys to rate limiting system keys.
+$worker_rate_mapping = array(
+	'question_generator' => 'faq-answer-generator-worker',
+	'answer_generator'   => 'faq-answer-generator-worker',
+	'faq_enhancer'       => 'faq-enhancement-worker',
+	'seo_analyzer'       => 'faq-seo-analyzer-worker',
+	'faq_extractor'      => 'faq-proxy-fetch',
+	'topic_generator'    => 'url-to-faq-generator-worker',
+);
+
+// Worker definitions with descriptions (default/fallback models).
 $worker_definitions = array(
 	'question_generator' => array(
 		'name' => __( 'Question Generator', '365i-ai-faq-generator' ),
-		'description' => __( 'Generates contextual questions with duplicate prevention using Llama 3.1 8B model.', '365i-ai-faq-generator' ),
-		'model' => '@cf/meta/llama-3.1-8b-instruct',
-		'response_time' => '3-5 seconds',
+		'description' => __( 'Generates contextual questions with duplicate prevention using AI models.', '365i-ai-faq-generator' ),
+		'default_model' => '@cf/meta/llama-3.1-8b-instruct',
 	),
 	'answer_generator' => array(
 		'name' => __( 'Answer Generator', '365i-ai-faq-generator' ),
-		'description' => __( 'Creates comprehensive answers with tone and length control using Llama 3.1 8B model.', '365i-ai-faq-generator' ),
-		'model' => '@cf/meta/llama-3.1-8b-instruct',
-		'response_time' => '3-5 seconds',
+		'description' => __( 'Creates comprehensive answers with tone and length control using AI models.', '365i-ai-faq-generator' ),
+		'default_model' => '@cf/meta/llama-3.1-8b-instruct',
 	),
 	'faq_enhancer' => array(
 		'name' => __( 'FAQ Enhancer', '365i-ai-faq-generator' ),
 		'description' => __( 'Improves existing FAQ content with SEO optimization and context awareness.', '365i-ai-faq-generator' ),
-		'model' => '@cf/meta/llama-3.1-8b-instruct',
-		'response_time' => '5-8 seconds',
+		'default_model' => '@cf/meta/llama-3.1-8b-instruct',
 	),
 	'seo_analyzer' => array(
 		'name' => __( 'SEO Analyzer', '365i-ai-faq-generator' ),
 		'description' => __( 'Analyzes FAQ content for SEO optimization and Position Zero targeting.', '365i-ai-faq-generator' ),
-		'model' => '@cf/meta/llama-4-scout-17b-16e-instruct',
-		'response_time' => '5-10 seconds',
+		'default_model' => '@cf/meta/llama-4-scout-17b-16e-instruct',
 	),
 	'faq_extractor' => array(
 		'name' => __( 'FAQ Extractor', '365i-ai-faq-generator' ),
 		'description' => __( 'Extracts existing FAQ schema from websites (JSON-LD, Microdata, RDFa).', '365i-ai-faq-generator' ),
-		'model' => 'N/A (Proxy Service)',
-		'response_time' => '5-15 seconds',
+		'default_model' => 'N/A (Proxy Service)',
 	),
 	'topic_generator' => array(
 		'name' => __( 'Topic Generator', '365i-ai-faq-generator' ),
 		'description' => __( 'Generates comprehensive FAQ sets from website URLs using premium analysis.', '365i-ai-faq-generator' ),
-		'model' => '@cf/meta/llama-4-scout-17b-16e-instruct',
-		'response_time' => '15-30 seconds',
+		'default_model' => '@cf/meta/llama-4-scout-17b-16e-instruct',
 	),
 );
+
+// Get actual AI model configurations from KV/WordPress storage.
+// Wrap in try-catch to prevent errors during page load from affecting worker save functionality
+$model_configurations = array();
+$ai_models_admin = null;
+try {
+	$ai_models_admin = new AI_FAQ_Admin_AI_Models();
+	$ai_models_admin->init(); // Initialize the API client and hooks
+	$model_configurations = $ai_models_admin->get_worker_model_configurations();
+} catch ( Exception $e ) {
+	// Log the error but don't let it break the page
+	error_log( 'AI FAQ Generator: Error fetching model configurations during workers page load: ' . $e->getMessage() );
+	// Use empty array so the page still works
+	$model_configurations = array();
+	$ai_models_admin = null;
+}
+
+// Update worker definitions with actual configured models
+foreach ( array_keys( $worker_definitions ) as $worker_key ) {
+	if ( isset( $model_configurations[ $worker_key ] ) ) {
+		$config = $model_configurations[ $worker_key ];
+		$worker_definitions[ $worker_key ]['current_model'] = $config['model'];
+		$worker_definitions[ $worker_key ]['is_custom'] = $config['is_custom'];
+		$worker_definitions[ $worker_key ]['data_source'] = $config['data_source'];
+		
+		// Get display name for the model efficiently (avoid unnecessary API calls)
+		if ( $ai_models_admin ) {
+			$model_display_name = $ai_models_admin->get_model_display_name_efficiently( $config['model'] );
+			$worker_definitions[ $worker_key ]['model_display_name'] = $model_display_name;
+			
+			// Get dynamic response time based on configured model
+			$worker_definitions[ $worker_key ]['response_time'] = $ai_models_admin->get_model_response_time( $config['model'] );
+		} else {
+			// Fallback to basic model ID if AI models admin failed to initialize
+			$worker_definitions[ $worker_key ]['model_display_name'] = $config['model'];
+			$worker_definitions[ $worker_key ]['response_time'] = __( 'N/A', '365i-ai-faq-generator' );
+		}
+		
+		// Set source indicator based on data source
+		switch ( $config['data_source'] ) {
+			case 'kv_namespace':
+				$worker_definitions[ $worker_key ]['model_source'] = 'kv_config';
+				break;
+			case 'wordpress_fallback':
+				$worker_definitions[ $worker_key ]['model_source'] = 'wordpress_storage';
+				break;
+			default:
+				$worker_definitions[ $worker_key ]['model_source'] = 'defaults_only';
+				break;
+		}
+	} else {
+		// Fallback: No model configuration found, use default response time based on worker type
+		switch ( $worker_key ) {
+			case 'faq_extractor':
+				$worker_definitions[ $worker_key ]['response_time'] = __( '5-15 seconds', '365i-ai-faq-generator' );
+				break;
+			case 'topic_generator':
+				$worker_definitions[ $worker_key ]['response_time'] = __( '15-30 seconds', '365i-ai-faq-generator' );
+				break;
+			default:
+				// Use default model's response time
+				if ( $ai_models_admin ) {
+					$worker_definitions[ $worker_key ]['response_time'] = $ai_models_admin->get_model_response_time( $worker_definitions[ $worker_key ]['default_model'] );
+				} else {
+					$worker_definitions[ $worker_key ]['response_time'] = __( 'N/A', '365i-ai-faq-generator' );
+				}
+				break;
+		}
+	}
+}
+
+// Get live worker health status for connection testing (optional).
+$workers_admin = new AI_FAQ_Admin_Workers();
+$live_worker_status = array();
 ?>
 
 <div class="ai-faq-gen-workers">
@@ -133,7 +215,49 @@ $worker_definitions = array(
 						<div class="worker-specs">
 							<div class="spec-item">
 								<strong><?php esc_html_e( 'Model:', '365i-ai-faq-generator' ); ?></strong>
-								<span><?php echo esc_html( $worker_def['model'] ); ?></span>
+								<?php
+								// Display actual configured model from AI Models admin
+								if ( isset( $worker_def['current_model'] ) ) {
+									$model_display = $worker_def['model_display_name'] ?? $worker_def['current_model'];
+									$model_source = $worker_def['model_source'] ?? 'unknown';
+									$data_source = $worker_def['data_source'] ?? 'unknown';
+									$is_custom = $worker_def['is_custom'] ?? false;
+									
+									$source_class = '';
+									$source_text = '';
+									
+									switch ( $model_source ) {
+										case 'kv_config':
+											$source_class = 'model-source-kv';
+											$source_text = __( 'from AI Models config', '365i-ai-faq-generator' );
+											break;
+										case 'wordpress_storage':
+											$source_class = 'model-source-wp';
+											$source_text = __( 'from WordPress storage', '365i-ai-faq-generator' );
+											break;
+										case 'defaults_only':
+											$source_class = 'model-source-default';
+											$source_text = __( 'using defaults', '365i-ai-faq-generator' );
+											break;
+										default:
+											$source_class = 'model-source-unknown';
+											$source_text = __( 'unknown source', '365i-ai-faq-generator' );
+											break;
+									}
+									
+									// Add visual indicator for custom vs default
+									$indicator_class = $is_custom ? 'model-custom' : 'model-default';
+									
+									echo '<span class="current-model ' . esc_attr( $source_class ) . ' ' . esc_attr( $indicator_class ) . '" title="' . esc_attr( $source_text ) . '">';
+									echo esc_html( $model_display );
+									echo '</span>';
+								} else {
+									// Fallback to default model
+									echo '<span class="default-model" title="' . esc_attr__( 'No configuration found - using fallback default', '365i-ai-faq-generator' ) . '">';
+									echo esc_html( $worker_def['default_model'] );
+									echo '</span>';
+								}
+								?>
 							</div>
 							<div class="spec-item">
 								<strong><?php esc_html_e( 'Response Time:', '365i-ai-faq-generator' ); ?></strong>
@@ -147,22 +271,85 @@ $worker_definitions = array(
 								<input type="url" id="worker_url_<?php echo esc_attr( $worker_key ); ?>" name="workers[<?php echo esc_attr( $worker_key ); ?>][url]" value="<?php echo esc_attr( $worker_url ); ?>" placeholder="https://worker-name.subdomain.workers.dev" class="regular-text">
 							</div>
 							
-							<div class="config-row">
-								<label for="worker_rate_limit_<?php echo esc_attr( $worker_key ); ?>"><?php esc_html_e( 'Rate Limit (requests/hour)', '365i-ai-faq-generator' ); ?></label>
-								<input type="number" id="worker_rate_limit_<?php echo esc_attr( $worker_key ); ?>" name="workers[<?php echo esc_attr( $worker_key ); ?>][rate_limit]" value="<?php echo esc_attr( $rate_limit ); ?>" min="1" max="1000" class="small-text">
-							</div>
+							<?php
+							// Get rate limiting configuration for this worker.
+							$rate_limit_key = isset( $worker_rate_mapping[ $worker_key ] ) ? $worker_rate_mapping[ $worker_key ] : $worker_key;
+							$rate_config = isset( $rate_configs[ $rate_limit_key ] ) ? $rate_configs[ $rate_limit_key ] : array();
 							
-							<div class="config-row usage-display">
-								<label><?php esc_html_e( 'Current Usage', '365i-ai-faq-generator' ); ?></label>
-								<div class="usage-info">
-									<span class="usage-text">
-										<span class="usage-current"><?php echo esc_html( $current_usage ); ?></span> / <?php echo esc_html( $rate_limit ); ?>
-									</span>
-									<div class="usage-bar">
-										<?php $usage_percent = $rate_limit > 0 ? ( $current_usage / $rate_limit ) * 100 : 0; ?>
-										<div class="usage-fill" style="width: <?php echo esc_attr( min( $usage_percent, 100 ) ); ?>%"></div>
+							// Use default values if no configuration found.
+							$hourly_limit = isset( $rate_config['hourlyLimit'] ) ? $rate_config['hourlyLimit'] : 10;
+							$daily_limit = isset( $rate_config['dailyLimit'] ) ? $rate_config['dailyLimit'] : 50;
+							$weekly_limit = isset( $rate_config['weeklyLimit'] ) ? $rate_config['weeklyLimit'] : 250;
+							$monthly_limit = isset( $rate_config['monthlyLimit'] ) ? $rate_config['monthlyLimit'] : 1000;
+							$violation_thresholds = isset( $rate_config['violationThresholds'] ) ? $rate_config['violationThresholds'] : array(
+								'soft' => 3,
+								'hard' => 6,
+								'ban'  => 12,
+							);
+							?>
+							
+							<div class="config-row rate-limits-display">
+								<label><?php esc_html_e( 'IP-Based Rate Limits', '365i-ai-faq-generator' ); ?></label>
+								<div class="rate-limits-grid">
+									<div class="rate-limit-item">
+										<div class="rate-limit-label"><?php esc_html_e( 'Hourly', '365i-ai-faq-generator' ); ?></div>
+										<div class="rate-limit-value"><?php echo esc_html( $hourly_limit ); ?></div>
+									</div>
+									<div class="rate-limit-item">
+										<div class="rate-limit-label"><?php esc_html_e( 'Daily', '365i-ai-faq-generator' ); ?></div>
+										<div class="rate-limit-value"><?php echo esc_html( $daily_limit ); ?></div>
+									</div>
+									<div class="rate-limit-item">
+										<div class="rate-limit-label"><?php esc_html_e( 'Weekly', '365i-ai-faq-generator' ); ?></div>
+										<div class="rate-limit-value"><?php echo esc_html( $weekly_limit ); ?></div>
+									</div>
+									<div class="rate-limit-item">
+										<div class="rate-limit-label"><?php esc_html_e( 'Monthly', '365i-ai-faq-generator' ); ?></div>
+										<div class="rate-limit-value"><?php echo esc_html( $monthly_limit ); ?></div>
 									</div>
 								</div>
+							</div>
+							
+							<div class="config-row violation-thresholds-display">
+								<label><?php esc_html_e( 'Violation Thresholds', '365i-ai-faq-generator' ); ?></label>
+								<div class="violation-thresholds-grid">
+									<div class="threshold-item soft">
+										<div class="threshold-icon">
+											<span class="dashicons dashicons-warning"></span>
+										</div>
+										<div class="threshold-content">
+											<div class="threshold-label"><?php esc_html_e( 'Soft Warning', '365i-ai-faq-generator' ); ?></div>
+											<div class="threshold-value"><?php echo esc_html( $violation_thresholds['soft'] ); ?></div>
+										</div>
+									</div>
+									<div class="threshold-item hard">
+										<div class="threshold-icon">
+											<span class="dashicons dashicons-dismiss"></span>
+										</div>
+										<div class="threshold-content">
+											<div class="threshold-label"><?php esc_html_e( 'Hard Block', '365i-ai-faq-generator' ); ?></div>
+											<div class="threshold-value"><?php echo esc_html( $violation_thresholds['hard'] ); ?></div>
+										</div>
+									</div>
+									<div class="threshold-item ban">
+										<div class="threshold-icon">
+											<span class="dashicons dashicons-lock"></span>
+										</div>
+										<div class="threshold-content">
+											<div class="threshold-label"><?php esc_html_e( 'Permanent Ban', '365i-ai-faq-generator' ); ?></div>
+											<div class="threshold-value"><?php echo esc_html( $violation_thresholds['ban'] ); ?></div>
+										</div>
+									</div>
+								</div>
+							</div>
+							
+							<div class="config-row rate-limits-note">
+								<p class="description">
+									<?php esc_html_e( 'These limits are applied per IP address. Configure rate limits on the', '365i-ai-faq-generator' ); ?>
+									<a href="<?php echo esc_url( admin_url( 'admin.php?page=ai-faq-generator-rate-limiting' ) ); ?>" class="rate-limits-link">
+										<?php esc_html_e( 'Rate Limiting page', '365i-ai-faq-generator' ); ?>
+									</a>.
+								</p>
 							</div>
 						</div>
 						

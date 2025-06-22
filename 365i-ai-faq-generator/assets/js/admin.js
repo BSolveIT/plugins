@@ -33,8 +33,9 @@
             // Worker configuration forms
             $(document).on('click', '.test-worker-connection', this.testWorkerConnection);
             $(document).on('click', '.reset-worker-usage', this.resetWorkerUsage);
-            $(document).on('submit', '#workers-configuration-form', this.saveWorkerConfig);
-            
+            // Remove AJAX interception for workers form - let PHP handle it natively
+            // $(document).on('submit', '#workers-configuration-form', this.saveWorkerConfig);
+
             // Settings forms
             $(document).on('submit', '#ai-faq-gen-settings-form', this.saveSettings);
             
@@ -123,27 +124,118 @@
                             $workerCard.find('.worker-actions').before($testResults);
                         }
                         
-                        // Format the test results
+                        // Format the test results with standardized worker data
                         var healthData = response.data;
                         var resultHtml = '<div class="test-result-success">';
                         resultHtml += '<span class="dashicons dashicons-yes-alt"></span> ';
                         resultHtml += '<span class="test-status">Connection successful</span>';
+                        
+                        // Add quick status summary if available
+                        if (healthData.worker_info && healthData.worker_info.status_message) {
+                            resultHtml += '<div class="status-summary">' + healthData.worker_info.status_message + '</div>';
+                        }
+                        
                         resultHtml += '</div>';
                         
-                        // Add note about favicon.ico 404 errors and health endpoint
-                        resultHtml += '<div class="test-detail note"><small>Note: Cloudflare logs may show 404 errors for favicon.ico requests - these are normal browser behavior and can be ignored. The worker health check uses a GET request to the /health endpoint.</small></div>';
+                        // Create responsive grid layout
+                        resultHtml += '<div class="worker-test-grid">';
+                        
+                        // Left column - Core Information
+                        resultHtml += '<div class="worker-test-column">';
                         
                         // Add response time if available
                         if (healthData.response_time) {
-                            resultHtml += '<div class="test-detail"><strong>Response time:</strong> ' + 
+                            resultHtml += '<div class="test-detail"><strong>Response Time:</strong> ' +
                                 healthData.response_time + ' ms</div>';
                         }
                         
-                        // Add health data if available
-                        if (healthData.data && healthData.data.status) {
-                            resultHtml += '<div class="test-detail"><strong>Status:</strong> ' + 
-                                healthData.data.status + '</div>';
+                        // Display standardized worker health data
+                        if (healthData.data) {
+                            var workerData = healthData.data;
+                            
+                            // Core worker information - LEFT COLUMN
+                            if (workerData.worker) {
+                                resultHtml += '<div class="test-detail"><strong>Worker:</strong> ' +
+                                    workerData.worker + '</div>';
+                            }
+                            
+                            if (workerData.status) {
+                                resultHtml += '<div class="test-detail"><strong>Status:</strong> ' +
+                                    '<span class="status-indicator status-' + workerData.status + '">' +
+                                    workerData.status.charAt(0).toUpperCase() + workerData.status.slice(1) +
+                                    '</span></div>';
+                            }
+                            
+                            if (workerData.version) {
+                                resultHtml += '<div class="test-detail"><strong>Version:</strong> ' + workerData.version + '</div>';
+                            }
+                            
+                            if (workerData.worker_type) {
+                                resultHtml += '<div class="test-detail"><strong>Worker Type:</strong> ' + workerData.worker_type + '</div>';
+                            }
+                            
+                            // AI Model Information
+                            if (workerData.current_model) {
+                                var modelDisplay = workerData.model_display_name || workerData.current_model;
+                                resultHtml += '<div class="test-detail"><strong>AI Model:</strong> ' + modelDisplay + '</div>';
+                                
+                                if (workerData.model_source) {
+                                    var sourceLabel = workerData.model_source.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                    resultHtml += '<div class="test-detail"><strong>Model Source:</strong> ' + sourceLabel + '</div>';
+                                }
+                            }
+                            
+                            resultHtml += '</div>'; // End left column
+                            
+                            // Right column - Features & Status
+                            resultHtml += '<div class="worker-test-column">';
+                            
+                            // Cache Status
+                            if (workerData.cache_status) {
+                                var cacheClass = workerData.cache_status === 'active' ? 'status-healthy' : 'status-warning';
+                                resultHtml += '<div class="test-detail"><strong>Cache:</strong> ' +
+                                    '<span class="status-indicator ' + cacheClass + '">' +
+                                    workerData.cache_status.charAt(0).toUpperCase() + workerData.cache_status.slice(1) +
+                                    '</span></div>';
+                            }
+                            
+                            // Rate Limiting Status
+                            if (workerData.rate_limiting) {
+                                var rateStatus = workerData.rate_limiting.enabled ? 'Enabled' : 'Disabled';
+                                var rateClass = workerData.rate_limiting.enabled ? 'status-healthy' : 'status-warning';
+                                if (workerData.rate_limiting.enhanced) {
+                                    rateStatus += ' (Enhanced)';
+                                }
+                                resultHtml += '<div class="test-detail"><strong>Rate Limiting:</strong> ' +
+                                    '<span class="status-indicator ' + rateClass + '">' + rateStatus + '</span></div>';
+                            }
+                            
+                            // Capabilities
+                            if (workerData.capabilities && Array.isArray(workerData.capabilities) && workerData.capabilities.length > 0) {
+                                resultHtml += '<div class="test-detail-section"><strong>Capabilities:</strong>';
+                                resultHtml += '<div class="feature-chips">';
+                                workerData.capabilities.forEach(function(capability) {
+                                    var displayCapability = capability.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                    resultHtml += '<span class="feature-chip">' + displayCapability + '</span>';
+                                });
+                                resultHtml += '</div></div>';
+                            }
+                            
+                            // Timestamp
+                            if (workerData.timestamp) {
+                                var formattedTime = new Date(workerData.timestamp).toLocaleString();
+                                resultHtml += '<div class="test-detail"><strong>Tested:</strong> ' + formattedTime + '</div>';
+                            }
+                            
+                            // Test Method
+                            if (workerData.test_method) {
+                                resultHtml += '<div class="test-detail"><strong>Method:</strong> ' + workerData.test_method + '</div>';
+                            }
+                            
+                            resultHtml += '</div>'; // End right column
                         }
+                        
+                        resultHtml += '</div>'; // End grid
                         
                         $testResults.html(resultHtml).show().addClass('fade-in');
                         $workerCard.addClass('tested-success').removeClass('tested-error');

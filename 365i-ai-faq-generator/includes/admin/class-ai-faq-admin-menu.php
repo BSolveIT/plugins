@@ -24,9 +24,9 @@ class AI_FAQ_Admin_Menu {
 
 	/**
 	 * Initialize the menu component.
-	 * 
+	 *
 	 * Set up hooks for menu registration and plugin actions.
-	 * 
+	 *
 	 * @since 2.1.0
 	 */
 	public function init() {
@@ -35,6 +35,7 @@ class AI_FAQ_Admin_Menu {
 		
 		// Add plugin action links.
 		add_filter( 'plugin_action_links_' . AI_FAQ_GEN_BASENAME, array( $this, 'add_action_links' ) );
+		
 	}
 
 	/**
@@ -104,6 +105,16 @@ class AI_FAQ_Admin_Menu {
 			'manage_options',
 			'ai-faq-generator-usage-analytics',
 			array( $this, 'display_usage_analytics_page' )
+		);
+
+		// AI Models submenu.
+		add_submenu_page(
+			'ai-faq-generator',
+			__( 'AI Model Configuration', '365i-ai-faq-generator' ),
+			__( 'AI Models', '365i-ai-faq-generator' ),
+			'manage_options',
+			'ai-faq-generator-ai-models',
+			array( $this, 'display_ai_models_page' )
 		);
 
 		// Settings submenu.
@@ -234,8 +245,22 @@ class AI_FAQ_Admin_Menu {
 	}
 
 	/**
+	 * Display AI models configuration page.
+	 *
+	 * @since 2.2.0
+	 */
+	public function display_ai_models_page() {
+		// Check user capabilities.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( __( 'You do not have sufficient permissions to access this page.', '365i-ai-faq-generator' ) );
+		}
+
+		include AI_FAQ_GEN_DIR . 'templates/admin/ai-models.php';
+	}
+
+	/**
 	 * Add plugin action links.
-	 * 
+	 *
 	 * @since 2.0.0
 	 * @param array $links Existing action links.
 	 * @return array Modified action links.
@@ -248,4 +273,5 @@ class AI_FAQ_Admin_Menu {
 		
 		return $links;
 	}
+
 }

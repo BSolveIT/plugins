@@ -24,17 +24,26 @@ class AI_FAQ_Admin_Settings {
 
 	/**
 	 * Initialize the settings component.
-	 * 
+	 *
 	 * Set up hooks for settings registration and asset enqueuing.
-	 * 
+	 *
 	 * @since 2.1.0
 	 */
 	public function init() {
 		// Register settings.
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		
+		// Handle form submissions.
+		add_action( 'admin_init', array( $this, 'handle_form_submissions' ) );
+		
 		// Enqueue admin scripts and styles.
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
+		
+		// Add admin notices for missing configuration
+		add_action( 'admin_notices', array( $this, 'admin_notices' ) );
+		
+		// Register AJAX handler for initializing defaults
+		add_action( 'wp_ajax_ai_faq_initialize_defaults', array( $this, 'ajax_initialize_defaults' ) );
 	}
 
 	/**
@@ -193,8 +202,294 @@ class AI_FAQ_Admin_Settings {
 	}
 
 	/**
-	 * General settings section callback.
+	 * Handle form submissions for all admin pages.
+	 *
+	 * Processes form submissions for Settings and Workers pages.
+	 *
+	 * @since 2.1.0
+	 */
+	public function handle_form_submissions() {
+		// Check if this is a form submission
+		if ( ! isset( $_POST['_wpnonce'] ) ) {
+			return;
+		}
+
+		// Handle Workers configuration form submission
+		if ( wp_verify_nonce( $_POST['_wpnonce'], 'ai_faq_gen_save_workers' ) ) {
+			$this->handle_workers_form_submission();
+			return;
+		}
+
+		// Handle Settings form submission
+		if ( wp_verify_nonce( $_POST['_wpnonce'], 'ai_faq_gen_nonce' ) ) {
+			$this->handle_settings_form_submission();
+			return;
+		}
+	}
+
+	/**
+	 * Handle Workers configuration form submission.
+	 *
+	 * @since 2.1.0
+	 */
+	private function handle_workers_form_submission() {
+		// Check user capabilities
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', '365i-ai-faq-generator' ) );
+		}
+
+		// Get current options
+		$options = get_option( 'ai_faq_gen_options', array() );
+
+		// Process workers data
+		if ( isset( $_POST['workers'] ) && is_array( $_POST['workers'] ) ) {
+			$workers = array();
+
+			foreach ( $_POST['workers'] as $worker_name => $worker_config ) {
+				$sanitized_name = sanitize_key( $worker_name );
+				
+				$workers[ $sanitized_name ] = array(
+					'url' => esc_url_raw( $worker_config['url'] ?? '' ),
+					'enabled' => isset( $worker_config['enabled'] ) ? true : false,
+					'rate_limit' => absint( $worker_config['rate_limit'] ?? 10 ),
+					'timeout' => absint( $worker_config['timeout'] ?? 30 ),
+					'retry_attempts' => absint( $worker_config['retry_attempts'] ?? 3 ),
+				);
+			}
+
+			$options['workers'] = $workers;
+		}
+
+		// Update options
+		$result = update_option( 'ai_faq_gen_options', $options );
+
+		// Log the update
+		error_log( sprintf(
+			'[365i AI FAQ] Admin %s updated worker configuration',
+			wp_get_current_user()->user_login
+		) );
+
+		// Redirect with success message
+		$redirect_url = add_query_arg(
+			array(
+				'page' => 'ai-faq-generator-workers',
+				'settings-updated' => 'true',
+			),
+			admin_url( 'admin.php' )
+		);
+
+		wp_safe_redirect( $redirect_url );
+		exit;
+	}
+
+	/**
+	 * Handle Settings form submission.
+	 *
+	 * @since 2.1.0
+	 */
+	private function handle_settings_form_submission() {
+		// Check user capabilities
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', '365i-ai-faq-generator' ) );
+		}
+
+		// Get current options
+		$options = get_option( 'ai_faq_gen_options', array() );
+
+		// Process each field
+		$fields_to_process = array(
+			'cloudflare_account_id' => 'sanitize_text_field',
+			'cloudflare_api_token' => 'sanitize_text_field',
+			'default_tone' => array( $this, 'sanitize_tone' ),
+			'default_length' => 'sanitize_text_field',
+			'default_schema_type' => 'sanitize_text_field',
+			'default_faq_count' => 'absint',
+			'max_questions_per_batch' => 'absint',
+			'cache_duration' => 'absint',
+			'log_level' => 'sanitize_text_field',
+		);
+
+		foreach ( $fields_to_process as $field => $sanitizer ) {
+			if ( isset( $_POST[ $field ] ) ) {
+				if ( is_callable( $sanitizer ) ) {
+					$options[ $field ] = call_user_func( $sanitizer, $_POST[ $field ] );
+				}
+			}
+		}
+
+		// Process boolean fields
+		$boolean_fields = array(
+			'enable_auto_schema',
+			'enable_seo_optimization',
+			'enable_rate_limiting',
+			'enable_caching',
+			'enable_logging',
+			'enable_analytics',
+		);
+
+		foreach ( $boolean_fields as $field ) {
+			$options[ $field ] = isset( $_POST[ $field ] ) ? true : false;
+		}
+
+		// Update options
+		$result = update_option( 'ai_faq_gen_options', $options );
+
+		// Log the update
+		error_log( sprintf(
+			'[365i AI FAQ] Admin %s updated plugin settings',
+			wp_get_current_user()->user_login
+		) );
+
+		// Redirect with success message
+		$redirect_url = add_query_arg(
+			array(
+				'page' => 'ai-faq-generator-settings',
+				'settings-updated' => 'true',
+			),
+			admin_url( 'admin.php' )
+		);
+
+		wp_safe_redirect( $redirect_url );
+		exit;
+	}
+
+	/**
+	 * Sanitize tone field with allowed values.
+	 *
+	 * @since 2.1.0
+	 * @param string $tone Raw tone value.
+	 * @return string Sanitized tone value.
+	 */
+	private function sanitize_tone( $tone ) {
+		$allowed_tones = array( 'professional', 'friendly', 'casual', 'technical' );
+		$sanitized_tone = sanitize_text_field( $tone );
+		return in_array( $sanitized_tone, $allowed_tones, true ) ? $sanitized_tone : 'professional';
+	}
+
+	/**
+	 * Display admin notices for missing configuration.
 	 * 
+	 * @since 2.1.0
+	 */
+	public function admin_notices() {
+		// Only show on our plugin pages
+		$screen = get_current_screen();
+		if ( ! $screen || strpos( $screen->id, 'ai-faq-generator' ) === false ) {
+			return;
+		}
+
+		// Check if Worker URLs are configured
+		$options = get_option( 'ai_faq_gen_options', array() );
+		$workers = isset( $options['workers'] ) ? $options['workers'] : array();
+
+		// If no workers are configured, show notice
+		if ( empty( $workers ) ) {
+			?>
+			<div class="notice notice-warning is-dismissible">
+				<p>
+					<strong><?php esc_html_e( 'AI FAQ Generator:', '365i-ai-faq-generator' ); ?></strong>
+					<?php esc_html_e( 'Worker URLs are not configured.', '365i-ai-faq-generator' ); ?>
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=ai-faq-generator-workers' ) ); ?>" class="button button-secondary">
+						<?php esc_html_e( 'Configure Workers', '365i-ai-faq-generator' ); ?>
+					</a>
+					<button type="button" class="button button-secondary" onclick="aiFaqInitializeDefaults()">
+						<?php esc_html_e( 'Use Default URLs', '365i-ai-faq-generator' ); ?>
+					</button>
+				</p>
+			</div>
+			<script>
+			function aiFaqInitializeDefaults() {
+				if (confirm('<?php echo esc_js( __( 'This will initialize Worker URLs with default values. Continue?', '365i-ai-faq-generator' ) ); ?>')) {
+					fetch('<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/x-www-form-urlencoded',
+						},
+						body: new URLSearchParams({
+							action: 'ai_faq_initialize_defaults',
+							nonce: '<?php echo esc_js( wp_create_nonce( 'ai_faq_admin_nonce' ) ); ?>'
+						})
+					})
+					.then(response => response.json())
+					.then(data => {
+						if (data.success) {
+							location.reload();
+						} else {
+							alert('<?php echo esc_js( __( 'Failed to initialize defaults. Please try again.', '365i-ai-faq-generator' ) ); ?>');
+						}
+					});
+				}
+			}
+			</script>
+			<?php
+		}
+
+		// Check for configured workers with empty URLs
+		$workers_with_empty_urls = array();
+		foreach ( $workers as $worker_name => $config ) {
+			if ( empty( $config['url'] ) ) {
+				$workers_with_empty_urls[] = $worker_name;
+			}
+		}
+
+		if ( ! empty( $workers_with_empty_urls ) ) {
+			?>
+			<div class="notice notice-info is-dismissible">
+				<p>
+					<strong><?php esc_html_e( 'AI FAQ Generator:', '365i-ai-faq-generator' ); ?></strong>
+					<?php 
+					printf(
+						/* translators: %s: list of workers with empty URLs */
+						esc_html__( 'Some workers have empty URLs: %s', '365i-ai-faq-generator' ),
+						esc_html( implode( ', ', $workers_with_empty_urls ) )
+					); 
+					?>
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=ai-faq-generator-workers' ) ); ?>" class="button button-secondary">
+						<?php esc_html_e( 'Update Worker URLs', '365i-ai-faq-generator' ); ?>
+					</a>
+				</p>
+			</div>
+			<?php
+		}
+	}
+
+	/**
+	 * Initialize default worker URLs via AJAX.
+	 * 
+	 * @since 2.1.0
+	 */
+	public function ajax_initialize_defaults() {
+		// Verify nonce
+		if ( ! wp_verify_nonce( $_POST['nonce'] ?? '', 'ai_faq_admin_nonce' ) ) {
+			wp_send_json_error( array(
+				'message' => __( 'Security verification failed.', '365i-ai-faq-generator' ),
+			) );
+		}
+
+		// Check user capabilities
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array(
+				'message' => __( 'You do not have sufficient permissions.', '365i-ai-faq-generator' ),
+			) );
+		}
+
+		// Reset settings to defaults
+		$result = $this->reset_settings();
+
+		if ( $result['success'] ) {
+			wp_send_json_success( array(
+				'message' => __( 'Default worker URLs have been initialized successfully.', '365i-ai-faq-generator' ),
+			) );
+		} else {
+			wp_send_json_error( array(
+				'message' => $result['message'],
+			) );
+		}
+	}
+
+	/**
+	 * General settings section callback.
+	 *
 	 * @since 2.0.0
 	 */
 	public function general_section_callback() {
