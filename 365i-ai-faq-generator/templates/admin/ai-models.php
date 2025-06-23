@@ -129,6 +129,55 @@ $worker_definitions = array(
 								</div>
 							</div>
 						</div>
+
+						<!-- Model Selection Interface -->
+						<div class="model-selection-section">
+							<h4><?php esc_html_e( 'Change AI Model', '365i-ai-faq-generator' ); ?></h4>
+							
+							<div class="model-selector-wrapper">
+								<div class="model-input-form">
+									<div class="model-input-group">
+										<label for="model-input-<?php echo esc_attr( $worker_key ); ?>" class="model-input-label">
+											<?php esc_html_e( 'AI Model ID:', '365i-ai-faq-generator' ); ?>
+										</label>
+										<input type="text"
+										       id="model-input-<?php echo esc_attr( $worker_key ); ?>"
+										       class="model-input"
+										       data-worker="<?php echo esc_attr( $worker_key ); ?>"
+										       placeholder="@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+										       title="<?php esc_attr_e( 'Enter the Cloudflare AI model ID (e.g., @cf/meta/llama-3.3-70b-instruct-fp8-fast)', '365i-ai-faq-generator' ); ?>" />
+										<small class="model-input-help">
+											<?php esc_html_e( 'Enter a Cloudflare Workers AI model ID (e.g., @cf/meta/llama-3.3-70b-instruct-fp8-fast)', '365i-ai-faq-generator' ); ?>
+										</small>
+									</div>
+									
+									<div class="model-action-buttons">
+										<button type="button" class="button button-primary change-model-btn"
+										        data-worker="<?php echo esc_attr( $worker_key ); ?>"
+										        disabled
+										        title="<?php esc_attr_e( 'Change the AI model for this worker', '365i-ai-faq-generator' ); ?>">
+											<span class="dashicons dashicons-update-alt"></span>
+											<?php esc_html_e( 'Change Model', '365i-ai-faq-generator' ); ?>
+										</button>
+										<?php
+										// Get default model for this worker
+										$ai_models_admin = new AI_FAQ_Admin_AI_Models();
+										$default_models = $ai_models_admin->get_default_model_mappings();
+										$default_model = isset( $default_models[ $worker_key ] ) ? $default_models[ $worker_key ] : null;
+										
+										if ( $default_model ) : ?>
+										<button type="button" class="button button-secondary reset-model-btn"
+										        data-worker="<?php echo esc_attr( $worker_key ); ?>"
+										        data-default-model="<?php echo esc_attr( $default_model ); ?>"
+										        title="<?php echo esc_attr( sprintf( __( 'Reset to default model: %s', '365i-ai-faq-generator' ), $default_model ) ); ?>">
+											<span class="dashicons dashicons-undo"></span>
+											<?php esc_html_e( 'Reset to Default', '365i-ai-faq-generator' ); ?>
+										</button>
+										<?php endif; ?>
+									</div>
+								</div>
+							</div>
+						</div>
 						
 						<!-- Connectivity Status - Hidden by default, shown after test -->
 						<div class="connectivity-status" style="display: none;">
@@ -139,7 +188,7 @@ $worker_definitions = array(
 							</div>
 						</div>
 						
-						<!-- Test Connectivity Button -->
+						<!-- Action Buttons -->
 						<div class="model-actions">
 							<button type="button" class="button button-secondary test-model-connectivity"
 							        data-worker="<?php echo esc_attr( $worker_key ); ?>"

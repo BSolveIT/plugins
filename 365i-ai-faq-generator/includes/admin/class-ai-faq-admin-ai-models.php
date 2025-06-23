@@ -76,6 +76,7 @@ class AI_FAQ_Admin_AI_Models {
 		add_action( 'wp_ajax_ai_faq_get_capabilities', array( $this, 'handle_get_capabilities_ajax' ) );
 		add_action( 'wp_ajax_ai_faq_refresh_models', array( $this, 'handle_refresh_models_ajax' ) );
 		add_action( 'wp_ajax_ai_faq_get_worker_ai_models', array( $this, 'handle_get_worker_ai_models_ajax' ) );
+		add_action( 'wp_ajax_ai_faq_change_worker_model', array( $this, 'handle_change_worker_model_ajax' ) );
 		
 		// Enqueue scripts and styles for AI Models admin page
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
@@ -419,9 +420,20 @@ class AI_FAQ_Admin_AI_Models {
 	 * Get model configuration for all workers.
 	 *
 	 * @since 2.4.0
+	 * @param bool $force_refresh Whether to bypass cache and fetch fresh data.
 	 * @return array Model configurations by worker type.
 	 */
-	public function get_worker_model_configurations() {
+	public function get_worker_model_configurations( $force_refresh = false ) {
+		// If force refresh is requested, clear the cache first
+		if ( $force_refresh ) {
+			$cache_key = 'ai_faq_gen_ai_models_kv';
+			delete_transient( $cache_key );
+			
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'AI FAQ Generator: Forced refresh of worker model configurations' );
+			}
+		}
+		
 		$stored_models = $this->get_models_from_kv_namespace();
 		$data_source = 'kv_namespace';
 		
@@ -443,6 +455,14 @@ class AI_FAQ_Admin_AI_Models {
 				'is_custom' => isset( $stored_models[ $worker_type ] ) && $stored_models[ $worker_type ] !== $default_model,
 				'data_source' => $data_source,
 			);
+		}
+
+		// Debug logging
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'AI FAQ Generator: Worker model configurations retrieved - data source: ' . $data_source );
+			foreach ( $configurations as $worker_type => $config ) {
+				error_log( 'AI FAQ Generator: ' . $worker_type . ' -> ' . $config['model'] . ' (source: ' . $config['data_source'] . ')' );
+			}
 		}
 
 		return apply_filters( 'ai_faq_gen_worker_model_configurations', $configurations );
@@ -484,8 +504,8 @@ class AI_FAQ_Admin_AI_Models {
 
 			$model_id = sanitize_text_field( $model_id );
 
-			// Validate model exists
-			if ( ! empty( $model_id ) && isset( $available_models[ $model_id ] ) ) {
+			// Validate model ID format
+			if ( ! empty( $model_id ) && $this->is_valid_cloudflare_model_id( $model_id ) ) {
 				$sanitized_configs[ $worker_type ] = $model_id;
 			} else {
 				// Fall back to default
@@ -497,31 +517,24 @@ class AI_FAQ_Admin_AI_Models {
 		$kv_save_result = $this->save_models_to_kv_namespace( $sanitized_configs );
 		
 		if ( $kv_save_result ) {
-			// Clear local cache to force fresh retrieval
+			// Clear local cache after model changes
 			$this->clear_model_cache();
 			
-			// Trigger cache purge for all workers
-			$cache_purge_result = $this->purge_worker_caches();
+			// Clear worker caches to force them to reload from KV namespace
+			$cache_clear_results = $this->clear_worker_caches_after_model_update( $sanitized_configs );
 			
-			$message_parts = array(
-				sprintf(
-					/* translators: %d: Number of workers configured */
-					__( 'AI model configurations saved successfully for %d workers.', '365i-ai-faq-generator' ),
-					count( $sanitized_configs )
-				)
-			);
-			
-			if ( $cache_purge_result ) {
-				$message_parts[] = __( 'Worker caches have been purged to apply new configurations immediately.', '365i-ai-faq-generator' );
-			} else {
-				$message_parts[] = __( 'Note: Worker cache purge completed with some failures - new configurations may take a few minutes to take effect.', '365i-ai-faq-generator' );
-			}
+			// Get fresh configurations to ensure UI shows updated data
+			$fresh_configurations = $this->get_worker_model_configurations( true );
 			
 			return array(
 				'success' => true,
-				'message' => implode( ' ', $message_parts ),
-				'configurations' => $sanitized_configs,
-				'cache_purged' => $cache_purge_result,
+				'message' => sprintf(
+					/* translators: %d: Number of workers configured */
+					__( 'AI model configurations saved successfully for %d workers.', '365i-ai-faq-generator' ),
+					count( $sanitized_configs )
+				),
+				'configurations' => $fresh_configurations,
+				'cache_clear_results' => $cache_clear_results,
 			);
 		} else {
 			return array(
@@ -631,19 +644,21 @@ class AI_FAQ_Admin_AI_Models {
 
 	/**
 	 * Generate connectivity status notification.
-	 * 
+	 *
 	 * @since 2.3.0
 	 * @param array $connectivity_result Result from test_model_connectivity.
 	 * @return array Notification data for frontend display.
 	 */
 	public function generate_connectivity_notification( $connectivity_result ) {
 		$status = $connectivity_result['status'];
-		$timestamp_relative = human_time_diff( strtotime( $connectivity_result['timestamp'] ?? '' ), current_time( 'timestamp' ) );
+		
+		// Fix timestamp issue - use current time since we just ran the test
+		$timestamp_relative = __( 'just now', '365i-ai-faq-generator' );
 
 		$notification = array(
 			'status' => $status,
 			'response_time_ms' => $connectivity_result['response_time_ms'],
-			'timestamp_relative' => $timestamp_relative . ' ' . __( 'ago', '365i-ai-faq-generator' ),
+			'timestamp_relative' => $timestamp_relative,
 			'message' => $connectivity_result['message'],
 		);
 
@@ -898,106 +913,6 @@ class AI_FAQ_Admin_AI_Models {
 		return ( $response_code >= 200 && $response_code < 300 );
 	}
 
-	/**
-	 * Purge worker caches to force immediate configuration reload.
-	 *
-	 * @since 2.4.2
-	 * @return bool True if all cache purges were successful, false if any failed.
-	 */
-	private function purge_worker_caches() {
-		$options = get_option( 'ai_faq_gen_options', array() );
-		
-		// Get worker URLs from configuration
-		$worker_urls = array();
-		$worker_types = array( 'question_generator', 'answer_generator', 'faq_enhancer', 'seo_analyzer', 'faq_extractor', 'topic_generator' );
-		
-		foreach ( $worker_types as $worker_type ) {
-			$url_key = $worker_type . '_url';
-			if ( isset( $options[ $url_key ] ) && ! empty( $options[ $url_key ] ) ) {
-				$worker_urls[ $worker_type ] = $options[ $url_key ];
-			}
-		}
-		
-		if ( empty( $worker_urls ) ) {
-			return false; // No workers configured
-		}
-		
-		$success_count = 0;
-		$total_count = count( $worker_urls );
-		
-		foreach ( $worker_urls as $worker_type => $worker_url ) {
-			$cache_purge_success = $this->purge_single_worker_cache( $worker_url, $worker_type );
-			if ( $cache_purge_success ) {
-				$success_count++;
-			}
-		}
-		
-		// Return true only if ALL cache purges were successful
-		return $success_count === $total_count;
-	}
-
-	/**
-	 * Purge cache for a single worker.
-	 *
-	 * @since 2.4.2
-	 * @param string $worker_url The worker URL.
-	 * @param string $worker_type The worker type for logging.
-	 * @return bool True if cache purge was successful, false otherwise.
-	 */
-	private function purge_single_worker_cache( $worker_url, $worker_type ) {
-		// Normalize URL (remove trailing slash)
-		$worker_url = rtrim( $worker_url, '/' );
-		
-		// Try multiple cache purge endpoints
-		$cache_endpoints = array(
-			'/cache/purge',
-			'/purge-cache',
-			'/invalidate',
-			'/reload-config'
-		);
-		
-		foreach ( $cache_endpoints as $endpoint ) {
-			$purge_url = $worker_url . $endpoint;
-			
-			$response = wp_remote_post( $purge_url, array(
-				'headers' => array(
-					'Content-Type' => 'application/json',
-					'User-Agent' => 'WordPress-AI-FAQ-Generator/2.4.2 (Cache-Purge)',
-				),
-				'body' => wp_json_encode( array(
-					'action' => 'purge_cache',
-					'source' => 'ai_models_config_update',
-					'timestamp' => current_time( 'c' ),
-				) ),
-				'timeout' => 10,
-				'sslverify' => false, // Allow self-signed certificates in development
-			) );
-			
-			if ( ! is_wp_error( $response ) ) {
-				$response_code = wp_remote_retrieve_response_code( $response );
-				// Accept 2xx or 404 (endpoint not found - worker may not support cache purging)
-				if ( ( $response_code >= 200 && $response_code < 300 ) || $response_code === 404 ) {
-					return true;
-				}
-			}
-		}
-		
-		// If all cache endpoints failed, try a simple GET request to /health to trigger any config reload
-		$health_url = $worker_url . '/health';
-		$response = wp_remote_get( $health_url, array(
-			'timeout' => 5,
-			'sslverify' => false,
-		) );
-		
-		if ( ! is_wp_error( $response ) ) {
-			$response_code = wp_remote_retrieve_response_code( $response );
-			if ( $response_code >= 200 && $response_code < 300 ) {
-				return true; // Health endpoint works, consider it a successful "cache warm"
-			}
-		}
-		
-		return false;
-	}
 
 	/**
 	 * Get KV namespace ID for model configuration storage.
@@ -1037,27 +952,20 @@ class AI_FAQ_Admin_AI_Models {
 		$kv_save_result = $this->save_models_to_kv_namespace( $defaults );
 		
 		if ( $kv_save_result ) {
-			// Clear local cache to force fresh retrieval
+			// Clear local cache after reset
 			$this->clear_model_cache();
 			
-			// Trigger cache purge for all workers
-			$cache_purge_result = $this->purge_worker_caches();
+			// Clear worker caches to force them to reload from KV namespace
+			$cache_clear_results = $this->clear_worker_caches_after_model_update( $defaults );
 			
-			$message_parts = array(
-				__( 'AI model configurations have been reset to recommended defaults.', '365i-ai-faq-generator' )
-			);
+			// Get fresh configurations to ensure UI shows updated data
+			$fresh_configurations = $this->get_worker_model_configurations( true );
 			
-			if ( $cache_purge_result ) {
-				$message_parts[] = __( 'Worker caches have been purged to apply new configurations immediately.', '365i-ai-faq-generator' );
-			} else {
-				$message_parts[] = __( 'Note: Worker cache purge completed with some failures - new configurations may take a few minutes to take effect.', '365i-ai-faq-generator' );
-			}
-
 			return array(
 				'success' => true,
-				'message' => implode( ' ', $message_parts ),
-				'configurations' => $defaults,
-				'cache_purged' => $cache_purge_result,
+				'message' => __( 'AI model configurations have been reset to recommended defaults.', '365i-ai-faq-generator' ),
+				'configurations' => $fresh_configurations,
+				'cache_clear_results' => $cache_clear_results,
 			);
 		} else {
 			return array(
@@ -1086,7 +994,7 @@ class AI_FAQ_Admin_AI_Models {
 			}
 		}
 		
-		// Also clear any paginated models cache
+		// Also clear any paginated models cache and all related transients
 		global $wpdb;
 		$wpdb->query(
 			$wpdb->prepare(
@@ -1101,7 +1009,209 @@ class AI_FAQ_Admin_AI_Models {
 			)
 		);
 		
+		// Clear all AI FAQ related transients to ensure fresh data
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
+				'_transient_ai_faq_%'
+			)
+		);
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
+				'_transient_timeout_ai_faq_%'
+			)
+		);
+		
+		// Also clear any WordPress object cache if available
+		if ( function_exists( 'wp_cache_flush' ) ) {
+			wp_cache_flush();
+		}
+		
+		// Debug logging
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'AI FAQ Generator: Model cache cleared - cleared ' . $success_count . ' primary cache keys' );
+		}
+		
 		return $success_count > 0;
+	}
+
+	/**
+		* Clear worker caches after AI model configuration updates.
+		*
+		* @since 2.5.2
+		* @param array $updated_models The updated model configurations.
+		* @return array Results of cache clearing operations.
+		*/
+	private function clear_worker_caches_after_model_update( $updated_models ) {
+		$options = get_option( 'ai_faq_gen_options', array() );
+		$cache_clear_results = array(
+			'attempted' => 0,
+			'successful' => 0,
+			'failed' => 0,
+			'details' => array(),
+		);
+
+		// Enhanced debug logging
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'AI FAQ Generator: Starting worker cache clearing for updated models: ' . wp_json_encode( array_keys( $updated_models ) ) );
+		}
+
+		// Get all worker types that use AI models
+		$worker_types = array( 'question_generator', 'answer_generator', 'faq_enhancer', 'seo_analyzer', 'topic_generator' );
+
+		foreach ( $worker_types as $worker_type ) {
+			// Skip if this worker wasn't updated
+			if ( ! isset( $updated_models[ $worker_type ] ) ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( 'AI FAQ Generator: Skipping ' . $worker_type . ' - not in updated models' );
+				}
+				continue;
+			}
+
+			// Get worker URL
+			$worker_url_key = $worker_type . '_url';
+			$worker_url = '';
+
+			// Try individual URL key first, then workers array
+			if ( isset( $options[ $worker_url_key ] ) && ! empty( $options[ $worker_url_key ] ) ) {
+				$worker_url = $options[ $worker_url_key ];
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( 'AI FAQ Generator: Found URL for ' . $worker_type . ' in individual key: ' . $worker_url );
+				}
+			} elseif ( isset( $options['workers'][ $worker_type ]['url'] ) && ! empty( $options['workers'][ $worker_type ]['url'] ) ) {
+				$worker_url = $options['workers'][ $worker_type ]['url'];
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( 'AI FAQ Generator: Found URL for ' . $worker_type . ' in workers array: ' . $worker_url );
+				}
+			}
+
+			if ( empty( $worker_url ) ) {
+				$cache_clear_results['details'][ $worker_type ] = array(
+					'status' => 'skipped',
+					'message' => __( 'Worker URL not configured', '365i-ai-faq-generator' ),
+				);
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( 'AI FAQ Generator: No URL configured for ' . $worker_type . ' - skipping cache clear' );
+				}
+				continue;
+			}
+
+			$cache_clear_results['attempted']++;
+
+			// Clear worker cache
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'AI FAQ Generator: Attempting to clear cache for ' . $worker_type . ' at ' . $worker_url );
+			}
+			
+			$clear_result = $this->clear_single_worker_cache( $worker_type, $worker_url );
+
+			if ( $clear_result['success'] ) {
+				$cache_clear_results['successful']++;
+			} else {
+				$cache_clear_results['failed']++;
+			}
+
+			$cache_clear_results['details'][ $worker_type ] = $clear_result;
+		}
+
+		// Debug logging
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'AI FAQ Generator: Worker cache clear COMPLETED - attempted: ' . $cache_clear_results['attempted'] . ', successful: ' . $cache_clear_results['successful'] . ', failed: ' . $cache_clear_results['failed'] );
+			error_log( 'AI FAQ Generator: Cache clear details: ' . wp_json_encode( $cache_clear_results['details'] ) );
+		}
+
+		return $cache_clear_results;
+	}
+
+	/**
+		* Clear cache for a single worker.
+		*
+		* @since 2.5.2
+		* @param string $worker_type The worker type.
+		* @param string $worker_url The worker URL.
+		* @return array Result of cache clearing operation.
+		*/
+	private function clear_single_worker_cache( $worker_type, $worker_url ) {
+		$worker_url = rtrim( $worker_url, '/' );
+		$cache_clear_url = $worker_url . '/cache/clear';
+
+		// Debug logging
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'AI FAQ Generator: Clearing cache for ' . $worker_type . ' at ' . $cache_clear_url );
+		}
+
+		// Make request to worker cache clear endpoint
+		$response = wp_remote_post( $cache_clear_url, array(
+			'timeout' => 10,
+			'headers' => array(
+				'Content-Type' => 'application/json',
+				'User-Agent' => 'WordPress-AI-FAQ-Generator/2.5.2 (Cache-Clear)',
+			),
+			'body' => wp_json_encode( array(
+				'force' => true,
+				'reason' => 'ai_model_config_update',
+				'timestamp' => current_time( 'c' ),
+			) ),
+			'sslverify' => false, // Allow self-signed certificates in development
+		) );
+
+		if ( is_wp_error( $response ) ) {
+			$error_message = $response->get_error_message();
+			error_log( 'AI FAQ Generator: Cache clear failed for ' . $worker_type . ': ' . $error_message );
+			
+			return array(
+				'success' => false,
+				'status' => 'error',
+				'message' => sprintf(
+					/* translators: %s: Error message */
+					__( 'Failed to connect to worker: %s', '365i-ai-faq-generator' ),
+					$error_message
+				),
+			);
+		}
+
+		$response_code = wp_remote_retrieve_response_code( $response );
+		$response_body = wp_remote_retrieve_body( $response );
+
+		// Consider 200-299 as success, and 404 as "endpoint not available but worker might still work"
+		if ( $response_code >= 200 && $response_code < 300 ) {
+			return array(
+				'success' => true,
+				'status' => 'cleared',
+				'message' => __( 'Worker cache cleared successfully', '365i-ai-faq-generator' ),
+				'response_code' => $response_code,
+			);
+		} elseif ( $response_code === 404 ) {
+			// Cache clear endpoint doesn't exist, but that's okay
+			return array(
+				'success' => true,
+				'status' => 'not_supported',
+				'message' => __( 'Worker does not support cache clearing (legacy worker)', '365i-ai-faq-generator' ),
+				'response_code' => $response_code,
+			);
+		} else {
+			// Parse error response if available
+			$error_message = $response_body;
+			$response_data = json_decode( $response_body, true );
+			if ( json_last_error() === JSON_ERROR_NONE && isset( $response_data['error'] ) ) {
+				$error_message = $response_data['error'];
+			}
+
+			error_log( 'AI FAQ Generator: Cache clear failed for ' . $worker_type . ' - HTTP ' . $response_code . ': ' . $error_message );
+
+			return array(
+				'success' => false,
+				'status' => 'failed',
+				'message' => sprintf(
+					/* translators: %1$d: HTTP response code, %2$s: Error message */
+					__( 'Worker returned HTTP %1$d: %2$s', '365i-ai-faq-generator' ),
+					$response_code,
+					$error_message
+				),
+				'response_code' => $response_code,
+			);
+		}
 	}
 
 	/**
@@ -1178,19 +1288,34 @@ class AI_FAQ_Admin_AI_Models {
 
 		$worker_type = sanitize_text_field( $_POST['worker_type'] );
 
-		// Get current AI model from worker health endpoint first
-		$ai_model_info = $this->fetch_worker_ai_model_info( $worker_type );
+		// Prioritize KV namespace configuration (source of truth) over worker health endpoint
+		$model_configs = $this->get_worker_model_configurations( true ); // Force fresh data
 		$model_id = '';
+		$model_source = 'kv_namespace';
 		
-		// Use the current model from worker if available, otherwise fall back to configured model
-		if ( ! is_wp_error( $ai_model_info ) && ! empty( $ai_model_info['current_model'] ) ) {
-			$model_id = $ai_model_info['current_model'];
-		} else {
-			// Fallback: get model from KV namespace configuration
-			$model_configs = $this->get_worker_model_configurations();
-			if ( isset( $model_configs[ $worker_type ]['model'] ) ) {
-				$model_id = $model_configs[ $worker_type ]['model'];
+		// Get model from KV namespace configuration first
+		if ( isset( $model_configs[ $worker_type ]['model'] ) ) {
+			$model_id = $model_configs[ $worker_type ]['model'];
+		}
+		
+		// Only fall back to worker health endpoint if KV namespace is not available
+		if ( empty( $model_id ) ) {
+			$ai_model_info = $this->fetch_worker_ai_model_info( $worker_type );
+			if ( ! is_wp_error( $ai_model_info ) && ! empty( $ai_model_info['current_model'] ) ) {
+				$model_id = $ai_model_info['current_model'];
+				$model_source = 'worker_health';
 			}
+		}
+		
+		// Get AI model info for display purposes (but use KV namespace model for testing)
+		$ai_model_info = $this->fetch_worker_ai_model_info( $worker_type );
+		
+		// Override worker's reported model with KV namespace model if available
+		if ( ! is_wp_error( $ai_model_info ) && ! empty( $model_configs[ $worker_type ]['model'] ) ) {
+			$ai_model_info['current_model'] = $model_configs[ $worker_type ]['model'];
+			$ai_model_info['model_display_name'] = $this->get_model_display_name_efficiently( $model_configs[ $worker_type ]['model'] );
+			$ai_model_info['model_source'] = 'kv_namespace_override';
+			$ai_model_info['status'] = 'configured';
 		}
 
 		// Skip connectivity test for workers that don't use AI models
@@ -1704,17 +1829,132 @@ class AI_FAQ_Admin_AI_Models {
 			wp_send_json_error( __( 'Worker type is required.', '365i-ai-faq-generator' ) );
 		}
 
-		// Get AI model information from the specific worker
-		$ai_model_info = $this->fetch_worker_ai_model_info( $worker_type );
+		// Prioritize KV namespace configuration (source of truth) over worker health endpoint
+		$model_configs = $this->get_worker_model_configurations( true ); // Force fresh data
+		$ai_model_info = array(
+			'status' => 'unknown',
+			'current_model' => null,
+			'model_display_name' => null,
+			'model_source' => 'unknown',
+		);
 		
-		if ( is_wp_error( $ai_model_info ) ) {
-			wp_send_json_error( $ai_model_info->get_error_message() );
+		// Handle faq_extractor special case (proxy service)
+		if ( 'faq_extractor' === $worker_type ) {
+			$ai_model_info = array(
+				'status' => 'not_applicable',
+				'current_model' => null,
+				'model_display_name' => __( 'N/A (Proxy Service)', '365i-ai-faq-generator' ),
+				'model_source' => 'not_applicable',
+			);
+		} else {
+			// Get model from KV namespace configuration first
+			if ( isset( $model_configs[ $worker_type ]['model'] ) && ! empty( $model_configs[ $worker_type ]['model'] ) ) {
+				$current_model = $model_configs[ $worker_type ]['model'];
+				$ai_model_info = array(
+					'status' => 'configured',
+					'current_model' => $current_model,
+					'model_display_name' => $this->get_model_display_name_efficiently( $current_model ),
+					'model_source' => 'kv_config',
+					'data_source' => $model_configs[ $worker_type ]['data_source'],
+					'is_custom' => $model_configs[ $worker_type ]['is_custom'],
+				);
+			} else {
+				// Fallback: get from worker health endpoint if KV namespace is not available
+				$worker_ai_model_info = $this->fetch_worker_ai_model_info( $worker_type );
+				
+				if ( ! is_wp_error( $worker_ai_model_info ) ) {
+					$ai_model_info = $worker_ai_model_info;
+				} else {
+					$ai_model_info['status'] = 'not_configured';
+					$ai_model_info['model_display_name'] = __( 'No Model Configured', '365i-ai-faq-generator' );
+				}
+			}
 		}
 
 		wp_send_json_success( array(
 			'worker_type' => $worker_type,
 			'ai_model_info' => $ai_model_info,
 		) );
+	}
+
+	/**
+	 * Handle AJAX request to change AI model for a worker.
+	 *
+	 * @since 2.5.0
+	 */
+	public function handle_change_worker_model_ajax() {
+		// Verify nonce
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'ai_faq_admin_nonce' ) ) {
+			wp_send_json_error( __( 'Security check failed.', '365i-ai-faq-generator' ) );
+		}
+
+		// Check capabilities
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Insufficient permissions.', '365i-ai-faq-generator' ) );
+		}
+
+		$worker_type = isset( $_POST['worker_type'] ) ? sanitize_text_field( $_POST['worker_type'] ) : '';
+		$new_model_id = isset( $_POST['model_id'] ) ? sanitize_text_field( $_POST['model_id'] ) : '';
+		
+		if ( empty( $worker_type ) ) {
+			wp_send_json_error( __( 'Worker type is required.', '365i-ai-faq-generator' ) );
+		}
+
+		if ( empty( $new_model_id ) ) {
+			wp_send_json_error( __( 'Model ID is required.', '365i-ai-faq-generator' ) );
+		}
+
+		// Validate worker type
+		$defaults = $this->get_default_model_mappings();
+		if ( ! isset( $defaults[ $worker_type ] ) ) {
+			wp_send_json_error( __( 'Invalid worker type.', '365i-ai-faq-generator' ) );
+		}
+
+		// Handle faq_extractor special case (no model)
+		if ( 'faq_extractor' === $worker_type ) {
+			wp_send_json_error( __( 'FAQ Extractor is a proxy service and does not use an AI model.', '365i-ai-faq-generator' ) );
+		}
+
+		// Validate model ID format for Cloudflare models
+		if ( ! $this->is_valid_cloudflare_model_id( $new_model_id ) ) {
+			wp_send_json_error( __( 'Invalid model ID format. Please use the format: @cf/provider/model-name', '365i-ai-faq-generator' ) );
+		}
+
+		// Get current model configurations
+		$current_configs = $this->get_worker_model_configurations();
+		$updated_configs = array();
+
+		// Build updated configurations array preserving other workers
+		foreach ( $current_configs as $wtype => $config ) {
+			if ( $wtype === $worker_type ) {
+				$updated_configs[ $wtype ] = $new_model_id;
+			} else {
+				$updated_configs[ $wtype ] = $config['model'];
+			}
+		}
+
+		// Save the updated configurations
+		$save_result = $this->save_model_configurations( $updated_configs );
+
+		if ( $save_result['success'] ) {
+			// Get model display name for response
+			$model_display_name = $this->get_model_display_name_efficiently( $new_model_id );
+			
+			wp_send_json_success( array(
+				'message' => sprintf(
+					/* translators: %1$s: Worker name, %2$s: Model name */
+					__( 'Successfully changed %1$s AI model to %2$s', '365i-ai-faq-generator' ),
+					$this->format_worker_name( $worker_type ),
+					$model_display_name
+				),
+				'worker_type' => $worker_type,
+				'new_model_id' => $new_model_id,
+				'model_display_name' => $model_display_name,
+				'cache_clear_results' => isset( $save_result['cache_clear_results'] ) ? $save_result['cache_clear_results'] : null,
+			) );
+		} else {
+			wp_send_json_error( $save_result['message'] );
+		}
 	}
 
 	/**
@@ -2014,5 +2254,45 @@ class AI_FAQ_Admin_AI_Models {
 		);
 
 		return $display_name;
+	}
+
+	/**
+	 * Format worker type into human-readable name.
+	 *
+	 * @since 2.5.0
+	 * @param string $worker_type The worker type to format.
+	 * @return string Formatted worker name.
+	 */
+	private function format_worker_name( $worker_type ) {
+		$worker_names = array(
+			'question_generator' => __( 'Question Generator', '365i-ai-faq-generator' ),
+			'answer_generator' => __( 'Answer Generator', '365i-ai-faq-generator' ),
+			'faq_enhancer' => __( 'FAQ Enhancer', '365i-ai-faq-generator' ),
+			'seo_analyzer' => __( 'SEO Analyzer', '365i-ai-faq-generator' ),
+			'faq_extractor' => __( 'FAQ Extractor', '365i-ai-faq-generator' ),
+			'topic_generator' => __( 'Topic Generator', '365i-ai-faq-generator' ),
+		);
+
+		return isset( $worker_names[ $worker_type ] ) ? $worker_names[ $worker_type ] : ucwords( str_replace( '_', ' ', $worker_type ) );
+	}
+
+	/**
+	 * Validate Cloudflare model ID format.
+	 *
+	 * @since 2.5.1
+	 * @param string $model_id The model ID to validate.
+	 * @return bool True if valid Cloudflare model ID format, false otherwise.
+	 */
+	private function is_valid_cloudflare_model_id( $model_id ) {
+		if ( empty( $model_id ) || ! is_string( $model_id ) ) {
+			return false;
+		}
+
+		// Check for @cf/ prefix and proper format: @cf/provider/model-name
+		if ( ! preg_match( '/^@cf\/[a-zA-Z0-9\-_]+\/[a-zA-Z0-9\-_.]+$/', $model_id ) ) {
+			return false;
+		}
+
+		return true;
 	}
 }

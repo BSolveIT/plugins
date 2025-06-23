@@ -34,6 +34,7 @@
             this.initializeTooltips();
             this.checkForTestAllVisibility();
             this.loadInitialAIModelInfo();
+            this.bindModelInputEvents();
         }
 
         /**
@@ -52,6 +53,11 @@
             // Test model connectivity
             $(document).on('click', '.test-model-connectivity', this.handleConnectivityTest.bind(this));
             $(document).on('click', '.test-all-models', this.handleTestAllModels.bind(this));
+            
+            // Model input and change functionality
+            $(document).on('input', '.model-input', this.handleModelInput.bind(this));
+            $(document).on('click', '.change-model-btn', this.handleModelChange.bind(this));
+            $(document).on('click', '.reset-model-btn', this.handleModelReset.bind(this));
             
             // Keyboard shortcuts
             $(document).on('keydown', this.handleKeyboardShortcuts.bind(this));
@@ -110,6 +116,183 @@
                         this.fetchWorkerAIModelInfo($card, workerType);
                     }, index * 200);
                 }
+            });
+        }
+
+        /**
+         * Bind events for model input fields
+         */
+        bindModelInputEvents() {
+            // Enable all model input fields on page load
+            $('.model-input').prop('disabled', false);
+        }
+
+        /**
+         * Handle model input change
+         */
+        handleModelInput(e) {
+            const $input = $(e.target);
+            const $card = $input.closest('.worker-model-card');
+            const $changeBtn = $card.find('.change-model-btn');
+            let inputValue = $input.val().trim();
+            
+            // Auto-correct backslashes to forward slashes for better UX
+            if (inputValue.includes('\\')) {
+                inputValue = inputValue.replace(/\\/g, '/');
+                $input.val(inputValue);
+            }
+            
+            // Basic validation - check if input looks like a valid model ID
+            const isValidModel = this.validateModelId(inputValue);
+            
+            if (inputValue && isValidModel) {
+                // Enable change button
+                $changeBtn.prop('disabled', false);
+                $input.removeClass('invalid');
+            } else {
+                // Disable change button
+                $changeBtn.prop('disabled', true);
+                
+                // Add visual feedback for invalid input
+                if (inputValue && !isValidModel) {
+                    $input.addClass('invalid');
+                } else {
+                    $input.removeClass('invalid');
+                }
+            }
+        }
+
+        /**
+         * Validate model ID format
+         */
+        validateModelId(modelId) {
+            if (!modelId || typeof modelId !== 'string') {
+                return false;
+            }
+            
+            // Normalize backslashes to forward slashes for validation
+            const normalizedModelId = modelId.replace(/\\/g, '/');
+            
+            // Check for basic Cloudflare Workers AI model format
+            // Should start with @cf/ and have reasonable structure
+            const modelPattern = /^@cf\/[a-zA-Z0-9\-_]+\/[a-zA-Z0-9\-_.]+$/;
+            return modelPattern.test(normalizedModelId);
+        }
+
+        /**
+         * Handle model change button click
+         */
+        handleModelChange(e) {
+            e.preventDefault();
+            
+            const $button = $(e.target).closest('.change-model-btn');
+            const $card = $button.closest('.worker-model-card');
+            const $input = $card.find('.model-input');
+            const workerType = $button.data('worker');
+            const newModelId = $input.val().trim();
+            
+            if (!workerType || !newModelId) {
+                this.showNotification('warning', 'Please enter a model ID first');
+                return;
+            }
+            
+            // Validate the model ID format
+            if (!this.validateModelId(newModelId)) {
+                this.showNotification('error', 'Please enter a valid Cloudflare Workers AI model ID (e.g., @cf/meta/llama-3.3-70b-instruct-fp8-fast)');
+                return;
+            }
+            
+            // Confirm the change
+            const workerName = this.formatWorkerName(workerType);
+            
+            if (!confirm(`Are you sure you want to change ${workerName} to use "${newModelId}"?\n\nThis will update the KV namespace and purge worker caches.`)) {
+                return;
+            }
+            
+            this.performModelChange($card, workerType, newModelId, $button, false);
+        }
+
+        /**
+         * Handle model reset button click
+         */
+        handleModelReset(e) {
+            e.preventDefault();
+            
+            const $button = $(e.target).closest('.reset-model-btn');
+            const $card = $button.closest('.worker-model-card');
+            const workerType = $button.data('worker');
+            const defaultModel = $button.data('default-model');
+            
+            if (!workerType || !defaultModel) {
+                this.showNotification('warning', 'Default model information not found');
+                return;
+            }
+            
+            // Confirm the reset
+            const workerName = this.formatWorkerName(workerType);
+            
+            if (!confirm(`Are you sure you want to reset ${workerName} to the default model "${defaultModel}"?\n\nThis will update the KV namespace and purge worker caches.`)) {
+                return;
+            }
+            
+            this.performModelChange($card, workerType, defaultModel, $button, true);
+        }
+
+        /**
+         * Perform the actual model change
+         */
+        performModelChange($card, workerType, newModelId, $button, isReset = false) {
+            // Set loading state
+            const loadingText = isReset ? 'Resetting...' : 'Changing...';
+            this.setLoadingState($button, true, loadingText);
+            
+            // Prepare AJAX data
+            const ajaxData = {
+                action: 'ai_faq_change_worker_model',
+                worker_type: workerType,
+                model_id: newModelId,
+                nonce: window.aiFaqModelsData?.nonce || ''
+            };
+            
+            $.ajax({
+                url: window.aiFaqModelsData?.apiEndpoint || '/wp-admin/admin-ajax.php',
+                type: 'POST',
+                data: ajaxData,
+                timeout: 30000
+            })
+            .done((response) => {
+                if (response.success) {
+                    this.showNotification('success', response.data.message);
+                    
+                    // Update the current model display
+                    this.updateRealtimeModelInfo($card, 'success', {
+                        current_model: response.data.new_model_id,
+                        model_display_name: response.data.model_display_name,
+                        model_source: 'kv_config'
+                    });
+                    
+                    // Reset the input
+                    const $input = $card.find('.model-input');
+                    $input.val('').removeClass('invalid');
+                    $card.find('.change-model-btn').prop('disabled', true);
+                    
+                    // If cache was purged, show additional info
+                    if (response.data.cache_purged) {
+                        setTimeout(() => {
+                            this.showNotification('info', 'Worker caches have been purged. Changes should take effect immediately.');
+                        }, 2000);
+                    }
+                } else {
+                    this.showNotification('error', response.data || 'Failed to change model');
+                }
+            })
+            .fail((xhr, status, error) => {
+                console.error('Model change failed:', error);
+                this.showNotification('error', 'Failed to change model: ' + error);
+            })
+            .always(() => {
+                const originalText = isReset ? 'Reset to Default' : 'Change Model';
+                this.setLoadingState($button, false, originalText);
             });
         }
 
