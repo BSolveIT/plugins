@@ -80,7 +80,7 @@ try {
 	$model_configurations = $ai_models_admin->get_worker_model_configurations();
 } catch ( Exception $e ) {
 	// Log the error but don't let it break the page
-	error_log( 'AI FAQ Generator: Error fetching model configurations during workers page load: ' . $e->getMessage() );
+	ai_faq_log_error( 'AI FAQ Generator: Error fetching model configurations during workers page load: ' . $e->getMessage() );
 	// Use empty array so the page still works
 	$model_configurations = array();
 	$ai_models_admin = null;

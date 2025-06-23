@@ -216,7 +216,7 @@ class AI_FAQ_Admin_Workers {
 			
 			// Debug logging for URL saving
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf( '[365i AI FAQ] SAVING URL: %s = %s', $url_key, $worker_config['url'] ) );
+				ai_faq_log_debug( sprintf( '[365i AI FAQ] SAVING URL: %s = %s', $url_key, $worker_config['url'] ) );
 			}
 		}
 
@@ -227,7 +227,7 @@ class AI_FAQ_Admin_Workers {
 				$url_key = $worker_type . '_url';
 				$debug_options[ $url_key ] = isset( $options[ $url_key ] ) ? $options[ $url_key ] : 'NOT_SET';
 			}
-			error_log( '[365i AI FAQ] OPTIONS BEFORE SAVE: ' . wp_json_encode( $debug_options ) );
+			ai_faq_log_debug( '[365i AI FAQ] OPTIONS BEFORE SAVE: ' . wp_json_encode( $debug_options ) );
 		}
 
 		// Save the updated options
@@ -242,7 +242,7 @@ class AI_FAQ_Admin_Workers {
 				$enabled_workers = array_filter( $sanitized_workers, function( $config ) {
 					return $config['enabled'] && ! empty( $config['url'] );
 				} );
-				error_log( '[365i AI FAQ] Admin ' . wp_get_current_user()->user_login . ' updated worker configuration' );
+				ai_faq_log_info( '[365i AI FAQ] Admin ' . wp_get_current_user()->user_login . ' updated worker configuration' );
 			}
 			
 			// Redirect to prevent form resubmission and show success message
@@ -475,11 +475,11 @@ class AI_FAQ_Admin_Workers {
 
 		// Clean base URL - VERY IMPORTANT - log exact URL for debugging
 		$base_url = rtrim( $worker_url, '/' );
-		error_log( sprintf( '[365i AI FAQ] TESTING WORKER: %s at URL: %s (worker type: %s)', $worker_name, $base_url, $worker_name ) );
-		error_log( sprintf( '[365i AI FAQ] TESTING METHOD: Using multi-strategy approach (OPTIONS, GET, POST)' ) );
+		ai_faq_log_debug( sprintf( '[365i AI FAQ] TESTING WORKER: %s at URL: %s (worker type: %s)', $worker_name, $base_url, $worker_name ) );
+		ai_faq_log_debug( sprintf( '[365i AI FAQ] TESTING METHOD: Using multi-strategy approach (OPTIONS, GET, POST)' ) );
 		
 		// Debug: Log detailed request information
-		error_log( sprintf(
+		ai_faq_log_debug( sprintf(
 			'[365i AI FAQ] DEBUGGING DETAILS - Original worker URL: %s, Cleaned base URL: %s, Worker name: %s, Normalized worker: %s',
 			$worker_url,
 			$base_url,
@@ -492,20 +492,20 @@ class AI_FAQ_Admin_Workers {
 		$health_url = $base_url . '/health';
 		
 		// Debug: Log the exact health URL we're constructing
-		error_log( sprintf( '[365i AI FAQ] DEBUG HEALTH URL: Original base=%s, Health URL=%s', $base_url, $health_url ) );
-		error_log( sprintf( '[365i AI FAQ] PRIORITY STRATEGY: Testing health endpoint with simple GET: %s', $health_url ) );
+		ai_faq_log_debug( sprintf( '[365i AI FAQ] DEBUG HEALTH URL: Original base=%s, Health URL=%s', $base_url, $health_url ) );
+		ai_faq_log_debug( sprintf( '[365i AI FAQ] PRIORITY STRATEGY: Testing health endpoint with simple GET: %s', $health_url ) );
 		$result = $this->test_get_request( $health_url, $worker_name );
 		
 		// Log detailed information about the health endpoint test result
-		error_log( sprintf( '[365i AI FAQ] Health endpoint test result status: %s', $result['status'] ) );
+		ai_faq_log_debug( sprintf( '[365i AI FAQ] Health endpoint test result status: %s', $result['status'] ) );
 		
 		// If health endpoint test succeeds, return immediately - don't try other methods
 		if ( $result['status'] === 'healthy' ) {
-			error_log( '[365i AI FAQ] Health endpoint test SUCCESSFUL - returning result without trying other methods' );
+			ai_faq_log_debug( '[365i AI FAQ] Health endpoint test SUCCESSFUL - returning result without trying other methods' );
 			return $result;
 		}
 		
-		error_log( sprintf( '[365i AI FAQ] Health endpoint test FAILED with status: %s - Error: %s',
+		ai_faq_log_debug( sprintf( '[365i AI FAQ] Health endpoint test FAILED with status: %s - Error: %s',
 			$result['status'],
 			isset( $result['message'] ) ? $result['message'] : 'No error message'
 		));
@@ -513,15 +513,15 @@ class AI_FAQ_Admin_Workers {
 		// Only try the other methods if health endpoint test fails
 		
 		// Strategy 2: Try OPTIONS request (CORS preflight should work for any endpoint)
-		error_log( sprintf( '[365i AI FAQ] Health endpoint failed, trying OPTIONS request to: %s', $base_url ) );
+		ai_faq_log_debug( sprintf( '[365i AI FAQ] Health endpoint failed, trying OPTIONS request to: %s', $base_url ) );
 		$result = $this->test_options_request( $base_url, $worker_name );
 		if ( $result['status'] === 'healthy' ) {
-			error_log( '[365i AI FAQ] OPTIONS request SUCCESSFUL' );
+			ai_faq_log_debug( '[365i AI FAQ] OPTIONS request SUCCESSFUL' );
 			return $result;
 		}
 		
 		// Strategy 3: Try POST with minimal valid payload as last resort
-		error_log( sprintf( '[365i AI FAQ] OPTIONS failed, trying POST request to base URL: %s', $base_url ) );
+		ai_faq_log_debug( sprintf( '[365i AI FAQ] OPTIONS failed, trying POST request to base URL: %s', $base_url ) );
 		return $this->test_post_request( $base_url, $worker_name );
 	}
 
@@ -550,7 +550,7 @@ class AI_FAQ_Admin_Workers {
 		// Ensure URL is properly formatted
 		$url = rtrim( $url, '/' );
 		
-		error_log( sprintf( '[365i AI FAQ] Testing OPTIONS request to: %s for worker: %s', $url, $worker_name ) );
+		ai_faq_log_debug( sprintf( '[365i AI FAQ] Testing OPTIONS request to: %s for worker: %s', $url, $worker_name ) );
 		
 		$start_time = microtime( true );
 
@@ -572,7 +572,7 @@ class AI_FAQ_Admin_Workers {
 
 		if ( is_wp_error( $response ) ) {
 			$error_message = $response->get_error_message();
-			error_log( sprintf( '[365i AI FAQ] OPTIONS request WP error: %s', $error_message ) );
+			ai_faq_log_error( sprintf( '[365i AI FAQ] OPTIONS request WP error: %s', $error_message ) );
 			return array(
 				'status' => 'error',
 				'message' => $error_message,
@@ -585,14 +585,14 @@ class AI_FAQ_Admin_Workers {
 		$response_headers = wp_remote_retrieve_headers( $response );
 		$response_body = wp_remote_retrieve_body( $response );
 		
-		error_log( sprintf( '[365i AI FAQ] OPTIONS response code: %d', $response_code ) );
-		error_log( sprintf( '[365i AI FAQ] OPTIONS response headers: %s', json_encode( $response_headers ) ) );
+		ai_faq_log_debug( sprintf( '[365i AI FAQ] OPTIONS response code: %d', $response_code ) );
+		ai_faq_log_debug( sprintf( '[365i AI FAQ] OPTIONS response headers: %s', json_encode( $response_headers ) ) );
 		
 		// Log empty response body instead of null
 		if ( empty( $response_body ) ) {
-			error_log( '[365i AI FAQ] OPTIONS response body: [empty body - this is normal for OPTIONS]' );
+			ai_faq_log_debug( '[365i AI FAQ] OPTIONS response body: [empty body - this is normal for OPTIONS]' );
 		} else {
-			error_log( sprintf( '[365i AI FAQ] OPTIONS response body: %s', substr( $response_body, 0, 100 ) ) );
+			ai_faq_log_debug( sprintf( '[365i AI FAQ] OPTIONS response body: %s', substr( $response_body, 0, 100 ) ) );
 		}
 		
 		// OPTIONS requests typically return 200, 204, or 2xx with CORS headers
@@ -639,7 +639,7 @@ class AI_FAQ_Admin_Workers {
 		
 		// Some APIs return 405 Method Not Allowed but still work with POST
 		if ( $response_code == 405 || $response_code == 403 ) {
-			error_log( '[365i AI FAQ] OPTIONS returned 405/403 - this is okay for some APIs that do not support OPTIONS' );
+			ai_faq_log_warning( '[365i AI FAQ] OPTIONS returned 405/403 - this is okay for some APIs that do not support OPTIONS' );
 			return array(
 				'status' => 'warning',
 				'data' => array(
@@ -688,8 +688,8 @@ class AI_FAQ_Admin_Workers {
 		$url = rtrim( $url, '/' );
 		
 		// Critical debugging information
-		error_log( sprintf( '[365i AI FAQ] Testing GET request to URL: %s', $url ) );
-		error_log( sprintf( '[365i AI FAQ] This should be a simple GET request with NO parameters' ) );
+		ai_faq_log_debug( sprintf( '[365i AI FAQ] Testing GET request to URL: %s', $url ) );
+		ai_faq_log_debug( sprintf( '[365i AI FAQ] This should be a simple GET request with NO parameters' ) );
 		
 		$start_time = microtime( true );
 
@@ -709,7 +709,7 @@ class AI_FAQ_Admin_Workers {
 
 		if ( is_wp_error( $response ) ) {
 			$error_message = $response->get_error_message();
-			error_log( sprintf( '[365i AI FAQ] GET request WP error: %s', $error_message ) );
+			ai_faq_log_error( sprintf( '[365i AI FAQ] GET request WP error: %s', $error_message ) );
 			return array(
 				'status' => 'error',
 				'message' => $error_message,
@@ -722,9 +722,9 @@ class AI_FAQ_Admin_Workers {
 		$response_body = wp_remote_retrieve_body( $response );
 		$response_headers = wp_remote_retrieve_headers( $response );
 
-		error_log( sprintf( '[365i AI FAQ] GET response code: %d', $response_code ) );
-		error_log( sprintf( '[365i AI FAQ] GET response body: %s', substr( $response_body, 0, 200 ) ) );
-		error_log( sprintf( '[365i AI FAQ] GET response headers: %s', json_encode( $response_headers ) ) );
+		ai_faq_log_debug( sprintf( '[365i AI FAQ] GET response code: %d', $response_code ) );
+		ai_faq_log_debug( sprintf( '[365i AI FAQ] GET response body: %s', substr( $response_body, 0, 200 ) ) );
+		ai_faq_log_debug( sprintf( '[365i AI FAQ] GET response headers: %s', json_encode( $response_headers ) ) );
 
 		// Handle success codes (200-299)
 		if ( $response_code >= 200 && $response_code < 300 ) {
@@ -738,6 +738,7 @@ class AI_FAQ_Admin_Workers {
 						$health_data['status'] === 'healthy' ||
 						$health_data['status'] === 'ok' ||
 						$health_data['status'] === 'online' ||
+						$health_data['status'] === 'operational' ||
 						$health_data['status'] === true
 					);
 					
@@ -823,8 +824,8 @@ class AI_FAQ_Admin_Workers {
 		$normalized_worker = str_replace( '-', '_', $worker_name );
 		
 		// Log detailed testing information
-		error_log( sprintf( '[365i AI FAQ] Testing POST request to: %s for worker: %s (normalized: %s)', $url, $worker_name, $normalized_worker ) );
-		error_log( sprintf( '[365i AI FAQ] POST payload: %s', wp_json_encode( $payload ) ) );
+		ai_faq_log_debug( sprintf( '[365i AI FAQ] Testing POST request to: %s for worker: %s (normalized: %s)', $url, $worker_name, $normalized_worker ) );
+		ai_faq_log_debug( sprintf( '[365i AI FAQ] POST payload: %s', wp_json_encode( $payload ) ) );
 		
 		$start_time = microtime( true );
 
@@ -854,7 +855,7 @@ class AI_FAQ_Admin_Workers {
 
 		if ( is_wp_error( $response ) ) {
 			$error_message = $response->get_error_message();
-			error_log( sprintf( '[365i AI FAQ] POST request WP error: %s', $error_message ) );
+			ai_faq_log_error( sprintf( '[365i AI FAQ] POST request WP error: %s', $error_message ) );
 			return array(
 				'status' => 'error',
 				'message' => $error_message,
@@ -868,9 +869,9 @@ class AI_FAQ_Admin_Workers {
 		$response_body = wp_remote_retrieve_body( $response );
 		$response_headers = wp_remote_retrieve_headers( $response );
 		
-		error_log( sprintf( '[365i AI FAQ] POST response code: %d', $response_code ) );
-		error_log( sprintf( '[365i AI FAQ] POST response body: %s', substr( $response_body, 0, 200 ) ) );
-		error_log( sprintf( '[365i AI FAQ] POST response headers: %s', json_encode( $response_headers ) ) );
+		ai_faq_log_debug( sprintf( '[365i AI FAQ] POST response code: %d', $response_code ) );
+		ai_faq_log_debug( sprintf( '[365i AI FAQ] POST response body: %s', substr( $response_body, 0, 200 ) ) );
+		ai_faq_log_debug( sprintf( '[365i AI FAQ] POST response headers: %s', json_encode( $response_headers ) ) );
 
 		// POST requests should return 200-299 for success
 		if ( $response_code >= 200 && $response_code < 300 ) {

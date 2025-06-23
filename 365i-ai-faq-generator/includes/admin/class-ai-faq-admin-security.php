@@ -133,7 +133,7 @@ class AI_FAQ_Admin_Security {
 
 		if ( $update_result ) {
 			// Log the action.
-			error_log( sprintf(
+			ai_faq_log_info( sprintf(
 				'[365i AI FAQ] Admin %s blocked IP %s for %d hours. Reason: %s',
 				wp_get_current_user()->user_login,
 				$ip_address,
@@ -183,7 +183,7 @@ class AI_FAQ_Admin_Security {
 
 		if ( $update_result ) {
 			// Log the action.
-			error_log( sprintf(
+			ai_faq_log_info( sprintf(
 				'[365i AI FAQ] Admin %s unblocked IP %s',
 				wp_get_current_user()->user_login,
 				$ip_address

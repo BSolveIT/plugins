@@ -219,8 +219,8 @@ class AI_FAQ_Workers_Manager {
 		$this->load_worker_config();
 		
 		// Log the reload for debugging
-		error_log( '[365i AI FAQ] Worker configuration reloaded from database' );
-		error_log( '[365i AI FAQ] Reloaded workers: ' . implode( ', ', array_keys( $this->workers ) ) );
+		ai_faq_log_debug( '[365i AI FAQ] Worker configuration reloaded from database' );
+		ai_faq_log_debug( '[365i AI FAQ] Reloaded workers: ' . implode( ', ', array_keys( $this->workers ) ) );
 		
 		return true;
 	}
@@ -419,7 +419,7 @@ class AI_FAQ_Workers_Manager {
 		$full_url = !empty($endpoint) ? $base_url . $endpoint : $base_url;
 		
 		// Log the exact URL we're using for debugging
-		error_log( sprintf(
+		ai_faq_log_debug( sprintf(
 			'[365i AI FAQ] Making %s request to worker: %s at URL: %s (operation: %s)',
 			$method,
 			$worker_name,
@@ -442,7 +442,7 @@ class AI_FAQ_Workers_Manager {
 		// Handle response errors.
 		if ( is_wp_error( $response ) ) {
 			$error_message = $response->get_error_message();
-			error_log( sprintf( '[365i AI FAQ] Worker request error: %s', $error_message ) );
+			ai_faq_log_error( sprintf( '[365i AI FAQ] Worker request error: %s', $error_message ) );
 			return $response;
 		}
 
@@ -450,8 +450,8 @@ class AI_FAQ_Workers_Manager {
 		$response_body = wp_remote_retrieve_body( $response );
 		
 		// Log response details
-		error_log( sprintf( '[365i AI FAQ] Worker response code: %d', $response_code ) );
-		error_log( sprintf( '[365i AI FAQ] Worker response preview: %s', substr( $response_body, 0, 200 ) ) );
+		ai_faq_log_debug( sprintf( '[365i AI FAQ] Worker response code: %d', $response_code ) );
+		ai_faq_log_debug( sprintf( '[365i AI FAQ] Worker response preview: %s', substr( $response_body, 0, 200 ) ) );
 
 		// Check for HTTP errors.
 		if ( $response_code < 200 || $response_code >= 300 ) {
@@ -483,7 +483,7 @@ class AI_FAQ_Workers_Manager {
 		$decoded_response = json_decode( $response_body, true );
 
 		if ( null === $decoded_response ) {
-			error_log( sprintf( '[365i AI FAQ] Invalid JSON response from worker: %s', $worker_name ) );
+			ai_faq_log_error( sprintf( '[365i AI FAQ] Invalid JSON response from worker: %s', $worker_name ) );
 			return new WP_Error(
 				'json_decode_error',
 				/* translators: %s: Worker name */

@@ -23,12 +23,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 class AI_FAQ_Admin_AI_Models {
 
 	/**
-	 * Cloudflare Models API Client instance.
+	 * Note: Cloudflare Models API Client has been removed.
+	 * The plugin now uses static fallback models and KV namespace for model configuration.
 	 *
 	 * @since 2.5.0
-	 * @var AI_FAQ_Cloudflare_Models_API_Client
+	 * @deprecated 2.5.1 Removed obsolete Cloudflare Models API Worker dependency.
 	 */
-	private $api_client;
 
 	/**
 	 * Initialize the AI models component.
@@ -38,30 +38,9 @@ class AI_FAQ_Admin_AI_Models {
 	 * @since 2.2.0
 	 */
 	public function init() {
-		// Include the API client class
-		if ( ! class_exists( 'AI_FAQ_Cloudflare_Models_API_Client' ) ) {
-			$api_client_file = AI_FAQ_GEN_DIR . 'includes/api/class-cloudflare-models-api-client.php';
-			if ( file_exists( $api_client_file ) ) {
-				require_once $api_client_file;
-			} else {
-				error_log( 'AI FAQ Generator: API client file not found: ' . $api_client_file );
-				return;
-			}
-		}
-		
-		// Initialize the API client with error handling
-		try {
-			if ( class_exists( 'AI_FAQ_Cloudflare_Models_API_Client' ) ) {
-				$this->api_client = new AI_FAQ_Cloudflare_Models_API_Client();
-				error_log( 'AI FAQ Generator: API client initialized successfully' );
-			} else {
-				error_log( 'AI FAQ Generator: AI_FAQ_Cloudflare_Models_API_Client class not found' );
-				$this->api_client = null;
-			}
-		} catch ( Exception $e ) {
-			error_log( 'AI FAQ Generator: Error initializing API client: ' . $e->getMessage() );
-			$this->api_client = null;
-		}
+		// Note: Removed obsolete Cloudflare Models API Client initialization
+		// The plugin now uses static fallback models and KV namespace configuration
+		ai_faq_log_debug( 'AI FAQ Generator: AI Models admin initialized with static fallback models' );
 
 		// Add AJAX handlers for model management.
 		add_action( 'wp_ajax_ai_faq_save_ai_models', array( $this, 'handle_save_models_ajax' ) );
@@ -69,12 +48,8 @@ class AI_FAQ_Admin_AI_Models {
 		add_action( 'wp_ajax_ai_faq_test_model_connectivity', array( $this, 'handle_test_connectivity_ajax' ) );
 		add_action( 'wp_ajax_ai_faq_test_model_performance', array( $this, 'handle_test_performance_ajax' ) );
 		
-		// Add new AJAX handlers for enhanced functionality
-		add_action( 'wp_ajax_ai_faq_get_model_details', array( $this, 'handle_get_model_details_ajax' ) );
-		add_action( 'wp_ajax_ai_faq_search_models', array( $this, 'handle_search_models_ajax' ) );
-		add_action( 'wp_ajax_ai_faq_get_providers', array( $this, 'handle_get_providers_ajax' ) );
-		add_action( 'wp_ajax_ai_faq_get_capabilities', array( $this, 'handle_get_capabilities_ajax' ) );
-		add_action( 'wp_ajax_ai_faq_refresh_models', array( $this, 'handle_refresh_models_ajax' ) );
+		// Note: Removed obsolete AJAX handlers that depended on the API client
+		// Only KV namespace model configuration is now supported
 		add_action( 'wp_ajax_ai_faq_get_worker_ai_models', array( $this, 'handle_get_worker_ai_models_ajax' ) );
 		add_action( 'wp_ajax_ai_faq_change_worker_model', array( $this, 'handle_change_worker_model_ajax' ) );
 		
@@ -89,18 +64,32 @@ class AI_FAQ_Admin_AI_Models {
 	 * @param string $hook_suffix The current admin page hook suffix.
 	 */
 	public function enqueue_admin_assets( $hook_suffix ) {
+		// Debug logging to see what hook suffix we're getting
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			ai_faq_log_debug( 'AI FAQ Generator: enqueue_admin_assets called with hook_suffix: ' . $hook_suffix );
+		}
+		
 		// Check for AI Models admin page - be more flexible with hook suffix
-		if ( strpos( $hook_suffix, 'ai-models' ) === false && strpos( $hook_suffix, 'ai-faq-generator' ) === false ) {
-			// Also check for specific known hook suffixes
-			$valid_hooks = array(
-				'ai-faq-generator_page_ai-faq-generator-ai-models',
-				'toplevel_page_ai-faq-generator-ai-models',
-				'admin_page_ai-faq-generator-ai-models'
-			);
-			
-			if ( ! in_array( $hook_suffix, $valid_hooks, true ) ) {
-				return;
+		$is_ai_models_page = (
+			strpos( $hook_suffix, 'ai-models' ) !== false ||
+			strpos( $hook_suffix, 'ai-faq-generator' ) !== false ||
+			$hook_suffix === 'ai-faq-generator_page_ai-faq-generator-ai-models' ||
+			$hook_suffix === 'toplevel_page_ai-faq-generator-ai-models' ||
+			$hook_suffix === 'admin_page_ai-faq-generator-ai-models'
+		);
+		
+		// TEMPORARY DEBUG: Force load on AI FAQ pages for testing
+		$force_load_debug = strpos( $hook_suffix, 'ai-faq-generator' ) !== false;
+		
+		if ( ! $is_ai_models_page && ! $force_load_debug ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				ai_faq_log_debug( 'AI FAQ Generator: Skipping asset enqueue - not AI models page. Hook: ' . $hook_suffix );
 			}
+			return;
+		}
+		
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			ai_faq_log_debug( 'AI FAQ Generator: Proceeding with asset enqueue for AI models page' );
 		}
 
 		$version = defined( 'AI_FAQ_GEN_VERSION' ) ? AI_FAQ_GEN_VERSION : '2.5.0';
@@ -169,211 +158,10 @@ class AI_FAQ_Admin_AI_Models {
 		
 		// Debug information
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'AI FAQ Generator: CSS/JS enqueued for hook: ' . $hook_suffix );
+			ai_faq_log_debug( 'AI FAQ Generator: CSS/JS enqueued for hook: ' . $hook_suffix );
 		}
 	}
 
-	/**
-	 * Get available AI models from the Cloudflare Models API Worker.
-	 *
-	 * Fetches live model data with enhanced metadata, performance characteristics,
-	 * and use case recommendations from the API worker. Uses caching to avoid
-	 * unnecessary API calls.
-	 *
-	 * @since 2.5.0
-	 * @param array $filters Optional filters (provider, capability, task).
-	 * @param array $pagination Optional pagination (limit, page).
-	 * @param bool  $force_refresh Whether to force a fresh API call ignoring cache.
-	 * @return array Organized array of AI models by category.
-	 */
-	public function get_available_models( $filters = array(), $pagination = array(), $force_refresh = false ) {
-		// Create cache key based on filters and pagination
-		$cache_key = 'ai_faq_gen_models_cache_' . md5( wp_json_encode( array( $filters, $pagination ) ) );
-		
-		// Try to get from cache first (unless force refresh is requested)
-		if ( ! $force_refresh ) {
-			$cached_models = get_transient( $cache_key );
-			if ( false !== $cached_models && is_array( $cached_models ) && ! empty( $cached_models ) ) {
-				// Also set the main cache key for efficient display name lookups
-				set_transient( 'ai_faq_gen_models_cache', $cached_models, 15 * MINUTE_IN_SECONDS );
-				return $cached_models;
-			}
-		}
-
-		// Check if API client is available
-		if ( null === $this->api_client ) {
-			error_log( 'AI FAQ Generator: API client not initialized, using fallback models' );
-			return $this->get_fallback_models();
-		}
-
-		// Set default pagination if not provided
-		if ( empty( $pagination ) ) {
-			$pagination = array(
-				'limit' => 100, // Get more models for better selection
-				'page' => 1,
-			);
-		}
-
-		// Debug logging (only if force refresh or no cache)
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && ( $force_refresh || ! get_transient( $cache_key ) ) ) {
-			error_log( 'AI FAQ Generator: Fetching models with filters: ' . wp_json_encode( $filters ) . ' and pagination: ' . wp_json_encode( $pagination ) );
-		}
-
-		// Fetch models from API client
-		$api_response = $this->api_client->get_models( $filters, $pagination );
-		
-		// Debug the API response
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			if ( is_wp_error( $api_response ) ) {
-				error_log( 'AI FAQ Generator: API Error: ' . $api_response->get_error_message() );
-			} else {
-				$model_count = isset( $api_response['models'] ) ? count( $api_response['models'] ) : 0;
-				error_log( 'AI FAQ Generator: API returned ' . $model_count . ' models' );
-				
-				// Log a sample of the response structure
-				if ( $model_count > 0 ) {
-					$sample_model = array_slice( $api_response['models'], 0, 1 )[0];
-					error_log( 'AI FAQ Generator: Sample model structure: ' . wp_json_encode( $sample_model ) );
-				}
-			}
-		}
-		
-		if ( is_wp_error( $api_response ) ) {
-			// Log error and return fallback models
-			error_log( 'AI FAQ Generator: Failed to fetch models from API: ' . $api_response->get_error_message() );
-			return $this->get_fallback_models();
-		}
-
-		// Check if we got valid data
-		if ( ! isset( $api_response['models'] ) || ! is_array( $api_response['models'] ) || empty( $api_response['models'] ) ) {
-			error_log( 'AI FAQ Generator: Invalid or empty API response, using fallback models' );
-			return $this->get_fallback_models();
-		}
-
-		// Transform API response to WordPress format
-		$transformed_models = $this->transform_api_models_to_wordpress_format( $api_response );
-		
-		// Cache the transformed models (15 minutes for API data)
-		set_transient( $cache_key, $transformed_models, 15 * MINUTE_IN_SECONDS );
-		
-		// Also set the main cache key for efficient display name lookups
-		set_transient( 'ai_faq_gen_models_cache', $transformed_models, 15 * MINUTE_IN_SECONDS );
-		
-		// Debug the transformed result
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			$total_transformed = 0;
-			foreach ( $transformed_models as $category_data ) {
-				if ( isset( $category_data['models'] ) ) {
-					$total_transformed += count( $category_data['models'] );
-				}
-			}
-			error_log( 'AI FAQ Generator: Transformed to ' . $total_transformed . ' models across ' . count( $transformed_models ) . ' categories (cached for 15 minutes)' );
-		}
-		
-		return apply_filters( 'ai_faq_gen_available_models', $transformed_models, $api_response );
-	}
-
-	/**
-	 * Get fallback models in case API is unavailable.
-	 *
-	 * @since 2.5.0
-	 * @return array Fallback models array.
-	 */
-	private function get_fallback_models() {
-		$fallback_models = array(
-			'text_generation' => array(
-				'label' => __( 'Text Generation Models', '365i-ai-faq-generator' ),
-				'description' => __( 'Fast, efficient models for general text generation tasks', '365i-ai-faq-generator' ),
-				'models' => array(
-					'@cf/meta/llama-3.1-8b-instruct' => array(
-						'name' => 'Llama 3.1 8B Instruct',
-						'provider' => 'Meta',
-						'description' => __( 'Balanced performance and speed for general FAQ generation', '365i-ai-faq-generator' ),
-						'performance' => array(
-							'speed' => 'fast',
-							'quality' => 'good',
-							'cost' => 'low',
-							'response_time' => '2-4s',
-						),
-						'best_for' => array( 'question_generator', 'answer_generator', 'faq_enhancer' ),
-						'parameters' => array(
-							'max_tokens' => 4096,
-							'context_length' => 8192,
-						),
-						'capabilities' => array( 'text_generation', 'natural_language_processing', 'conversational_ai' ),
-					),
-				),
-			),
-		);
-
-		return apply_filters( 'ai_faq_gen_fallback_models', $fallback_models );
-	}
-
-	/**
-	 * Transform API models response to WordPress-compatible format.
-	 *
-	 * @since 2.5.0
-	 * @param array $api_response Raw API response.
-	 * @return array Transformed models array.
-	 */
-	private function transform_api_models_to_wordpress_format( $api_response ) {
-		if ( ! isset( $api_response['models'] ) || ! is_array( $api_response['models'] ) ) {
-			return $this->get_fallback_models();
-		}
-
-		$transformed_models = array();
-		$models_by_provider = array();
-
-		// Group models by provider first
-		foreach ( $api_response['models'] as $model ) {
-			$provider = isset( $model['provider'] ) ? $model['provider'] : 'Unknown';
-			if ( ! isset( $models_by_provider[ $provider ] ) ) {
-				$models_by_provider[ $provider ] = array();
-			}
-			$models_by_provider[ $provider ][] = $model;
-		}
-
-		// Create categories based on providers and capabilities
-		foreach ( $models_by_provider as $provider => $models ) {
-			$category_key = strtolower( str_replace( ' ', '_', $provider ) ) . '_models';
-			
-			$transformed_models[ $category_key ] = array(
-				'label' => sprintf(
-					/* translators: %s: Provider name */
-					__( '%s Models', '365i-ai-faq-generator' ),
-					$provider
-				),
-				'description' => sprintf(
-					/* translators: %s: Provider name */
-					__( 'AI models from %s with enhanced capabilities', '365i-ai-faq-generator' ),
-					$provider
-				),
-				'models' => array(),
-			);
-
-			foreach ( $models as $model ) {
-				$model_id = $model['id'];
-				$transformed_models[ $category_key ]['models'][ $model_id ] = array(
-					'name' => $model['name'],
-					'provider' => $model['provider'],
-					'description' => $model['description'],
-					'performance' => $model['performance'],
-					'best_for' => $model['best_for'],
-					'parameters' => $model['parameters'],
-					'capabilities' => $model['capabilities'],
-					'use_cases' => isset( $model['use_cases'] ) ? $model['use_cases'] : array(),
-					'pricing_tier' => isset( $model['pricing_tier'] ) ? $model['pricing_tier'] : 'unknown',
-				);
-			}
-		}
-
-		// If no models found, return fallback
-		if ( empty( $transformed_models ) ) {
-			return $this->get_fallback_models();
-		}
-
-		return $transformed_models;
-	}
 
 	/**
 	 * Get default model mappings for each worker type.
@@ -394,27 +182,6 @@ class AI_FAQ_Admin_AI_Models {
 		return apply_filters( 'ai_faq_gen_default_model_mappings', $defaults );
 	}
 
-	/**
-	 * Get recommended models for a specific worker type.
-	 * 
-	 * @since 2.2.0
-	 * @param string $worker_type The worker type to get recommendations for.
-	 * @return array Array of recommended model IDs.
-	 */
-	public function get_recommended_models_for_worker( $worker_type ) {
-		$all_models = $this->get_available_models();
-		$recommended = array();
-
-		foreach ( $all_models as $category_data ) {
-			foreach ( $category_data['models'] as $model_id => $model_data ) {
-				if ( isset( $model_data['best_for'] ) && in_array( $worker_type, $model_data['best_for'], true ) ) {
-					$recommended[] = $model_id;
-				}
-			}
-		}
-
-		return $recommended;
-	}
 
 	/**
 	 * Get model configuration for all workers.
@@ -430,7 +197,7 @@ class AI_FAQ_Admin_AI_Models {
 			delete_transient( $cache_key );
 			
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'AI FAQ Generator: Forced refresh of worker model configurations' );
+				ai_faq_log_debug( 'AI FAQ Generator: Forced refresh of worker model configurations' );
 			}
 		}
 		
@@ -459,9 +226,9 @@ class AI_FAQ_Admin_AI_Models {
 
 		// Debug logging
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'AI FAQ Generator: Worker model configurations retrieved - data source: ' . $data_source );
+			ai_faq_log_debug( 'AI FAQ Generator: Worker model configurations retrieved - data source: ' . $data_source );
 			foreach ( $configurations as $worker_type => $config ) {
-				error_log( 'AI FAQ Generator: ' . $worker_type . ' -> ' . $config['model'] . ' (source: ' . $config['data_source'] . ')' );
+				ai_faq_log_debug( 'AI FAQ Generator: ' . $worker_type . ' -> ' . $config['model'] . ' (source: ' . $config['data_source'] . ')' );
 			}
 		}
 
@@ -483,7 +250,6 @@ class AI_FAQ_Admin_AI_Models {
 			);
 		}
 
-		$available_models = $this->get_flat_model_list();
 		$defaults = $this->get_default_model_mappings();
 		$sanitized_configs = array();
 
@@ -545,99 +311,79 @@ class AI_FAQ_Admin_AI_Models {
 	}
 
 	/**
-	 * Test model connectivity and performance.
-	 * 
+	 * Test model connectivity and performance using worker health endpoint.
+	 *
+	 * This method now uses the worker health endpoint instead of making expensive
+	 * AI API calls, providing fast connectivity tests without consuming AI tokens.
+	 *
 	 * @since 2.3.0
 	 * @param string $model_id The model ID to test.
 	 * @param string $worker_type The worker type for context.
 	 * @return array Test result with connectivity status and performance metrics.
 	 */
 	public function test_model_connectivity( $model_id, $worker_type = '' ) {
-		$options = get_option( 'ai_faq_gen_options', array() );
-		$account_id = isset( $options['cloudflare_account_id'] ) ? $options['cloudflare_account_id'] : '';
-		$api_token = isset( $options['cloudflare_api_token'] ) ? $options['cloudflare_api_token'] : '';
-
-		if ( empty( $account_id ) || empty( $api_token ) ) {
+		// Load worker admin for health checking
+		if ( ! class_exists( 'AI_FAQ_Admin_Workers' ) ) {
+			require_once AI_FAQ_GEN_DIR . 'includes/admin/class-ai-faq-admin-workers.php';
+		}
+		
+		$worker_admin = new AI_FAQ_Admin_Workers();
+		
+		// Skip connectivity test for workers that don't use AI models
+		if ( 'faq_extractor' === $worker_type || empty( $model_id ) ) {
 			return array(
-				'success' => false,
-				'status' => 'error',
-				'message' => __( 'Cloudflare credentials not configured', '365i-ai-faq-generator' ),
+				'success' => true,
+				'status' => 'proxy_service',
+				'message' => __( 'Proxy service - no model connectivity test required', '365i-ai-faq-generator' ),
+				'response_time_ms' => 0,
+				'worker_type' => $worker_type,
 			);
 		}
 
-		// Start timing
-		$start_time = microtime( true );
-
-		// Test request payload
-		$test_payload = array(
-			'messages' => array(
-				array(
-					'role' => 'user',
-					'content' => 'Generate a brief test response to verify model connectivity.',
-				),
-			),
-			'max_tokens' => 50,
-		);
-
-		// API endpoint
-		$api_url = "https://api.cloudflare.com/client/v4/accounts/{$account_id}/ai/run/{$model_id}";
-
-		// Send request
-		$response = wp_remote_post( $api_url, array(
-			'headers' => array(
-				'Authorization' => 'Bearer ' . $api_token,
-				'Content-Type' => 'application/json',
-			),
-			'body' => wp_json_encode( $test_payload ),
-			'timeout' => 30,
+		// Log the test attempt
+		ai_faq_log_debug( sprintf(
+			'AI FAQ Generator: Testing worker health for %s (model: %s)',
+			$worker_type,
+			$model_id
 		) );
 
-		$end_time = microtime( true );
-		$response_time_ms = round( ( $end_time - $start_time ) * 1000 );
-
-		if ( is_wp_error( $response ) ) {
-			return array(
-				'success' => false,
-				'status' => 'error',
-				'message' => __( 'Connection failed', '365i-ai-faq-generator' ),
-				'error_details' => $response->get_error_message(),
-				'response_time_ms' => $response_time_ms,
-			);
-		}
-
-		$response_code = wp_remote_retrieve_response_code( $response );
-		$response_body = wp_remote_retrieve_body( $response );
-		$response_data = json_decode( $response_body, true );
-
-		if ( $response_code >= 200 && $response_code < 300 ) {
-			$result_preview = '';
-			if ( isset( $response_data['result'] ) && is_array( $response_data['result'] ) ) {
-				$result_preview = isset( $response_data['result']['response'] ) 
-					? substr( $response_data['result']['response'], 0, 100 ) . '...'
-					: 'Response received';
-			}
-
+		// Use worker health check instead of direct AI API call
+		$health_result = $worker_admin->test_worker_health( $worker_type );
+		
+		// Map health check result to connectivity result format
+		if ( $health_result['status'] === 'healthy' ) {
+			$response_time_ms = isset( $health_result['response_time'] ) ? $health_result['response_time'] : 0;
+			
+			// Get additional worker info if available
+			$worker_info = isset( $health_result['worker_info'] ) ? $health_result['worker_info'] : array();
+			$current_model = isset( $health_result['data']['current_model'] ) ? $health_result['data']['current_model'] : $model_id;
+			
 			return array(
 				'success' => true,
 				'status' => 'connected',
-				'message' => __( 'Model connection successful', '365i-ai-faq-generator' ),
+				'message' => __( 'Worker connection successful', '365i-ai-faq-generator' ),
 				'response_time_ms' => $response_time_ms,
-				'model_id' => $model_id,
+				'model_id' => $current_model,
 				'worker_type' => $worker_type,
-				'response_preview' => $result_preview,
+				'response_preview' => sprintf(
+					__( 'Worker %s is healthy and responsive', '365i-ai-faq-generator' ),
+					$worker_type
+				),
+				'health_data' => $health_result['data'],
+				'worker_info' => $worker_info,
 			);
 		} else {
-			$error_message = isset( $response_data['errors'][0]['message'] ) 
-				? $response_data['errors'][0]['message'] 
-				: sprintf( __( 'HTTP %d error', '365i-ai-faq-generator' ), $response_code );
-
+			$response_time_ms = isset( $health_result['response_time'] ) ? $health_result['response_time'] : 0;
+			$error_message = isset( $health_result['message'] ) ? $health_result['message'] : __( 'Worker health check failed', '365i-ai-faq-generator' );
+			
 			return array(
 				'success' => false,
 				'status' => 'failed',
-				'message' => __( 'Model test failed', '365i-ai-faq-generator' ),
+				'message' => __( 'Worker connection failed', '365i-ai-faq-generator' ),
 				'error_details' => $error_message,
 				'response_time_ms' => $response_time_ms,
-				'http_code' => $response_code,
+				'worker_type' => $worker_type,
+				'health_data' => isset( $health_result['data'] ) ? $health_result['data'] : null,
 			);
 		}
 	}
@@ -692,64 +438,13 @@ class AI_FAQ_Admin_AI_Models {
 		return $notification;
 	}
 
-	/**
-	 * Get performance comparison data for all available models.
-	 *
-	 * Formats model data for the comparison table display in the admin interface.
-	 *
-	 * @since 2.2.0
-	 * @return array Formatted comparison data indexed by model ID.
-	 */
-	public function get_performance_comparison() {
-		$all_models = $this->get_available_models();
-		$comparison_data = array();
 
-		foreach ( $all_models as $category_key => $category_data ) {
-			foreach ( $category_data['models'] as $model_id => $model_data ) {
-				$comparison_data[ $model_id ] = array(
-					'name' => $model_data['name'],
-					'provider' => $model_data['provider'],
-					'description' => $model_data['description'],
-					'performance' => $model_data['performance'],
-					'suitable_for' => isset( $model_data['best_for'] ) ? $model_data['best_for'] : array(),
-					'parameters' => isset( $model_data['parameters'] ) ? $model_data['parameters'] : array(),
-					'capabilities' => isset( $model_data['capabilities'] ) ? $model_data['capabilities'] : array(),
-					'specialization' => isset( $model_data['specialization'] ) ? $model_data['specialization'] : null,
-					'category' => $category_key,
-				);
-			}
-		}
-
-		return apply_filters( 'ai_faq_gen_performance_comparison', $comparison_data );
-	}
 
 	/**
-	 * Get response time for a specific model.
+	 * Get model display name efficiently by formatting model ID.
 	 *
-	 * @since 2.4.4
-	 * @param string $model_id The model ID to get response time for.
-	 * @return string Response time string or default if not found.
-	 */
-	public function get_model_response_time( $model_id ) {
-		if ( empty( $model_id ) || $model_id === 'N/A (Proxy Service)' ) {
-			return __( 'Variable', '365i-ai-faq-generator' );
-		}
-
-		$flat_models = $this->get_flat_model_list();
-		
-		if ( isset( $flat_models[ $model_id ]['performance']['response_time'] ) ) {
-			return $flat_models[ $model_id ]['performance']['response_time'];
-		}
-
-		// Default fallback response time
-		return __( '3-8 seconds', '365i-ai-faq-generator' );
-	}
-
-	/**
-	 * Get model display name efficiently without triggering API calls.
-	 *
-	 * First checks cached models data, then falls back to formatting the model ID
-	 * into a human-readable name without making expensive API requests.
+	 * Formats the model ID into a human-readable name without making API requests.
+	 * Since we no longer use the API client, this method simply formats the model ID.
 	 *
 	 * @since 2.5.1
 	 * @param string $model_id The model ID to get display name for.
@@ -765,41 +460,38 @@ class AI_FAQ_Admin_AI_Models {
 			return __( 'N/A (Proxy Service)', '365i-ai-faq-generator' );
 		}
 
-		// First, try to get from cached data (transient cache)
-		$cache_key = 'ai_faq_gen_models_cache';
-		$cached_models = get_transient( $cache_key );
-		
-		if ( false !== $cached_models && is_array( $cached_models ) ) {
-			// Search through cached models for display name
-			foreach ( $cached_models as $category_data ) {
-				if ( isset( $category_data['models'][ $model_id ]['name'] ) ) {
-					return $category_data['models'][ $model_id ]['name'];
-				}
-			}
-		}
-
-		// Fallback: Format the model ID into a human-readable name
+		// Format the model ID into a human-readable name
 		return $this->format_model_display_name( $model_id );
 	}
 
 	/**
-	 * Get flat list of all available models.
+	 * Get estimated response time for a model.
 	 *
-	 * @since 2.2.0
-	 * @return array Flat array of model_id => model_data.
+	 * Returns estimated response times based on model characteristics.
+	 * Since we no longer use the API client, this provides generic estimates.
+	 *
+	 * @since 2.5.1
+	 * @param string $model_id The model ID to get response time for.
+	 * @return string Response time estimate.
 	 */
-	private function get_flat_model_list() {
-		$all_models = $this->get_available_models();
-		$flat_list = array();
-
-		foreach ( $all_models as $category_data ) {
-			foreach ( $category_data['models'] as $model_id => $model_data ) {
-				$flat_list[ $model_id ] = $model_data;
-			}
+	public function get_model_response_time( $model_id ) {
+		if ( empty( $model_id ) || $model_id === 'N/A (Proxy Service)' ) {
+			return __( 'Variable', '365i-ai-faq-generator' );
 		}
 
-		return $flat_list;
+		// Provide generic estimates based on model name patterns
+		if ( strpos( $model_id, 'llama-3.1-8b' ) !== false ) {
+			return __( '2-4 seconds', '365i-ai-faq-generator' );
+		} elseif ( strpos( $model_id, 'llama-3.3-70b' ) !== false ) {
+			return __( '4-8 seconds', '365i-ai-faq-generator' );
+		} elseif ( strpos( $model_id, 'llama-4-scout' ) !== false ) {
+			return __( '3-6 seconds', '365i-ai-faq-generator' );
+		} else {
+			// Default fallback response time
+			return __( '3-8 seconds', '365i-ai-faq-generator' );
+		}
 	}
+
 
 	/**
 	 * Get models from KV namespace with transient caching.
@@ -976,7 +668,7 @@ class AI_FAQ_Admin_AI_Models {
 	}
 
 	/**
-	 * Clear model configuration and models data cache.
+	 * Clear model configuration cache (KV namespace only).
 	 *
 	 * @since 2.4.3
 	 * @return bool True if cache was cleared successfully.
@@ -984,7 +676,6 @@ class AI_FAQ_Admin_AI_Models {
 	private function clear_model_cache() {
 		$cache_keys = array(
 			'ai_faq_gen_ai_models_kv', // KV namespace model configurations
-			'ai_faq_gen_models_cache', // Main models cache for efficient lookups
 		);
 		
 		$success_count = 0;
@@ -994,35 +685,6 @@ class AI_FAQ_Admin_AI_Models {
 			}
 		}
 		
-		// Also clear any paginated models cache and all related transients
-		global $wpdb;
-		$wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-				'_transient_ai_faq_gen_models_cache_%'
-			)
-		);
-		$wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-				'_transient_timeout_ai_faq_gen_models_cache_%'
-			)
-		);
-		
-		// Clear all AI FAQ related transients to ensure fresh data
-		$wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-				'_transient_ai_faq_%'
-			)
-		);
-		$wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-				'_transient_timeout_ai_faq_%'
-			)
-		);
-		
 		// Also clear any WordPress object cache if available
 		if ( function_exists( 'wp_cache_flush' ) ) {
 			wp_cache_flush();
@@ -1030,7 +692,7 @@ class AI_FAQ_Admin_AI_Models {
 		
 		// Debug logging
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'AI FAQ Generator: Model cache cleared - cleared ' . $success_count . ' primary cache keys' );
+			ai_faq_log_debug( 'AI FAQ Generator: Model cache cleared - cleared ' . $success_count . ' primary cache keys (KV namespace only)' );
 		}
 		
 		return $success_count > 0;
@@ -1054,7 +716,7 @@ class AI_FAQ_Admin_AI_Models {
 
 		// Enhanced debug logging
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'AI FAQ Generator: Starting worker cache clearing for updated models: ' . wp_json_encode( array_keys( $updated_models ) ) );
+			ai_faq_log_debug( 'AI FAQ Generator: Starting worker cache clearing for updated models: ' . wp_json_encode( array_keys( $updated_models ) ) );
 		}
 
 		// Get all worker types that use AI models
@@ -1064,7 +726,7 @@ class AI_FAQ_Admin_AI_Models {
 			// Skip if this worker wasn't updated
 			if ( ! isset( $updated_models[ $worker_type ] ) ) {
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'AI FAQ Generator: Skipping ' . $worker_type . ' - not in updated models' );
+					ai_faq_log_debug( 'AI FAQ Generator: Skipping ' . $worker_type . ' - not in updated models' );
 				}
 				continue;
 			}
@@ -1077,12 +739,12 @@ class AI_FAQ_Admin_AI_Models {
 			if ( isset( $options[ $worker_url_key ] ) && ! empty( $options[ $worker_url_key ] ) ) {
 				$worker_url = $options[ $worker_url_key ];
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'AI FAQ Generator: Found URL for ' . $worker_type . ' in individual key: ' . $worker_url );
+					ai_faq_log_debug( 'AI FAQ Generator: Found URL for ' . $worker_type . ' in individual key: ' . $worker_url );
 				}
 			} elseif ( isset( $options['workers'][ $worker_type ]['url'] ) && ! empty( $options['workers'][ $worker_type ]['url'] ) ) {
 				$worker_url = $options['workers'][ $worker_type ]['url'];
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'AI FAQ Generator: Found URL for ' . $worker_type . ' in workers array: ' . $worker_url );
+					ai_faq_log_debug( 'AI FAQ Generator: Found URL for ' . $worker_type . ' in workers array: ' . $worker_url );
 				}
 			}
 
@@ -1092,7 +754,7 @@ class AI_FAQ_Admin_AI_Models {
 					'message' => __( 'Worker URL not configured', '365i-ai-faq-generator' ),
 				);
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'AI FAQ Generator: No URL configured for ' . $worker_type . ' - skipping cache clear' );
+					ai_faq_log_debug( 'AI FAQ Generator: No URL configured for ' . $worker_type . ' - skipping cache clear' );
 				}
 				continue;
 			}
@@ -1101,7 +763,7 @@ class AI_FAQ_Admin_AI_Models {
 
 			// Clear worker cache
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'AI FAQ Generator: Attempting to clear cache for ' . $worker_type . ' at ' . $worker_url );
+				ai_faq_log_debug( 'AI FAQ Generator: Attempting to clear cache for ' . $worker_type . ' at ' . $worker_url );
 			}
 			
 			$clear_result = $this->clear_single_worker_cache( $worker_type, $worker_url );
@@ -1117,8 +779,8 @@ class AI_FAQ_Admin_AI_Models {
 
 		// Debug logging
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'AI FAQ Generator: Worker cache clear COMPLETED - attempted: ' . $cache_clear_results['attempted'] . ', successful: ' . $cache_clear_results['successful'] . ', failed: ' . $cache_clear_results['failed'] );
-			error_log( 'AI FAQ Generator: Cache clear details: ' . wp_json_encode( $cache_clear_results['details'] ) );
+			ai_faq_log_debug( 'AI FAQ Generator: Worker cache clear COMPLETED - attempted: ' . $cache_clear_results['attempted'] . ', successful: ' . $cache_clear_results['successful'] . ', failed: ' . $cache_clear_results['failed'] );
+			ai_faq_log_debug( 'AI FAQ Generator: Cache clear details: ' . wp_json_encode( $cache_clear_results['details'] ) );
 		}
 
 		return $cache_clear_results;
@@ -1138,7 +800,7 @@ class AI_FAQ_Admin_AI_Models {
 
 		// Debug logging
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'AI FAQ Generator: Clearing cache for ' . $worker_type . ' at ' . $cache_clear_url );
+			ai_faq_log_debug( 'AI FAQ Generator: Clearing cache for ' . $worker_type . ' at ' . $cache_clear_url );
 		}
 
 		// Make request to worker cache clear endpoint
@@ -1158,7 +820,7 @@ class AI_FAQ_Admin_AI_Models {
 
 		if ( is_wp_error( $response ) ) {
 			$error_message = $response->get_error_message();
-			error_log( 'AI FAQ Generator: Cache clear failed for ' . $worker_type . ': ' . $error_message );
+			ai_faq_log_error( 'AI FAQ Generator: Cache clear failed for ' . $worker_type . ': ' . $error_message );
 			
 			return array(
 				'success' => false,
@@ -1198,7 +860,7 @@ class AI_FAQ_Admin_AI_Models {
 				$error_message = $response_data['error'];
 			}
 
-			error_log( 'AI FAQ Generator: Cache clear failed for ' . $worker_type . ' - HTTP ' . $response_code . ': ' . $error_message );
+			ai_faq_log_error( 'AI FAQ Generator: Cache clear failed for ' . $worker_type . ' - HTTP ' . $response_code . ': ' . $error_message );
 
 			return array(
 				'success' => false,
@@ -1376,436 +1038,8 @@ class AI_FAQ_Admin_AI_Models {
 		}
 	}
 
-	/**
-	 * Handle AJAX request to get detailed model information.
-	 *
-	 * @since 2.5.0
-	 */
-	public function handle_get_model_details_ajax() {
-		// Verify nonce
-		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'ai_faq_admin_nonce' ) ) {
-			wp_send_json_error( __( 'Security check failed.', '365i-ai-faq-generator' ) );
-		}
 
-		// Check capabilities
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( __( 'Insufficient permissions.', '365i-ai-faq-generator' ) );
-		}
 
-		// Check if API client is available
-		if ( null === $this->api_client ) {
-			wp_send_json_error( __( 'API client not available.', '365i-ai-faq-generator' ) );
-		}
-
-		$model_id = isset( $_POST['model_id'] ) ? sanitize_text_field( $_POST['model_id'] ) : '';
-		
-		if ( empty( $model_id ) ) {
-			wp_send_json_error( __( 'Model ID is required.', '365i-ai-faq-generator' ) );
-		}
-
-		// Get model details from API client
-		$model_details = $this->api_client->get_model_details( $model_id );
-		
-		if ( is_wp_error( $model_details ) ) {
-			wp_send_json_error( $model_details->get_error_message() );
-		}
-
-		wp_send_json_success( array(
-			'model' => $model_details,
-			'formatted_html' => $this->format_model_details_for_modal( $model_details ),
-		) );
-	}
-
-	/**
-	 * Handle AJAX request to search models.
-	 *
-	 * @since 2.5.0
-	 */
-	public function handle_search_models_ajax() {
-		// Verify nonce
-		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'ai_faq_admin_nonce' ) ) {
-			wp_send_json_error( __( 'Security check failed.', '365i-ai-faq-generator' ) );
-		}
-
-		// Check capabilities
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( __( 'Insufficient permissions.', '365i-ai-faq-generator' ) );
-		}
-
-		// Check if API client is available
-		if ( null === $this->api_client ) {
-			wp_send_json_error( __( 'API client not available.', '365i-ai-faq-generator' ) );
-		}
-
-		$query = isset( $_POST['query'] ) ? sanitize_text_field( $_POST['query'] ) : '';
-		$filters = isset( $_POST['filters'] ) && is_array( $_POST['filters'] ) ? $_POST['filters'] : array();
-		$pagination = isset( $_POST['pagination'] ) && is_array( $_POST['pagination'] ) ? $_POST['pagination'] : array();
-
-		// Sanitize filters
-		$sanitized_filters = array();
-		if ( isset( $filters['provider'] ) ) {
-			$sanitized_filters['provider'] = sanitize_text_field( $filters['provider'] );
-		}
-		if ( isset( $filters['capability'] ) ) {
-			$sanitized_filters['capability'] = sanitize_text_field( $filters['capability'] );
-		}
-		if ( isset( $filters['pricing_tier'] ) ) {
-			$sanitized_filters['pricing_tier'] = sanitize_text_field( $filters['pricing_tier'] );
-		}
-
-		// Sanitize pagination
-		$sanitized_pagination = array();
-		if ( isset( $pagination['limit'] ) ) {
-			$sanitized_pagination['limit'] = min( 50, max( 1, (int) $pagination['limit'] ) );
-		}
-		if ( isset( $pagination['page'] ) ) {
-			$sanitized_pagination['page'] = max( 1, (int) $pagination['page'] );
-		}
-
-		// Search models
-		if ( ! empty( $query ) ) {
-			$results = $this->api_client->search_models( $query, $sanitized_filters );
-		} else {
-			$results = $this->api_client->get_models( $sanitized_filters, $sanitized_pagination );
-		}
-		
-		if ( is_wp_error( $results ) ) {
-			wp_send_json_error( $results->get_error_message() );
-		}
-
-		// Transform results for frontend
-		$formatted_results = $this->transform_api_models_to_wordpress_format( $results );
-
-		wp_send_json_success( array(
-			'models' => $formatted_results,
-			'total_count' => isset( $results['total_count'] ) ? $results['total_count'] : 0,
-			'page' => isset( $results['page'] ) ? $results['page'] : 1,
-			'per_page' => isset( $results['per_page'] ) ? $results['per_page'] : 20,
-		) );
-	}
-
-	/**
-	 * Handle AJAX request to get available providers.
-	 *
-	 * @since 2.5.0
-	 */
-	public function handle_get_providers_ajax() {
-		// Verify nonce
-		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'ai_faq_admin_nonce' ) ) {
-			wp_send_json_error( __( 'Security check failed.', '365i-ai-faq-generator' ) );
-		}
-
-		// Check capabilities
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( __( 'Insufficient permissions.', '365i-ai-faq-generator' ) );
-		}
-
-		// Check if API client is available
-		if ( null === $this->api_client ) {
-			wp_send_json_error( __( 'API client not available.', '365i-ai-faq-generator' ) );
-		}
-
-		// Get providers from API client
-		$providers = $this->api_client->get_providers();
-		
-		if ( is_wp_error( $providers ) ) {
-			wp_send_json_error( $providers->get_error_message() );
-		}
-
-		wp_send_json_success( array( 'providers' => $providers ) );
-	}
-
-	/**
-	 * Handle AJAX request to get available capabilities.
-	 *
-	 * @since 2.5.0
-	 */
-	public function handle_get_capabilities_ajax() {
-		// Verify nonce
-		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'ai_faq_admin_nonce' ) ) {
-			wp_send_json_error( __( 'Security check failed.', '365i-ai-faq-generator' ) );
-		}
-
-		// Check capabilities
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( __( 'Insufficient permissions.', '365i-ai-faq-generator' ) );
-		}
-
-		// Check if API client is available
-		if ( null === $this->api_client ) {
-			wp_send_json_error( __( 'API client not available.', '365i-ai-faq-generator' ) );
-		}
-
-		// Get capabilities from API client
-		$capabilities = $this->api_client->get_capabilities();
-		
-		if ( is_wp_error( $capabilities ) ) {
-			wp_send_json_error( $capabilities->get_error_message() );
-		}
-
-		wp_send_json_success( array( 'capabilities' => $capabilities ) );
-	}
-
-	/**
-	 * Format model details for modal display.
-	 *
-	 * @since 2.5.0
-	 * @param array $model_details Model details from API.
-	 * @return string Formatted HTML for modal.
-	 */
-	private function format_model_details_for_modal( $model_details ) {
-		if ( empty( $model_details ) || ! is_array( $model_details ) ) {
-			return '<p>' . esc_html__( 'No model details available.', '365i-ai-faq-generator' ) . '</p>';
-		}
-
-		$html = '<div class="model-detail-modal-content">';
-		
-		// Model header
-		$html .= '<div class="modal-model-header">';
-		$html .= '<h3>' . esc_html( $model_details['name'] ) . '</h3>';
-		$html .= '<span class="provider-badge">' . esc_html( $model_details['provider'] ) . '</span>';
-		$html .= '</div>';
-
-		// Description
-		if ( ! empty( $model_details['description'] ) ) {
-			$html .= '<div class="modal-description">';
-			$html .= '<p>' . esc_html( $model_details['description'] ) . '</p>';
-			$html .= '</div>';
-		}
-
-		// Performance metrics
-		if ( isset( $model_details['performance'] ) && is_array( $model_details['performance'] ) ) {
-			$html .= '<div class="modal-performance-section">';
-			$html .= '<h4>' . esc_html__( 'Performance Metrics', '365i-ai-faq-generator' ) . '</h4>';
-			$html .= '<div class="performance-grid">';
-			
-			foreach ( $model_details['performance'] as $metric => $value ) {
-				$html .= '<div class="performance-item">';
-				$html .= '<span class="metric-label">' . esc_html( ucfirst( str_replace( '_', ' ', $metric ) ) ) . '</span>';
-				$html .= '<span class="metric-value ' . esc_attr( $metric . '-' . $value ) . '">' . esc_html( ucfirst( $value ) ) . '</span>';
-				$html .= '</div>';
-			}
-			
-			$html .= '</div>';
-			$html .= '</div>';
-		}
-
-		// Capabilities
-		if ( isset( $model_details['capabilities'] ) && is_array( $model_details['capabilities'] ) ) {
-			$html .= '<div class="modal-capabilities-section">';
-			$html .= '<h4>' . esc_html__( 'Capabilities', '365i-ai-faq-generator' ) . '</h4>';
-			$html .= '<div class="capabilities-tags">';
-			
-			foreach ( $model_details['capabilities'] as $capability ) {
-				$html .= '<span class="capability-tag">' . esc_html( str_replace( '_', ' ', $capability ) ) . '</span>';
-			}
-			
-			$html .= '</div>';
-			$html .= '</div>';
-		}
-
-		// Use cases
-		if ( isset( $model_details['use_cases'] ) && is_array( $model_details['use_cases'] ) ) {
-			$html .= '<div class="modal-use-cases-section">';
-			$html .= '<h4>' . esc_html__( 'Best Use Cases', '365i-ai-faq-generator' ) . '</h4>';
-			$html .= '<ul class="use-cases-list">';
-			
-			foreach ( $model_details['use_cases'] as $use_case ) {
-				$html .= '<li>' . esc_html( $use_case ) . '</li>';
-			}
-			
-			$html .= '</ul>';
-			$html .= '</div>';
-		}
-
-		// Parameters
-		if ( isset( $model_details['parameters'] ) && is_array( $model_details['parameters'] ) ) {
-			$html .= '<div class="modal-parameters-section">';
-			$html .= '<h4>' . esc_html__( 'Technical Parameters', '365i-ai-faq-generator' ) . '</h4>';
-			$html .= '<div class="parameters-grid">';
-			
-			foreach ( $model_details['parameters'] as $param => $value ) {
-				$html .= '<div class="parameter-item">';
-				$html .= '<span class="param-label">' . esc_html( ucfirst( str_replace( '_', ' ', $param ) ) ) . '</span>';
-				$html .= '<span class="param-value">' . esc_html( $value ) . '</span>';
-				$html .= '</div>';
-			}
-			
-			$html .= '</div>';
-			$html .= '</div>';
-		}
-
-		// Pricing tier
-		if ( isset( $model_details['pricing_tier'] ) && $model_details['pricing_tier'] !== 'unknown' ) {
-			$html .= '<div class="modal-pricing-section">';
-			$html .= '<h4>' . esc_html__( 'Pricing Tier', '365i-ai-faq-generator' ) . '</h4>';
-			$html .= '<span class="pricing-tier ' . esc_attr( $model_details['pricing_tier'] ) . '">' . esc_html( ucfirst( $model_details['pricing_tier'] ) ) . '</span>';
-			$html .= '</div>';
-		}
-
-		$html .= '</div>';
-
-		return $html;
-	}
-
-	/**
-	 * Get model details by ID.
-	 *
-	 * @since 2.5.0
-	 * @param string $model_id Model ID.
-	 * @return array|WP_Error Model details or error.
-	 */
-	public function get_model_by_id( $model_id ) {
-		if ( empty( $model_id ) ) {
-			return new WP_Error( 'invalid_model_id', __( 'Model ID is required.', '365i-ai-faq-generator' ) );
-		}
-
-		if ( null === $this->api_client ) {
-			return new WP_Error( 'api_client_unavailable', __( 'API client not available.', '365i-ai-faq-generator' ) );
-		}
-
-		return $this->api_client->get_model_details( $model_id );
-	}
-
-	/**
-	 * Get list of providers.
-	 *
-	 * @since 2.5.0
-	 * @return array|WP_Error Providers list or error.
-	 */
-	public function get_providers_list() {
-		if ( null === $this->api_client ) {
-			return new WP_Error( 'api_client_unavailable', __( 'API client not available.', '365i-ai-faq-generator' ) );
-		}
-
-		return $this->api_client->get_providers();
-	}
-
-	/**
-	 * Get list of capabilities.
-	 *
-	 * @since 2.5.0
-	 * @return array|WP_Error Capabilities list or error.
-	 */
-	public function get_capabilities_list() {
-		if ( null === $this->api_client ) {
-			return new WP_Error( 'api_client_unavailable', __( 'API client not available.', '365i-ai-faq-generator' ) );
-		}
-
-		return $this->api_client->get_capabilities();
-	}
-
-	/**
-	 * Search models by query.
-	 *
-	 * @since 2.5.0
-	 * @param string $query Search query.
-	 * @param array  $filters Optional filters.
-	 * @return array|WP_Error Search results or error.
-	 */
-	public function search_models( $query, $filters = array() ) {
-		if ( null === $this->api_client ) {
-			return new WP_Error( 'api_client_unavailable', __( 'API client not available.', '365i-ai-faq-generator' ) );
-		}
-
-		return $this->api_client->search_models( $query, $filters );
-	}
-
-	/**
-	 * Get health status of the models API.
-	 *
-	 * @since 2.5.0
-	 * @return array|WP_Error Health status or error.
-	 */
-	public function get_api_health_status() {
-		if ( null === $this->api_client ) {
-			return new WP_Error( 'api_client_unavailable', __( 'API client not available.', '365i-ai-faq-generator' ) );
-		}
-
-		return $this->api_client->health_check();
-	}
-
-	/**
-	 * Handle AJAX request to refresh models data.
-	 *
-	 * @since 2.5.0
-	 */
-	public function handle_refresh_models_ajax() {
-		// Verify nonce
-		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'ai_faq_admin_nonce' ) ) {
-			wp_send_json_error( __( 'Security check failed.', '365i-ai-faq-generator' ) );
-		}
-
-		// Check capabilities
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( __( 'Insufficient permissions.', '365i-ai-faq-generator' ) );
-		}
-
-		// Check if API client is available
-		if ( null === $this->api_client ) {
-			wp_send_json_error( __( 'API client not available.', '365i-ai-faq-generator' ) );
-		}
-
-		// Clear model cache first
-		$this->clear_model_cache();
-
-		// Clear API client cache if available
-		if ( method_exists( $this->api_client, 'clear_cache' ) ) {
-			$this->api_client->clear_cache();
-		}
-
-		// Fetch fresh models data
-		$fresh_models = $this->get_available_models();
-		
-		if ( empty( $fresh_models ) ) {
-			wp_send_json_error( __( 'Failed to refresh models data. Please check your API connection and try again.', '365i-ai-faq-generator' ) );
-		}
-
-		// Get health status
-		$health_status = $this->get_api_health_status();
-		$health_message = '';
-		
-		if ( ! is_wp_error( $health_status ) ) {
-			$health_message = sprintf(
-				/* translators: %d: Number of models available */
-				__( 'Successfully refreshed %d models from API.', '365i-ai-faq-generator' ),
-				$this->count_total_models( $fresh_models )
-			);
-		} else {
-			$health_message = __( 'Models refreshed from cache. API may be temporarily unavailable.', '365i-ai-faq-generator' );
-		}
-
-		wp_send_json_success( array(
-			'message' => $health_message,
-			'models' => $fresh_models,
-			'model_count' => $this->count_total_models( $fresh_models ),
-			'api_health' => $health_status,
-			'timestamp' => current_time( 'c' ),
-		) );
-	}
-
-	/**
-	 * Count total models across all categories.
-	 *
-	 * @since 2.5.0
-	 * @param array $models_data Models data array.
-	 * @return int Total number of models.
-	 */
-	private function count_total_models( $models_data ) {
-		$total = 0;
-		
-		if ( ! is_array( $models_data ) ) {
-			return $total;
-		}
-
-		foreach ( $models_data as $category_data ) {
-			if ( isset( $category_data['models'] ) && is_array( $category_data['models'] ) ) {
-				$total += count( $category_data['models'] );
-			}
-		}
-
-		return $total;
-	}
 
 	/**
 	 * Handle AJAX request to get AI model information from all workers.
@@ -1975,8 +1209,8 @@ class AI_FAQ_Admin_AI_Models {
 				$url_key = $wt . '_url';
 				$debug_url_options[ $url_key ] = isset( $options[ $url_key ] ) ? $options[ $url_key ] : 'NOT_SET';
 			}
-			error_log( '[365i AI FAQ] AI MODELS READING OPTIONS: ' . wp_json_encode( $debug_url_options ) );
-			error_log( '[365i AI FAQ] AI MODELS LOOKING FOR: ' . $worker_type . '_url' );
+			ai_faq_log_debug( '[365i AI FAQ] AI MODELS READING OPTIONS: ' . wp_json_encode( $debug_url_options ) );
+			ai_faq_log_debug( '[365i AI FAQ] AI MODELS LOOKING FOR: ' . $worker_type . '_url' );
 		}
 		
 		// Get worker URL from configuration - try individual URL key first, then workers array
@@ -1987,20 +1221,20 @@ class AI_FAQ_Admin_AI_Models {
 		if ( isset( $options[ $worker_url_key ] ) && ! empty( $options[ $worker_url_key ] ) ) {
 			$worker_url = $options[ $worker_url_key ];
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[365i AI FAQ] FOUND URL IN INDIVIDUAL KEY: ' . $worker_url );
+				ai_faq_log_debug( '[365i AI FAQ] FOUND URL IN INDIVIDUAL KEY: ' . $worker_url );
 			}
 		}
 		// Strategy 2: Try workers array (new format)
 		elseif ( isset( $options['workers'][ $worker_type ]['url'] ) && ! empty( $options['workers'][ $worker_type ]['url'] ) ) {
 			$worker_url = $options['workers'][ $worker_type ]['url'];
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[365i AI FAQ] FOUND URL IN WORKERS ARRAY: ' . $worker_url );
+				ai_faq_log_debug( '[365i AI FAQ] FOUND URL IN WORKERS ARRAY: ' . $worker_url );
 			}
 		}
 		
 		// If no URL found in either location, return error
 		if ( empty( $worker_url ) ) {
-			error_log( 'AI FAQ Generator: Worker URL not configured for ' . $worker_type );
+			ai_faq_log_error( 'AI FAQ Generator: Worker URL not configured for ' . $worker_type );
 			return new WP_Error( 'worker_url_not_configured', sprintf(
 				/* translators: %s: Worker type */
 				__( 'Worker URL not configured for %s', '365i-ai-faq-generator' ),
@@ -2013,7 +1247,7 @@ class AI_FAQ_Admin_AI_Models {
 
 		// Debug logging
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'AI FAQ Generator: Fetching AI model info from ' . $health_url . ' for worker type: ' . $worker_type );
+			ai_faq_log_debug( 'AI FAQ Generator: Fetching AI model info from ' . $health_url . ' for worker type: ' . $worker_type );
 		}
 
 		// Make request to worker health endpoint
@@ -2028,7 +1262,7 @@ class AI_FAQ_Admin_AI_Models {
 
 		if ( is_wp_error( $response ) ) {
 			$error_message = $response->get_error_message();
-			error_log( 'AI FAQ Generator: Health request failed for ' . $worker_type . ': ' . $error_message );
+			ai_faq_log_error( 'AI FAQ Generator: Health request failed for ' . $worker_type . ': ' . $error_message );
 			return new WP_Error( 'health_request_failed', sprintf(
 				/* translators: %s: Error message */
 				__( 'Failed to connect to worker health endpoint: %s', '365i-ai-faq-generator' ),
@@ -2041,11 +1275,11 @@ class AI_FAQ_Admin_AI_Models {
 
 		// Debug logging
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'AI FAQ Generator: Health response for ' . $worker_type . ' - HTTP ' . $response_code . ', body length: ' . strlen( $response_body ) );
+			ai_faq_log_debug( 'AI FAQ Generator: Health response for ' . $worker_type . ' - HTTP ' . $response_code . ', body length: ' . strlen( $response_body ) );
 		}
 
 		if ( $response_code < 200 || $response_code >= 300 ) {
-			error_log( 'AI FAQ Generator: Health endpoint returned HTTP ' . $response_code . ' for ' . $worker_type );
+			ai_faq_log_error( 'AI FAQ Generator: Health endpoint returned HTTP ' . $response_code . ' for ' . $worker_type );
 			return new WP_Error( 'health_request_error', sprintf(
 				/* translators: %d: HTTP response code */
 				__( 'Worker health endpoint returned HTTP %d', '365i-ai-faq-generator' ),
@@ -2054,7 +1288,7 @@ class AI_FAQ_Admin_AI_Models {
 		}
 
 		if ( empty( $response_body ) ) {
-			error_log( 'AI FAQ Generator: Empty health response for ' . $worker_type );
+			ai_faq_log_error( 'AI FAQ Generator: Empty health response for ' . $worker_type );
 			return new WP_Error( 'empty_health_response', __( 'Empty response from worker health endpoint', '365i-ai-faq-generator' ) );
 		}
 
@@ -2062,8 +1296,8 @@ class AI_FAQ_Admin_AI_Models {
 		
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
 			$json_error = json_last_error_msg();
-			error_log( 'AI FAQ Generator: JSON decode error for ' . $worker_type . ': ' . $json_error );
-			error_log( 'AI FAQ Generator: Response body: ' . substr( $response_body, 0, 500 ) );
+			ai_faq_log_error( 'AI FAQ Generator: JSON decode error for ' . $worker_type . ': ' . $json_error );
+			ai_faq_log_error( 'AI FAQ Generator: Response body: ' . substr( $response_body, 0, 500 ) );
 			return new WP_Error( 'invalid_health_response', sprintf(
 				/* translators: %s: JSON error message */
 				__( 'Invalid JSON response from worker health endpoint: %s', '365i-ai-faq-generator' ),
@@ -2073,12 +1307,12 @@ class AI_FAQ_Admin_AI_Models {
 
 		// Debug log the parsed health data structure
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'AI FAQ Generator: Health data keys for ' . $worker_type . ': ' . implode( ', ', array_keys( $health_data ) ) );
+			ai_faq_log_debug( 'AI FAQ Generator: Health data keys for ' . $worker_type . ': ' . implode( ', ', array_keys( $health_data ) ) );
 			if ( isset( $health_data['current_model'] ) ) {
-				error_log( 'AI FAQ Generator: Found current_model: ' . $health_data['current_model'] );
+				ai_faq_log_debug( 'AI FAQ Generator: Found current_model: ' . $health_data['current_model'] );
 			}
 			if ( isset( $health_data['model'] ) ) {
-				error_log( 'AI FAQ Generator: Found model field: ' . wp_json_encode( $health_data['model'] ) );
+				ai_faq_log_debug( 'AI FAQ Generator: Found model field: ' . wp_json_encode( $health_data['model'] ) );
 			}
 		}
 
@@ -2115,7 +1349,7 @@ class AI_FAQ_Admin_AI_Models {
 			$model_found = true;
 			
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'AI FAQ Generator: Strategy 1 - Found current_model: ' . $health_data['current_model'] );
+				ai_faq_log_debug( 'AI FAQ Generator: Strategy 1 - Found current_model: ' . $health_data['current_model'] );
 			}
 		}
 
@@ -2129,7 +1363,7 @@ class AI_FAQ_Admin_AI_Models {
 			$model_found = true;
 			
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'AI FAQ Generator: Strategy 2 - Found model.name: ' . $health_data['model']['name'] );
+				ai_faq_log_debug( 'AI FAQ Generator: Strategy 2 - Found model.name: ' . $health_data['model']['name'] );
 			}
 		}
 
@@ -2142,7 +1376,7 @@ class AI_FAQ_Admin_AI_Models {
 			$model_found = true;
 			
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'AI FAQ Generator: Strategy 3 - Found model string: ' . $health_data['model'] );
+				ai_faq_log_debug( 'AI FAQ Generator: Strategy 3 - Found model string: ' . $health_data['model'] );
 			}
 		}
 
@@ -2159,7 +1393,7 @@ class AI_FAQ_Admin_AI_Models {
 				$model_found = true;
 				
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'AI FAQ Generator: Strategy 4 - Found ai_model_config.current_model: ' . $model_config['current_model'] );
+					ai_faq_log_debug( 'AI FAQ Generator: Strategy 4 - Found ai_model_config.current_model: ' . $model_config['current_model'] );
 				}
 			}
 		}
@@ -2177,7 +1411,7 @@ class AI_FAQ_Admin_AI_Models {
 				$model_found = true;
 				
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'AI FAQ Generator: Strategy 5 - Found configuration.ai_model: ' . $config['ai_model'] );
+					ai_faq_log_debug( 'AI FAQ Generator: Strategy 5 - Found configuration.ai_model: ' . $config['ai_model'] );
 				}
 			}
 		}
@@ -2191,7 +1425,7 @@ class AI_FAQ_Admin_AI_Models {
 			$model_found = true;
 			
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'AI FAQ Generator: Strategy 6 - Found config.ai_model: ' . $health_data['config']['ai_model'] );
+				ai_faq_log_debug( 'AI FAQ Generator: Strategy 6 - Found config.ai_model: ' . $health_data['config']['ai_model'] );
 			}
 		}
 
@@ -2201,12 +1435,12 @@ class AI_FAQ_Admin_AI_Models {
 			$ai_model_info['model_display_name'] = __( 'No Model Configured', '365i-ai-faq-generator' );
 			
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'AI FAQ Generator: No model found in health response for ' . $worker_type );
-				error_log( 'AI FAQ Generator: Available top-level keys: ' . implode( ', ', array_keys( $health_data ) ) );
+				ai_faq_log_debug( 'AI FAQ Generator: No model found in health response for ' . $worker_type );
+				ai_faq_log_debug( 'AI FAQ Generator: Available top-level keys: ' . implode( ', ', array_keys( $health_data ) ) );
 				
 				// Log a sample of the response for debugging
 				$sample_response = array_slice( $health_data, 0, 10, true );
-				error_log( 'AI FAQ Generator: Sample response data: ' . wp_json_encode( $sample_response ) );
+				ai_faq_log_debug( 'AI FAQ Generator: Sample response data: ' . wp_json_encode( $sample_response ) );
 			}
 		}
 

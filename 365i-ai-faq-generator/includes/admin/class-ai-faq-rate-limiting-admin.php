@@ -568,7 +568,7 @@ class AI_FAQ_Rate_Limiting_Admin {
 		) );
 
 		if ( is_wp_error( $response ) ) {
-			error_log( 'AI FAQ Rate Limiting: Failed to fetch global settings from KV: ' . $response->get_error_message() );
+			ai_faq_log_error( 'AI FAQ Rate Limiting: Failed to fetch global settings from KV: ' . $response->get_error_message() );
 			return false;
 		}
 
@@ -581,14 +581,14 @@ class AI_FAQ_Rate_Limiting_Admin {
 		}
 
 		if ( 200 !== $response_code ) {
-			error_log( 'AI FAQ Rate Limiting: KV API returned ' . $response_code . ' for global settings: ' . $response_body );
+			ai_faq_log_error( 'AI FAQ Rate Limiting: KV API returned ' . $response_code . ' for global settings: ' . $response_body );
 			return false;
 		}
 
 		$settings_data = json_decode( $response_body, true );
 		
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
-			error_log( 'AI FAQ Rate Limiting: Failed to parse global settings JSON: ' . json_last_error_msg() );
+			ai_faq_log_error( 'AI FAQ Rate Limiting: Failed to parse global settings JSON: ' . json_last_error_msg() );
 			return false;
 		}
 
@@ -684,7 +684,7 @@ class AI_FAQ_Rate_Limiting_Admin {
 		) );
 
 		if ( is_wp_error( $response ) ) {
-			error_log( 'AI FAQ Rate Limiting: Failed to fetch ' . $list_type . ' from KV: ' . $response->get_error_message() );
+			ai_faq_log_error( 'AI FAQ Rate Limiting: Failed to fetch ' . $list_type . ' from KV: ' . $response->get_error_message() );
 			return array();
 		}
 
@@ -692,14 +692,14 @@ class AI_FAQ_Rate_Limiting_Admin {
 		$response_body = wp_remote_retrieve_body( $response );
 
 		if ( 200 !== $response_code ) {
-			error_log( 'AI FAQ Rate Limiting: KV API returned ' . $response_code . ' for ' . $list_type . ': ' . $response_body );
+			ai_faq_log_error( 'AI FAQ Rate Limiting: KV API returned ' . $response_code . ' for ' . $list_type . ': ' . $response_body );
 			return array();
 		}
 
 		$data = json_decode( $response_body, true );
 		
 		if ( json_last_error() !== JSON_ERROR_NONE || ! isset( $data['result'] ) ) {
-			error_log( 'AI FAQ Rate Limiting: Failed to parse ' . $list_type . ' JSON: ' . json_last_error_msg() );
+			ai_faq_log_error( 'AI FAQ Rate Limiting: Failed to parse ' . $list_type . ' JSON: ' . json_last_error_msg() );
 			return array();
 		}
 
@@ -1056,7 +1056,7 @@ class AI_FAQ_Rate_Limiting_Admin {
 
 		// Check for errors
 		if ( is_wp_error( $response ) ) {
-			error_log( 'AI FAQ Rate Limiting: Failed to fetch analytics from KV: ' . $response->get_error_message() );
+			ai_faq_log_error( 'AI FAQ Rate Limiting: Failed to fetch analytics from KV: ' . $response->get_error_message() );
 			return false;
 		}
 
@@ -1070,7 +1070,7 @@ class AI_FAQ_Rate_Limiting_Admin {
 
 		// Handle other errors
 		if ( $response_code !== 200 ) {
-			error_log( 'AI FAQ Rate Limiting: KV API returned ' . $response_code . ': ' . $response_body );
+			ai_faq_log_error( 'AI FAQ Rate Limiting: KV API returned ' . $response_code . ': ' . $response_body );
 			return false;
 		}
 
@@ -1078,7 +1078,7 @@ class AI_FAQ_Rate_Limiting_Admin {
 		$analytics_data = json_decode( $response_body, true );
 		
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
-			error_log( 'AI FAQ Rate Limiting: Failed to parse analytics JSON: ' . json_last_error_msg() );
+			ai_faq_log_error( 'AI FAQ Rate Limiting: Failed to parse analytics JSON: ' . json_last_error_msg() );
 			return false;
 		}
 
@@ -1289,7 +1289,7 @@ class AI_FAQ_Rate_Limiting_Admin {
 			) );
 
 			if ( is_wp_error( $response ) ) {
-				error_log( 'AI FAQ Rate Limiting: Failed to fetch config for ' . $worker_id . ': ' . $response->get_error_message() );
+				ai_faq_log_error( 'AI FAQ Rate Limiting: Failed to fetch config for ' . $worker_id . ': ' . $response->get_error_message() );
 				continue;
 			}
 
@@ -1303,14 +1303,14 @@ class AI_FAQ_Rate_Limiting_Admin {
 			}
 
 			if ( 200 !== $response_code ) {
-				error_log( 'AI FAQ Rate Limiting: KV API returned ' . $response_code . ' for ' . $worker_id . ': ' . $response_body );
+				ai_faq_log_error( 'AI FAQ Rate Limiting: KV API returned ' . $response_code . ' for ' . $worker_id . ': ' . $response_body );
 				continue;
 			}
 
 			$config_data = json_decode( $response_body, true );
 			
 			if ( json_last_error() !== JSON_ERROR_NONE ) {
-				error_log( 'AI FAQ Rate Limiting: Failed to parse config JSON for ' . $worker_id . ': ' . json_last_error_msg() );
+				ai_faq_log_error( 'AI FAQ Rate Limiting: Failed to parse config JSON for ' . $worker_id . ': ' . json_last_error_msg() );
 				$rate_configs[ $worker_id ] = $this->get_default_worker_config( $worker_id );
 				continue;
 			}

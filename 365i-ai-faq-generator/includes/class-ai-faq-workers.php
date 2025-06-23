@@ -90,21 +90,21 @@ class AI_FAQ_Workers {
 				$this->security = new AI_FAQ_Workers_Security();
 			} catch ( Exception $e ) {
 				$this->security = null;
-				error_log( 'AI FAQ Generator: Error initializing Security component: ' . $e->getMessage() );
+				ai_faq_log_error( 'AI FAQ Generator: Error initializing Security component: ' . $e->getMessage() );
 			}
 			
 			try {
 				$this->rate_limiter = new AI_FAQ_Workers_Rate_Limiter( $workers_config );
 			} catch ( Exception $e ) {
 				$this->rate_limiter = null;
-				error_log( 'AI FAQ Generator: Error initializing Rate Limiter component: ' . $e->getMessage() );
+				ai_faq_log_error( 'AI FAQ Generator: Error initializing Rate Limiter component: ' . $e->getMessage() );
 			}
 			
 			try {
 				$this->analytics = new AI_FAQ_Workers_Analytics();
 			} catch ( Exception $e ) {
 				$this->analytics = null;
-				error_log( 'AI FAQ Generator: Error initializing Analytics component: ' . $e->getMessage() );
+				ai_faq_log_error( 'AI FAQ Generator: Error initializing Analytics component: ' . $e->getMessage() );
 			}
 			
 			// Only create manager if required components exist
@@ -117,7 +117,7 @@ class AI_FAQ_Workers {
 					);
 				} catch ( Exception $e ) {
 					$this->manager = null;
-					error_log( 'AI FAQ Generator: Error initializing Workers Manager: ' . $e->getMessage() );
+					ai_faq_log_error( 'AI FAQ Generator: Error initializing Workers Manager: ' . $e->getMessage() );
 				}
 			} else {
 				$this->manager = null;
@@ -134,14 +134,14 @@ class AI_FAQ_Workers {
 					);
 				} catch ( Exception $e ) {
 					$this->request_handler = null;
-					error_log( 'AI FAQ Generator: Error initializing Request Handler: ' . $e->getMessage() );
+					ai_faq_log_error( 'AI FAQ Generator: Error initializing Request Handler: ' . $e->getMessage() );
 				}
 			} else {
 				$this->request_handler = null;
 			}
 		} catch ( Exception $e ) {
 			// Log any uncaught exceptions
-			error_log( 'AI FAQ Generator: Fatal error in Workers initialization: ' . $e->getMessage() );
+			ai_faq_log_error( 'AI FAQ Generator: Fatal error in Workers initialization: ' . $e->getMessage() );
 		}
 	}
 
@@ -155,7 +155,7 @@ class AI_FAQ_Workers {
 	public function init() {
 		// Skip initialization if any critical component is missing
 		if ( ! $this->security || ! $this->rate_limiter || ! $this->analytics || ! $this->manager ) {
-			error_log( 'AI FAQ Generator: Skipping worker initialization due to missing components' );
+			ai_faq_log_warning( 'AI FAQ Generator: Skipping worker initialization due to missing components' );
 			return;
 		}
 		
@@ -179,7 +179,7 @@ class AI_FAQ_Workers {
 				$this->request_handler->init();
 			}
 		} catch ( Exception $e ) {
-			error_log( 'AI FAQ Generator: Error during worker initialization: ' . $e->getMessage() );
+			ai_faq_log_error( 'AI FAQ Generator: Error during worker initialization: ' . $e->getMessage() );
 		}
 	}
 	
@@ -580,7 +580,7 @@ class AI_FAQ_Workers {
 			return $this->manager->reload_worker_config();
 		}
 		
-		error_log( '[365i AI FAQ] Warning: Cannot reload worker config - manager not available' );
+		ai_faq_log_warning( '[365i AI FAQ] Warning: Cannot reload worker config - manager not available' );
 		return false;
 	}
 }

@@ -117,8 +117,8 @@ class AI_FAQ_Admin {
 	 */
 	public function init() {
 		// DEBUG: Log which admin coordinator class is being used
-		error_log('AI_FAQ_Admin (COORDINATOR): init() called - This is the NEW coordinator class!');
-		error_log('AI_FAQ_Admin (COORDINATOR): File: ' . __FILE__);
+		ai_faq_log_debug('AI_FAQ_Admin (COORDINATOR): init() called - This is the NEW coordinator class!');
+		ai_faq_log_debug('AI_FAQ_Admin (COORDINATOR): File: ' . __FILE__);
 		
 		// Load dependencies first.
 		$this->load_dependencies();
@@ -135,7 +135,7 @@ class AI_FAQ_Admin {
 		$this->ai_models = new AI_FAQ_Admin_AI_Models();
 
 		// DEBUG: Log AI models initialization
-		error_log('AI_FAQ_Admin (COORDINATOR): AI Models instance created: ' . get_class($this->ai_models));
+		ai_faq_log_debug('AI_FAQ_Admin (COORDINATOR): AI Models instance created: ' . get_class($this->ai_models));
 
 		// Initialize each component.
 		$this->menu->init();
@@ -147,9 +147,9 @@ class AI_FAQ_Admin {
 		$this->documentation->init();
 		
 		// DEBUG: Log AI models init call
-		error_log('AI_FAQ_Admin (COORDINATOR): About to call ai_models->init()');
+		ai_faq_log_debug('AI_FAQ_Admin (COORDINATOR): About to call ai_models->init()');
 		$this->ai_models->init();
-		error_log('AI_FAQ_Admin (COORDINATOR): AI models init() completed');
+		ai_faq_log_debug('AI_FAQ_Admin (COORDINATOR): AI models init() completed');
 		
 		// Note: rate_limiting admin handles its own initialization in constructor
 
@@ -157,7 +157,7 @@ class AI_FAQ_Admin {
 		add_action( 'admin_init', array( $this, 'activation_redirect' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 		
-		error_log('AI_FAQ_Admin (COORDINATOR): init() completed with AI Models included!');
+		ai_faq_log_debug('AI_FAQ_Admin (COORDINATOR): init() completed with AI Models included!');
 	}
 
 	/**
@@ -378,16 +378,7 @@ class AI_FAQ_Admin {
 				)
 			);
 
-			// Load available models data for JavaScript.
-			$ai_models_admin = $this->get_ai_models_admin_instance();
-			if ( $ai_models_admin ) {
-				$available_models = $ai_models_admin->get_available_models();
-				wp_localize_script(
-					'ai-faq-admin-ai-models',
-					'aiFaqModels',
-					$available_models
-				);
-			}
+			// Note: Model data is now loaded from KV namespace only, no need to localize for JavaScript
 		}
 	}
 

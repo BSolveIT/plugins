@@ -116,6 +116,10 @@ class AI_FAQ_Core {
 		// Load settings handler first (needed by other components).
 		require_once AI_FAQ_GEN_DIR . 'includes/class-ai-faq-settings-handler.php';
 		
+		// Load logging system early (needed by all components).
+		require_once AI_FAQ_GEN_DIR . 'includes/logging/class-ai-faq-365i-logger.php';
+		require_once AI_FAQ_GEN_DIR . 'includes/logging/functions-logging.php';
+		
 		// Load admin class.
 		require_once AI_FAQ_GEN_DIR . 'includes/admin/class-ai-faq-admin.php';
 		
@@ -138,22 +142,25 @@ class AI_FAQ_Core {
 		$this->settings_handler = new AI_FAQ_Settings_Handler();
 		
 		// DEBUG: Log which admin class we're about to instantiate
-		error_log('AI_FAQ_Core: About to instantiate AI_FAQ_Admin class');
-		error_log('AI_FAQ_Core: AI_FAQ_Admin class exists: ' . (class_exists('AI_FAQ_Admin') ? 'YES' : 'NO'));
+		ai_faq_log_debug('AI_FAQ_Core: About to instantiate AI_FAQ_Admin class');
+		ai_faq_log_debug('AI_FAQ_Core: AI_FAQ_Admin class exists: ' . (class_exists('AI_FAQ_Admin') ? 'YES' : 'NO'));
 		
 		// Initialize admin component.
 		$this->admin = new AI_FAQ_Admin();
 		
 		// DEBUG: Log admin class type and methods
-		error_log('AI_FAQ_Core: Admin instance created - Class: ' . get_class($this->admin));
-		error_log('AI_FAQ_Core: Admin has init method: ' . (method_exists($this->admin, 'init') ? 'YES' : 'NO'));
-		error_log('AI_FAQ_Core: Admin class methods: ' . implode(', ', get_class_methods($this->admin)));
+		ai_faq_log_debug('AI_FAQ_Core: Admin instance created - Class: ' . get_class($this->admin));
+		ai_faq_log_debug('AI_FAQ_Core: Admin has init method: ' . (method_exists($this->admin, 'init') ? 'YES' : 'NO'));
+		ai_faq_log_debug('AI_FAQ_Core: Admin class methods: ' . implode(', ', get_class_methods($this->admin)));
 		
 		// Initialize frontend component.
 		$this->frontend = new AI_FAQ_Frontend();
 		
 		// Initialize workers component.
 		$this->workers = new AI_FAQ_Workers();
+		
+		// Set up logging cache clearing hook.
+		
 	}
 
 	/**
@@ -169,20 +176,33 @@ class AI_FAQ_Core {
 		// Using DOING_AJAX constant as it's available earlier than wp_doing_ajax().
 		if ( is_admin() || ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ) {
 			// DEBUG: Log admin initialization context
-			error_log('AI_FAQ_Core: Calling admin->init() - is_admin: ' . (is_admin() ? 'YES' : 'NO') . ', DOING_AJAX: ' . (defined('DOING_AJAX') && DOING_AJAX ? 'YES' : 'NO'));
-			error_log('AI_FAQ_Core: Current action: ' . (isset($_POST['action']) ? $_POST['action'] : 'none'));
+			ai_faq_log_debug('AI_FAQ_Core: Calling admin->init() - is_admin: ' . (is_admin() ? 'YES' : 'NO') . ', DOING_AJAX: ' . (defined('DOING_AJAX') && DOING_AJAX ? 'YES' : 'NO'));
+			ai_faq_log_debug('AI_FAQ_Core: Current action: ' . (isset($_POST['action']) ? $_POST['action'] : 'none'));
 			
 			$this->admin->init();
 			
 			// DEBUG: Log if admin init completed
-			error_log('AI_FAQ_Core: Admin init completed');
+			ai_faq_log_debug('AI_FAQ_Core: Admin init completed');
 		}
 		
 		// Initialize frontend hooks.
 		$this->frontend->init();
 		
 		// Initialize worker hooks.
+// Set up logging cache clearing hook.
+		add_action( 'update_option_ai_faq_gen_options', array( $this, 'clear_logging_cache' ) );
 		$this->workers->init();
+	}
+
+	/**
+	 * Clear logging cache when settings are updated.
+	 *
+	 * @since 2.1.0
+	 */
+	public function clear_logging_cache() {
+		$logger = AI_FAQ_365i_Logger::get_instance();
+		$logger->clear_settings_cache();
+		ai_faq_log_debug('AI_FAQ_Core: Logging cache cleared due to settings update');
 	}
 
 	/**
@@ -256,6 +276,9 @@ class AI_FAQ_Core {
 				'url_to_faq_generator_worker' => '@cf/meta/llama-3.1-70b-instruct',
 				'faq_proxy_fetch' => '@cf/meta/llama-3.1-8b-instruct',
 			),
+			'enable_logging' => false,
+			'log_level' => 'error',
+			'enable_analytics' => true,
 		);
 
 		// Save default options if they don't exist.

@@ -17,6 +17,7 @@
      */
     class AIModelsStatus {
         constructor() {
+            console.log('[365i AI FAQ] AIModelsStatus constructor called');
             this.workers = {};
             this.currentTests = new Map();
             this.notifications = [];
@@ -28,6 +29,7 @@
          * Initialize the AI Models status interface
          */
         init() {
+            console.log('[365i AI FAQ] AIModelsStatus init() called');
             this.cacheElements();
             this.bindEvents();
             this.loadWorkersData();
@@ -35,6 +37,7 @@
             this.checkForTestAllVisibility();
             this.loadInitialAIModelInfo();
             this.bindModelInputEvents();
+            console.log('[365i AI FAQ] AIModelsStatus initialization complete');
         }
 
         /**
@@ -334,16 +337,23 @@
          */
         handleConnectivityTest(e) {
             e.preventDefault();
+            console.log('[365i AI FAQ] Test connectivity button clicked');
             
             const $button = $(e.target).closest('.test-model-connectivity');
             const $card = $button.closest('.worker-model-card');
             const workerType = $card.data('worker');
             
+            console.log('[365i AI FAQ] Button:', $button);
+            console.log('[365i AI FAQ] Card:', $card);
+            console.log('[365i AI FAQ] Worker type:', workerType);
+            
             if (!workerType) {
+                console.log('[365i AI FAQ] No worker type found');
                 this.showNotification('warning', 'Worker type not found');
                 return;
             }
             
+            console.log('[365i AI FAQ] Starting connectivity test for:', workerType);
             this.performConnectivityTest($card, workerType, $button);
         }
 
@@ -424,9 +434,21 @@
                     
                     // Update real-time AI model information
                     if (response.success && response.data && response.data.ai_model_info) {
-                        this.updateRealtimeModelInfo($card, 'success', response.data.ai_model_info);
+                        // Ensure model_source is properly mapped for connectivity test responses
+                        const aiModelInfo = response.data.ai_model_info;
+                        
+                        // Debug logging for model info structure
+                        console.log('[365i AI FAQ] AI model info from connectivity test:', aiModelInfo);
+                        
+                        // Normalize model_source for consistent display
+                        if (aiModelInfo.model_source === 'kv_namespace_override' || aiModelInfo.model_source === 'kv_config') {
+                            aiModelInfo.model_source = 'kv_config';
+                        }
+                        
+                        this.updateRealtimeModelInfo($card, 'success', aiModelInfo);
                     } else {
                         // If connectivity test didn't return AI model info, try fetching it separately
+                        console.log('[365i AI FAQ] No AI model info in connectivity response, fetching separately');
                         this.fetchWorkerAIModelInfo($card, workerType);
                     }
                 }
@@ -503,13 +525,29 @@
          * Update connectivity status display
          */
         updateConnectivityStatus($card, status, message, timeText, data) {
-            if (!$card || !$card.length) return;
+            console.log('[365i AI FAQ] updateConnectivityStatus called:', {status, message, timeText, data});
+            
+            if (!$card || !$card.length) {
+                console.log('[365i AI FAQ] No card found for connectivity status update');
+                return;
+            }
             
             const $statusDiv = $card.find('.connectivity-status');
             const $indicator = $statusDiv.find('.status-indicator');
             const $icon = $indicator.find('.status-icon');
             const $text = $indicator.find('.status-text');
             const $time = $indicator.find('.status-time');
+            
+            console.log('[365i AI FAQ] Status elements found:', {
+                statusDiv: $statusDiv.length,
+                indicator: $indicator.length,
+                icon: $icon.length,
+                text: $text.length,
+                time: $time.length
+            });
+            
+            // Show the status div if it's hidden
+            $statusDiv.show();
             
             // Remove old status classes from both indicator and status div
             $indicator.removeClass('pending connected failed error testing');
@@ -556,6 +594,8 @@
             // Update card border color based on status
             $card.removeClass('status-connected status-failed status-error status-testing');
             $card.addClass(`status-${status}`);
+            
+            console.log('[365i AI FAQ] Connectivity status updated successfully');
         }
 
         /**
@@ -584,13 +624,31 @@
                     if (aiModelInfo) {
                         $realtimeSection.show();
                         
+                        console.log('[365i AI FAQ] Processing AI model info for display:', aiModelInfo);
+                        
                         // Update model name with display name if available
                         const displayName = aiModelInfo.model_display_name || aiModelInfo.current_model || 'Unknown Model';
                         $modelNameDisplay.text(displayName);
                         
+                        // Normalize and validate model_source - prioritize KV config display
+                        let modelSource = aiModelInfo.model_source || 'kv_config';
+                        
+                        // If we have a valid model but no clear source, assume it's from KV config
+                        if (aiModelInfo.current_model && (modelSource === 'unknown' || !modelSource)) {
+                            modelSource = 'kv_config';
+                            console.log('[365i AI FAQ] Defaulting to kv_config for model with valid current_model');
+                        }
+                        
+                        // Handle various model source values that should map to kv_config
+                        if (['kv_namespace_override', 'kv_namespace', 'configured', 'config'].includes(modelSource)) {
+                            modelSource = 'kv_config';
+                        }
+                        
+                        console.log('[365i AI FAQ] Final model source for display:', modelSource);
+                        
                         // Update model source badge
                         $modelSourceBadge.removeClass('kv_config env_fallback hardcoded_default unknown error loading')
-                                        .addClass(aiModelInfo.model_source || 'unknown');
+                                        .addClass(modelSource);
                         
                         const sourceTexts = {
                             'kv_config': 'KV Config',
@@ -598,7 +656,7 @@
                             'hardcoded_default': 'Default',
                             'unknown': 'Unknown'
                         };
-                        $sourceText.text(sourceTexts[aiModelInfo.model_source] || 'Unknown');
+                        $sourceText.text(sourceTexts[modelSource] || 'KV Config');
                         
                         // Update source description
                         const sourceDescriptions = {
@@ -607,7 +665,7 @@
                             'hardcoded_default': 'Model using built-in default value - no custom configuration found.',
                             'unknown': 'Model source could not be determined from worker response.'
                         };
-                        $sourceDescription.text(sourceDescriptions[aiModelInfo.model_source] || 'Model source information unavailable.');
+                        $sourceDescription.text(sourceDescriptions[modelSource] || 'Model configured via Cloudflare KV storage - user-defined configuration.');
                     }
                     break;
                     
@@ -711,10 +769,24 @@
      * Initialize when document is ready
      */
     $(document).ready(() => {
+        console.log('[365i AI FAQ] AI Models JS loaded, checking for page elements...');
+        
+        // Debug page detection
+        const bodyClasses = $('body').attr('class') || '';
+        const hasModernLayout = $('.ai-faq-gen-ai-models.modern-layout').length;
+        
+        console.log('[365i AI FAQ] Body classes:', bodyClasses);
+        console.log('[365i AI FAQ] Modern layout found:', hasModernLayout);
+        console.log('[365i AI FAQ] aiFaqModelsData:', window.aiFaqModelsData);
+        
         // Only initialize on AI Models status page
-        if ($('body').hasClass('ai-faq-generator_page_ai-faq-generator-ai-models') || 
+        if ($('body').hasClass('ai-faq-generator_page_ai-faq-generator-ai-models') ||
+            $('body').hasClass('ai-faq-gen_page_ai-faq-generator-ai-models') ||
             $('.ai-faq-gen-ai-models.modern-layout').length) {
+            console.log('[365i AI FAQ] Initializing AI Models Status...');
             new AIModelsStatus();
+        } else {
+            console.log('[365i AI FAQ] Not on AI Models page, skipping initialization');
         }
     });
 

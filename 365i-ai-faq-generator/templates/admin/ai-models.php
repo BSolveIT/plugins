@@ -231,6 +231,24 @@ window.aiFaqModelsData = <?php echo wp_json_encode( array(
 		'bulkTestCompleted' => __( 'Bulk connectivity tests completed', '365i-ai-faq-generator' ),
 	),
 ) ); ?>;
+
+// Debug logging to verify JavaScript data is loaded
+console.log('[365i AI FAQ] AI Models data loaded:', window.aiFaqModelsData);
+
+// Debug check for script loading
+jQuery(document).ready(function($) {
+    console.log('[365i AI FAQ] Template jQuery ready');
+    console.log('[365i AI FAQ] Body classes:', $('body').attr('class'));
+    console.log('[365i AI FAQ] Modern layout containers:', $('.ai-faq-gen-ai-models.modern-layout').length);
+    console.log('[365i AI FAQ] Test connectivity buttons:', $('.test-model-connectivity').length);
+    
+    // Check if our main script loaded
+    if (typeof window.AIModelsStatus === 'undefined') {
+        console.error('[365i AI FAQ] AIModelsStatus class not found - script not loaded!');
+    } else {
+        console.log('[365i AI FAQ] AIModelsStatus class found');
+    }
+});
 </script>
 
 <?php

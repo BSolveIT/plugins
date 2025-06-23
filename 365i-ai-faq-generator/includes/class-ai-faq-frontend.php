@@ -611,7 +611,7 @@ class AI_FAQ_Frontend {
 
 		} catch ( Exception $e ) {
 			// Log the error for debugging.
-			error_log( 'AI FAQ Generator frontend error: ' . $e->getMessage() );
+			ai_faq_log_error( 'AI FAQ Generator frontend error: ' . $e->getMessage() );
 			
 			// Record the failure for analytics.
 			$workers->record_usage( 'frontend_generation', 'error', array_merge( $metadata, array(

@@ -51,8 +51,8 @@ class AI_FAQ_Admin {
 	 */
 	public function init() {
 		// DEBUG: Log which admin bootstrap class is being used
-		error_log('AI_FAQ_Admin (BOOTSTRAP): init() called - This is the OLD bootstrap class, NOT the coordinator!');
-		error_log('AI_FAQ_Admin (BOOTSTRAP): File: ' . __FILE__);
+		ai_faq_log_debug('AI_FAQ_Admin (BOOTSTRAP): init() called - This is the OLD bootstrap class, NOT the coordinator!');
+		ai_faq_log_debug('AI_FAQ_Admin (BOOTSTRAP): File: ' . __FILE__);
 		
 		// Load admin components directly without requiring a duplicate class
 		require_once AI_FAQ_GEN_DIR . 'includes/admin/class-ai-faq-admin-menu.php';
@@ -65,7 +65,7 @@ class AI_FAQ_Admin {
 		require_once AI_FAQ_GEN_DIR . 'includes/admin/class-ai-faq-admin-documentation.php';
 		
 		// DEBUG: Notice AI models class is NOT loaded in bootstrap!
-		error_log('AI_FAQ_Admin (BOOTSTRAP): WARNING - AI Models class is NOT being loaded or initialized!');
+		ai_faq_log_debug('AI_FAQ_Admin (BOOTSTRAP): WARNING - AI Models class is NOT being loaded or initialized!');
 		
 		// Create and initialize admin menu component
 		$menu = new AI_FAQ_Admin_Menu();
@@ -91,6 +91,6 @@ class AI_FAQ_Admin {
 		$rate_limiting = new AI_FAQ_Rate_Limiting_Admin();
 		// Note: AI_FAQ_Rate_Limiting_Admin initializes itself in constructor
 		
-		error_log('AI_FAQ_Admin (BOOTSTRAP): init() completed - AI Models MISSING!');
+		ai_faq_log_debug('AI_FAQ_Admin (BOOTSTRAP): init() completed - AI Models MISSING!');
 	}
 }

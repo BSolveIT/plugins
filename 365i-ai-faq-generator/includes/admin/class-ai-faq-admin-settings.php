@@ -264,7 +264,7 @@ class AI_FAQ_Admin_Settings {
 		$result = update_option( 'ai_faq_gen_options', $options );
 
 		// Log the update
-		error_log( sprintf(
+		ai_faq_log_info( sprintf(
 			'[365i AI FAQ] Admin %s updated worker configuration',
 			wp_get_current_user()->user_login
 		) );
@@ -335,7 +335,7 @@ class AI_FAQ_Admin_Settings {
 		$result = update_option( 'ai_faq_gen_options', $options );
 
 		// Log the update
-		error_log( sprintf(
+		ai_faq_log_info( sprintf(
 			'[365i AI FAQ] Admin %s updated plugin settings',
 			wp_get_current_user()->user_login
 		) );
@@ -625,7 +625,7 @@ class AI_FAQ_Admin_Settings {
 
 		if ( $result ) {
 			// Log the reset action
-			error_log( sprintf(
+			ai_faq_log_info( sprintf(
 				'[365i AI FAQ] Admin %s reset all settings to defaults',
 				wp_get_current_user()->user_login
 			) );
@@ -682,7 +682,7 @@ class AI_FAQ_Admin_Settings {
 			}
 			
 			// Log the import action
-			error_log( sprintf(
+			ai_faq_log_info( sprintf(
 				'[365i AI FAQ] Admin %s imported %d settings',
 				wp_get_current_user()->user_login,
 				$imported_count

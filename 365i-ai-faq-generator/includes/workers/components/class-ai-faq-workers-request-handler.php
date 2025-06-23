@@ -346,7 +346,7 @@ class AI_FAQ_Workers_Request_Handler {
 		$result = $this->rate_limiter->reset_rate_limit( $worker_name );
 
 		// Log admin action for audit trail.
-		error_log( sprintf( 
+		ai_faq_log_info( sprintf( 
 			'[365i AI FAQ] Admin %s reset usage for worker: %s', 
 			wp_get_current_user()->user_login, 
 			$worker_name 
