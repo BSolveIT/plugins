@@ -139,8 +139,8 @@ class AI_FAQ_Admin_Workers {
 			'answer_generator',
 			'faq_enhancer',
 			'seo_analyzer',
-			'faq_extractor',
-			'topic_generator'
+			'faq_proxy_fetch',
+			'url_faq_generator'
 		);
 
 		foreach ( $worker_configs as $worker_type => $worker_config ) {
@@ -998,17 +998,12 @@ class AI_FAQ_Admin_Workers {
 					'mode' => 'analyze',
 				);
 				
-			case 'faq_extractor':
+			case 'url_faq_generator':
 				return array(
 					'url' => home_url(),
 					'mode' => 'extract',
 				);
 				
-			case 'topic_generator':
-				return array(
-					'input' => 'WordPress AI FAQ Generator',
-					'mode' => 'generate',
-				);
 				
 			default:
 				// Generic test data for unknown worker types

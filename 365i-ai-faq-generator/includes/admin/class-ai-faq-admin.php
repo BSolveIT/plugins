@@ -73,13 +73,6 @@ class AI_FAQ_Admin {
 	 */
 	private $security;
 
-	/**
-	 * Rate_Limiting_Admin component instance.
-	 *
-	 * @since 2.1.2
-	 * @var AI_FAQ_Rate_Limiting_Admin
-	 */
-	private $rate_limiting;
 
 	/**
 	 * Admin_Documentation component instance.
@@ -96,6 +89,14 @@ class AI_FAQ_Admin {
 	 * @var AI_FAQ_Admin_AI_Models
 	 */
 	private $ai_models;
+
+	/**
+	 * Cloudflare_Sync component instance.
+	 *
+	 * @since 2.1.0
+	 * @var AI_FAQ_Cloudflare_Sync
+	 */
+	private $cloudflare_sync;
 
 	/**
 	 * Constructor.
@@ -130,12 +131,13 @@ class AI_FAQ_Admin {
 		$this->workers = new AI_FAQ_Admin_Workers();
 		$this->analytics = new AI_FAQ_Admin_Analytics();
 		$this->security = new AI_FAQ_Admin_Security();
-		$this->rate_limiting = new AI_FAQ_Rate_Limiting_Admin();
 		$this->documentation = new AI_FAQ_Admin_Documentation();
 		$this->ai_models = new AI_FAQ_Admin_AI_Models();
+		$this->cloudflare_sync = new AI_FAQ_Cloudflare_Sync();
 
 		// DEBUG: Log AI models initialization
 		ai_faq_log_debug('AI_FAQ_Admin (COORDINATOR): AI Models instance created: ' . get_class($this->ai_models));
+		ai_faq_log_debug('AI_FAQ_Admin (COORDINATOR): Cloudflare Sync instance created: ' . get_class($this->cloudflare_sync));
 
 		// Initialize each component.
 		$this->menu->init();
@@ -151,7 +153,11 @@ class AI_FAQ_Admin {
 		$this->ai_models->init();
 		ai_faq_log_debug('AI_FAQ_Admin (COORDINATOR): AI models init() completed');
 		
-		// Note: rate_limiting admin handles its own initialization in constructor
+		// Initialize Cloudflare sync component
+		ai_faq_log_debug('AI_FAQ_Admin (COORDINATOR): About to call cloudflare_sync->init()');
+		$this->cloudflare_sync->init();
+		ai_faq_log_debug('AI_FAQ_Admin (COORDINATOR): Cloudflare sync init() completed');
+		
 
 		// Add admin hooks.
 		add_action( 'admin_init', array( $this, 'activation_redirect' ) );
@@ -177,9 +183,9 @@ class AI_FAQ_Admin {
 		require_once $admin_dir . 'class-ai-faq-admin-workers.php';
 		require_once $admin_dir . 'class-ai-faq-admin-analytics.php';
 		require_once $admin_dir . 'class-ai-faq-admin-security.php';
-		require_once $admin_dir . 'class-ai-faq-rate-limiting-admin.php';
 		require_once $admin_dir . 'class-ai-faq-admin-documentation.php';
 		require_once $admin_dir . 'class-ai-faq-admin-ai-models.php';
+		require_once $admin_dir . 'class-ai-faq-cloudflare-sync.php';
 	}
 
 	/**
@@ -214,9 +220,6 @@ class AI_FAQ_Admin {
 			'toplevel_page_ai-faq-generator',
 			'ai-faq-gen_page_ai-faq-generator-workers',
 			'ai-faq-gen_page_ai-faq-generator-analytics',
-			'ai-faq-gen_page_ai-faq-generator-rate-limiting',
-			'ai-faq-gen_page_ai-faq-generator-ip-management',
-			'ai-faq-gen_page_ai-faq-generator-usage-analytics',
 			'ai-faq-gen_page_ai-faq-generator-ai-models',
 			'ai-faq-gen_page_ai-faq-generator-settings',
 		);
@@ -294,6 +297,11 @@ class AI_FAQ_Admin {
 	 */
 	private function enqueue_page_specific_assets( $hook_suffix ) {
 		switch ( $hook_suffix ) {
+			case 'toplevel_page_ai-faq-generator':
+			case 'ai-faq-gen_page_ai-faq-generator-settings':
+				$this->enqueue_settings_assets();
+				break;
+
 			case 'ai-faq-gen_page_ai-faq-generator-analytics':
 				$this->enqueue_analytics_assets();
 				break;
@@ -302,13 +310,38 @@ class AI_FAQ_Admin {
 				$this->enqueue_ai_models_assets();
 				break;
 
-			case 'ai-faq-gen_page_ai-faq-generator-rate-limiting':
-				$this->enqueue_rate_limiting_assets();
-				break;
-
 			case 'ai-faq-gen_page_ai-faq-generator-workers':
 				$this->enqueue_workers_assets();
 				break;
+		}
+	}
+
+	/**
+	 * Enqueue settings page specific assets.
+	 *
+	 * @since 2.1.0
+	 */
+	private function enqueue_settings_assets() {
+		// Enqueue Cloudflare sync JavaScript
+		$cloudflare_sync_js_path = AI_FAQ_GEN_DIR . 'assets/js/cloudflare-sync.js';
+		if ( file_exists( $cloudflare_sync_js_path ) ) {
+			wp_enqueue_script(
+				'ai-faq-cloudflare-sync',
+				AI_FAQ_GEN_URL . 'assets/js/cloudflare-sync.js',
+				array( 'jquery' ),
+				filemtime( $cloudflare_sync_js_path ),
+				true
+			);
+
+			// Localize script with AJAX data
+			wp_localize_script(
+				'ai-faq-cloudflare-sync',
+				'aiFaqCloudflareSync',
+				array(
+					'ajaxurl' => admin_url( 'admin-ajax.php' ),
+					'nonce'   => wp_create_nonce( 'ai_faq_cloudflare_sync_nonce' ),
+				)
+			);
 		}
 	}
 
@@ -382,34 +415,6 @@ class AI_FAQ_Admin {
 		}
 	}
 
-	/**
-	 * Enqueue rate limiting page specific assets.
-	 *
-	 * @since 2.1.0
-	 */
-	private function enqueue_rate_limiting_assets() {
-		$rate_limiting_css_path = AI_FAQ_GEN_DIR . 'assets/css/rate-limiting-admin.css';
-		if ( file_exists( $rate_limiting_css_path ) ) {
-			wp_enqueue_style(
-				'ai-faq-rate-limiting-admin',
-				AI_FAQ_GEN_URL . 'assets/css/rate-limiting-admin.css',
-				array( 'ai-faq-admin-core', 'ai-faq-admin-templates' ),
-				filemtime( $rate_limiting_css_path ),
-				'all'
-			);
-		}
-
-		$rate_limiting_js_path = AI_FAQ_GEN_DIR . 'assets/js/rate-limiting-admin.js';
-		if ( file_exists( $rate_limiting_js_path ) ) {
-			wp_enqueue_script(
-				'ai-faq-rate-limiting-admin',
-				AI_FAQ_GEN_URL . 'assets/js/rate-limiting-admin.js',
-				array( 'jquery' ),
-				filemtime( $rate_limiting_js_path ),
-				true
-			);
-		}
-	}
 
 	/**
 	 * Enqueue workers page specific assets.

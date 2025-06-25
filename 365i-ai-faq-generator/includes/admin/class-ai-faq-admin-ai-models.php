@@ -172,11 +172,11 @@ class AI_FAQ_Admin_AI_Models {
 	public function get_default_model_mappings() {
 		$defaults = array(
 			'question_generator' => '@cf/meta/llama-3.1-8b-instruct',
-			'answer_generator' => '@cf/meta/llama-3.1-8b-instruct',
+			'answer_generator' => '@cf/meta/llama-4-scout-17b-16e-instruct',
 			'faq_enhancer' => '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
 			'seo_analyzer' => '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
-			'faq_extractor' => null, // Proxy service, no AI model
-			'topic_generator' => '@cf/meta/llama-4-scout-17b-16e-instruct',
+			'faq_proxy_fetch' => null, // Proxy service, no AI model
+			'url_faq_generator' => '@cf/meta/llama-4-scout-17b-16e-instruct', // URL FAQ Generator
 		);
 
 		return apply_filters( 'ai_faq_gen_default_model_mappings', $defaults );
@@ -262,12 +262,6 @@ class AI_FAQ_Admin_AI_Models {
 				continue;
 			}
 
-			// Handle faq_extractor special case (no model)
-			if ( 'faq_extractor' === $worker_type ) {
-				$sanitized_configs[ $worker_type ] = null;
-				continue;
-			}
-
 			$model_id = sanitize_text_field( $model_id );
 
 			// Validate model ID format
@@ -330,11 +324,11 @@ class AI_FAQ_Admin_AI_Models {
 		$worker_admin = new AI_FAQ_Admin_Workers();
 		
 		// Skip connectivity test for workers that don't use AI models
-		if ( 'faq_extractor' === $worker_type || empty( $model_id ) ) {
+		if ( empty( $model_id ) ) {
 			return array(
 				'success' => true,
-				'status' => 'proxy_service',
-				'message' => __( 'Proxy service - no model connectivity test required', '365i-ai-faq-generator' ),
+				'status' => 'no_model',
+				'message' => __( 'No model configured - connectivity test not applicable', '365i-ai-faq-generator' ),
 				'response_time_ms' => 0,
 				'worker_type' => $worker_type,
 			);
@@ -720,7 +714,7 @@ class AI_FAQ_Admin_AI_Models {
 		}
 
 		// Get all worker types that use AI models
-		$worker_types = array( 'question_generator', 'answer_generator', 'faq_enhancer', 'seo_analyzer', 'topic_generator' );
+		$worker_types = array( 'question_generator', 'answer_generator', 'faq_enhancer', 'seo_analyzer' );
 
 		foreach ( $worker_types as $worker_type ) {
 			// Skip if this worker wasn't updated
@@ -981,16 +975,16 @@ class AI_FAQ_Admin_AI_Models {
 		}
 
 		// Skip connectivity test for workers that don't use AI models
-		if ( 'faq_extractor' === $worker_type || empty( $model_id ) ) {
+		if ( empty( $model_id ) ) {
 			wp_send_json_success( array(
 				'success' => true,
-				'status' => 'proxy_service',
-				'message' => __( 'Proxy service - no model connectivity test required', '365i-ai-faq-generator' ),
+				'status' => 'no_model',
+				'message' => __( 'No model configured - connectivity test not applicable', '365i-ai-faq-generator' ),
 				'worker_type' => $worker_type,
 				'ai_model_info' => array(
-					'status' => 'not_applicable',
+					'status' => 'not_configured',
 					'current_model' => null,
-					'model_display_name' => __( 'N/A (Proxy Service)', '365i-ai-faq-generator' ),
+					'model_display_name' => __( 'No Model Configured', '365i-ai-faq-generator' ),
 					'model_source' => 'not_applicable',
 				),
 			) );
@@ -1072,36 +1066,26 @@ class AI_FAQ_Admin_AI_Models {
 			'model_source' => 'unknown',
 		);
 		
-		// Handle faq_extractor special case (proxy service)
-		if ( 'faq_extractor' === $worker_type ) {
+		// Get model from KV namespace configuration first
+		if ( isset( $model_configs[ $worker_type ]['model'] ) && ! empty( $model_configs[ $worker_type ]['model'] ) ) {
+			$current_model = $model_configs[ $worker_type ]['model'];
 			$ai_model_info = array(
-				'status' => 'not_applicable',
-				'current_model' => null,
-				'model_display_name' => __( 'N/A (Proxy Service)', '365i-ai-faq-generator' ),
-				'model_source' => 'not_applicable',
+				'status' => 'configured',
+				'current_model' => $current_model,
+				'model_display_name' => $this->get_model_display_name_efficiently( $current_model ),
+				'model_source' => 'kv_config',
+				'data_source' => $model_configs[ $worker_type ]['data_source'],
+				'is_custom' => $model_configs[ $worker_type ]['is_custom'],
 			);
 		} else {
-			// Get model from KV namespace configuration first
-			if ( isset( $model_configs[ $worker_type ]['model'] ) && ! empty( $model_configs[ $worker_type ]['model'] ) ) {
-				$current_model = $model_configs[ $worker_type ]['model'];
-				$ai_model_info = array(
-					'status' => 'configured',
-					'current_model' => $current_model,
-					'model_display_name' => $this->get_model_display_name_efficiently( $current_model ),
-					'model_source' => 'kv_config',
-					'data_source' => $model_configs[ $worker_type ]['data_source'],
-					'is_custom' => $model_configs[ $worker_type ]['is_custom'],
-				);
+			// Fallback: get from worker health endpoint if KV namespace is not available
+			$worker_ai_model_info = $this->fetch_worker_ai_model_info( $worker_type );
+			
+			if ( ! is_wp_error( $worker_ai_model_info ) ) {
+				$ai_model_info = $worker_ai_model_info;
 			} else {
-				// Fallback: get from worker health endpoint if KV namespace is not available
-				$worker_ai_model_info = $this->fetch_worker_ai_model_info( $worker_type );
-				
-				if ( ! is_wp_error( $worker_ai_model_info ) ) {
-					$ai_model_info = $worker_ai_model_info;
-				} else {
-					$ai_model_info['status'] = 'not_configured';
-					$ai_model_info['model_display_name'] = __( 'No Model Configured', '365i-ai-faq-generator' );
-				}
+				$ai_model_info['status'] = 'not_configured';
+				$ai_model_info['model_display_name'] = __( 'No Model Configured', '365i-ai-faq-generator' );
 			}
 		}
 
@@ -1144,10 +1128,6 @@ class AI_FAQ_Admin_AI_Models {
 			wp_send_json_error( __( 'Invalid worker type.', '365i-ai-faq-generator' ) );
 		}
 
-		// Handle faq_extractor special case (no model)
-		if ( 'faq_extractor' === $worker_type ) {
-			wp_send_json_error( __( 'FAQ Extractor is a proxy service and does not use an AI model.', '365i-ai-faq-generator' ) );
-		}
 
 		// Validate model ID format for Cloudflare models
 		if ( ! $this->is_valid_cloudflare_model_id( $new_model_id ) ) {
@@ -1204,7 +1184,7 @@ class AI_FAQ_Admin_AI_Models {
 		// Debug logging: Show what options we're working with
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			$debug_url_options = array();
-			$worker_types = array( 'question_generator', 'answer_generator', 'faq_enhancer', 'seo_analyzer', 'faq_extractor', 'topic_generator' );
+			$worker_types = array( 'question_generator', 'answer_generator', 'faq_enhancer', 'seo_analyzer', 'url_faq_generator' );
 			foreach ( $worker_types as $wt ) {
 				$url_key = $wt . '_url';
 				$debug_url_options[ $url_key ] = isset( $options[ $url_key ] ) ? $options[ $url_key ] : 'NOT_SET';
@@ -1326,14 +1306,6 @@ class AI_FAQ_Admin_AI_Models {
 			'health_url' => $health_url, // Add for debugging
 		);
 
-		// Handle faq_extractor special case (proxy service)
-		if ( 'faq_extractor' === $worker_type ) {
-			$ai_model_info['status'] = 'not_applicable';
-			$ai_model_info['current_model'] = null;
-			$ai_model_info['model_display_name'] = __( 'N/A (Proxy Service)', '365i-ai-faq-generator' );
-			$ai_model_info['model_source'] = 'not_applicable';
-			return $ai_model_info;
-		}
 
 		// Check for AI model configuration in health response
 		// Multiple fallback strategies to handle different response formats
@@ -1503,8 +1475,7 @@ class AI_FAQ_Admin_AI_Models {
 			'answer_generator' => __( 'Answer Generator', '365i-ai-faq-generator' ),
 			'faq_enhancer' => __( 'FAQ Enhancer', '365i-ai-faq-generator' ),
 			'seo_analyzer' => __( 'SEO Analyzer', '365i-ai-faq-generator' ),
-			'faq_extractor' => __( 'FAQ Extractor', '365i-ai-faq-generator' ),
-			'topic_generator' => __( 'Topic Generator', '365i-ai-faq-generator' ),
+			'url_faq_generator' => __( 'FAQ Extractor', '365i-ai-faq-generator' ),
 		);
 
 		return isset( $worker_names[ $worker_type ] ) ? $worker_names[ $worker_type ] : ucwords( str_replace( '_', ' ', $worker_type ) );

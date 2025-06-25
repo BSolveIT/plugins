@@ -172,7 +172,6 @@ class AI_FAQ_Admin_Documentation {
 						__( 'FAQ Enhancer Worker: Improves existing FAQ content with SEO optimization', '365i-ai-faq-generator' ),
 						__( 'SEO Analyzer Worker: Analyzes content for Position Zero targeting', '365i-ai-faq-generator' ),
 						__( 'FAQ Extractor Worker: Extracts FAQ schema from websites', '365i-ai-faq-generator' ),
-						__( 'Topic Generator Worker: Generates comprehensive FAQ sets from URLs', '365i-ai-faq-generator' ),
 					),
 				),
 				array(
@@ -500,32 +499,6 @@ class AI_FAQ_Admin_Documentation {
 							'page_title' => 'Frequently Asked Questions',
 							'extraction_time' => '1.85s',
 						),
-					),
-				),
-				array(
-					'title' => __( 'Topic Generator Worker', '365i-ai-faq-generator' ),
-					'content' => __( 'Generate comprehensive FAQ sets from website URLs:', '365i-ai-faq-generator' ),
-					'endpoint' => 'POST /topic-generator',
-					'request' => array(
-						'input' => 'https://example.com/about',
-						'mode' => 'generate',
-						'max_faqs' => 10,
-						'include_seo' => true,
-						'target_audience' => 'general',
-					),
-					'response' => array(
-						'success' => true,
-						'faqs_generated' => 8,
-						'topics_covered' => array( 'company overview', 'services', 'contact' ),
-						'faqs' => array(
-							array(
-								'question' => 'What services does your company provide?',
-								'answer' => 'Our company specializes in...',
-								'topic' => 'services',
-								'seo_score' => 88,
-							),
-						),
-						'processing_time' => '15.3s',
 					),
 				),
 				array(

@@ -77,35 +77,6 @@ class AI_FAQ_Admin_Menu {
 			array( $this, 'display_analytics_page' )
 		);
 
-		// Rate Limiting submenu.
-		add_submenu_page(
-			'ai-faq-generator',
-			__( 'Rate Limiting', '365i-ai-faq-generator' ),
-			__( 'Rate Limiting', '365i-ai-faq-generator' ),
-			'manage_options',
-			'ai-faq-generator-rate-limiting',
-			array( $this, 'display_rate_limiting_page' )
-		);
-
-		// IP Management submenu.
-		add_submenu_page(
-			'ai-faq-generator',
-			__( 'IP Management', '365i-ai-faq-generator' ),
-			__( 'IP Management', '365i-ai-faq-generator' ),
-			'manage_options',
-			'ai-faq-generator-ip-management',
-			array( $this, 'display_ip_management_page' )
-		);
-
-		// Usage Analytics submenu (separate from main analytics).
-		add_submenu_page(
-			'ai-faq-generator',
-			__( 'Usage Analytics', '365i-ai-faq-generator' ),
-			__( 'Usage Analytics', '365i-ai-faq-generator' ),
-			'manage_options',
-			'ai-faq-generator-usage-analytics',
-			array( $this, 'display_usage_analytics_page' )
-		);
 
 		// AI Models submenu.
 		add_submenu_page(
@@ -184,65 +155,6 @@ class AI_FAQ_Admin_Menu {
 		include AI_FAQ_GEN_DIR . 'templates/admin/analytics.php';
 	}
 
-	/**
-	 * Display rate limiting configuration page.
-	 *
-	 * @since 2.1.0
-	 */
-	public function display_rate_limiting_page() {
-		// Check user capabilities.
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( __( 'You do not have sufficient permissions to access this page.', '365i-ai-faq-generator' ) );
-		}
-
-		// Initialize rate limiting admin if not already done.
-		if ( ! class_exists( 'AI_FAQ_Rate_Limiting_Admin' ) ) {
-			require_once AI_FAQ_GEN_DIR . 'includes/admin/class-ai-faq-rate-limiting-admin.php';
-		}
-
-		$rate_limiting_admin = new AI_FAQ_Rate_Limiting_Admin();
-		$rate_limiting_admin->display_rate_limiting_page();
-	}
-
-	/**
-	 * Display IP management page.
-	 *
-	 * @since 2.1.0
-	 */
-	public function display_ip_management_page() {
-		// Check user capabilities.
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( __( 'You do not have sufficient permissions to access this page.', '365i-ai-faq-generator' ) );
-		}
-
-		// Initialize rate limiting admin if not already done.
-		if ( ! class_exists( 'AI_FAQ_Rate_Limiting_Admin' ) ) {
-			require_once AI_FAQ_GEN_DIR . 'includes/admin/class-ai-faq-rate-limiting-admin.php';
-		}
-
-		$rate_limiting_admin = new AI_FAQ_Rate_Limiting_Admin();
-		$rate_limiting_admin->display_ip_management_page();
-	}
-
-	/**
-	 * Display usage analytics page.
-	 *
-	 * @since 2.1.0
-	 */
-	public function display_usage_analytics_page() {
-		// Check user capabilities.
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( __( 'You do not have sufficient permissions to access this page.', '365i-ai-faq-generator' ) );
-		}
-
-		// Initialize rate limiting admin if not already done.
-		if ( ! class_exists( 'AI_FAQ_Rate_Limiting_Admin' ) ) {
-			require_once AI_FAQ_GEN_DIR . 'includes/admin/class-ai-faq-rate-limiting-admin.php';
-		}
-
-		$rate_limiting_admin = new AI_FAQ_Rate_Limiting_Admin();
-		$rate_limiting_admin->display_usage_analytics_page();
-	}
 
 	/**
 	 * Display AI models configuration page.

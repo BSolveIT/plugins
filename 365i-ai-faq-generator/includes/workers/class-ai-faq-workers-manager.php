@@ -287,23 +287,11 @@ class AI_FAQ_Workers_Manager {
 	 * @return array|WP_Error Extracted FAQ or error.
 	 */
 	public function extract_faq( $url ) {
-		return $this->make_worker_request( 'faq_extractor', array(
+		return $this->make_worker_request( 'url_faq_generator', array(
 			'url' => esc_url_raw( $url ),
 		) );
 	}
 
-	/**
-	 * Generate topics using Topic Generator worker.
-	 * 
-	 * @since 2.1.0
-	 * @param string $input Input text for topic generation.
-	 * @return array|WP_Error Generated topics or error.
-	 */
-	public function generate_topics( $input ) {
-		return $this->make_worker_request( 'topic_generator', array(
-			'input' => sanitize_textarea_field( $input ),
-		) );
-	}
 
 	/**
 	 * Get the endpoint path for a worker.
@@ -329,8 +317,7 @@ class AI_FAQ_Workers_Manager {
 			'answer_generator' => '', // Base URL with answer parameter
 			'faq_enhancer' => '/enhance',
 			'seo_analyzer' => '/analyze',
-			'faq_extractor' => '/extract',
-			'topic_generator' => '/generate-topics',
+			'url_faq_generator' => '/extract',
 		);
 
 		return isset( $endpoints[ $worker_name ] ) ? $endpoints[ $worker_name ] : '';

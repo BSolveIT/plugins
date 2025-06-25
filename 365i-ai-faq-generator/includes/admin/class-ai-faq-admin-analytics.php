@@ -168,8 +168,7 @@ class AI_FAQ_Admin_Analytics {
 			'answer_generator' => 'Answer Generator',
 			'faq_enhancer' => 'FAQ Enhancer',
 			'seo_analyzer' => 'SEO Analyzer',
-			'faq_extractor' => 'FAQ Extractor',
-			'topic_generator' => 'Topic Generator',
+			'url_faq_generator' => 'URL FAQ Generator',
 		);
 		
 		foreach ( $analytics_data['worker_performance'] as $worker_name => $data ) {

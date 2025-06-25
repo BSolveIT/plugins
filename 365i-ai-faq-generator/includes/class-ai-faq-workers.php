@@ -213,15 +213,10 @@ class AI_FAQ_Workers {
 				'enabled' => true,
 				'rate_limit' => 75,
 			),
-			'faq_extractor' => array(
-				'url' => 'https://faq-proxy-fetch.winter-cake-bf57.workers.dev',
-				'enabled' => true,
-				'rate_limit' => 100,
-			),
-			'topic_generator' => array(
+			'url_faq_generator' => array(
 				'url' => 'https://url-to-faq-generator-worker.winter-cake-bf57.workers.dev',
 				'enabled' => true,
-				'rate_limit' => 10,
+				'rate_limit' => 100,
 			),
 		);
 	}

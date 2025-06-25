@@ -76,6 +76,13 @@ class AI_FAQ_Admin_Settings {
 			'ai_faq_gen_workers'
 		);
 
+		add_settings_section(
+			'ai_faq_gen_rate_limiting',
+			__( 'Rate Limiting Configuration', '365i-ai-faq-generator' ),
+			array( $this, 'rate_limiting_section_callback' ),
+			'ai_faq_gen_rate_limiting'
+		);
+
 		// Add settings fields.
 		add_settings_field(
 			'default_faq_count',
@@ -99,6 +106,63 @@ class AI_FAQ_Admin_Settings {
 			array( $this, 'debug_mode_callback' ),
 			'ai_faq_gen_settings',
 			'ai_faq_gen_general'
+		);
+
+		// Rate limiting settings fields.
+		add_settings_field(
+			'enable_rate_limiting',
+			__( 'Enable Rate Limiting', '365i-ai-faq-generator' ),
+			array( $this, 'enable_rate_limiting_callback' ),
+			'ai_faq_gen_rate_limiting',
+			'ai_faq_gen_rate_limiting'
+		);
+
+		add_settings_field(
+			'rate_limit_requests_per_hour',
+			__( 'Requests Per Hour Limit', '365i-ai-faq-generator' ),
+			array( $this, 'rate_limit_requests_per_hour_callback' ),
+			'ai_faq_gen_rate_limiting',
+			'ai_faq_gen_rate_limiting'
+		);
+
+		add_settings_field(
+			'rate_limit_time_window',
+			__( 'Time Window (seconds)', '365i-ai-faq-generator' ),
+			array( $this, 'rate_limit_time_window_callback' ),
+			'ai_faq_gen_rate_limiting',
+			'ai_faq_gen_rate_limiting'
+		);
+
+		add_settings_field(
+			'rate_limit_block_duration',
+			__( 'Block Duration (seconds)', '365i-ai-faq-generator' ),
+			array( $this, 'rate_limit_block_duration_callback' ),
+			'ai_faq_gen_rate_limiting',
+			'ai_faq_gen_rate_limiting'
+		);
+
+		add_settings_field(
+			'rate_limit_soft_threshold',
+			__( 'Soft Violation Threshold', '365i-ai-faq-generator' ),
+			array( $this, 'rate_limit_soft_threshold_callback' ),
+			'ai_faq_gen_rate_limiting',
+			'ai_faq_gen_rate_limiting'
+		);
+
+		add_settings_field(
+			'rate_limit_hard_threshold',
+			__( 'Hard Violation Threshold', '365i-ai-faq-generator' ),
+			array( $this, 'rate_limit_hard_threshold_callback' ),
+			'ai_faq_gen_rate_limiting',
+			'ai_faq_gen_rate_limiting'
+		);
+
+		add_settings_field(
+			'rate_limit_ban_threshold',
+			__( 'Ban Violation Threshold', '365i-ai-faq-generator' ),
+			array( $this, 'rate_limit_ban_threshold_callback' ),
+			'ai_faq_gen_rate_limiting',
+			'ai_faq_gen_rate_limiting'
 		);
 	}
 
@@ -180,6 +244,37 @@ class AI_FAQ_Admin_Settings {
 		if ( isset( $options['default_faq_count'] ) ) {
 			$count = intval( $options['default_faq_count'] );
 			$sanitized['default_faq_count'] = max( 6, min( 50, $count ) ); // Ensure 6-50 range
+		}
+		
+		// Sanitize rate limiting fields
+		if ( isset( $options['rate_limit_requests_per_hour'] ) ) {
+			$requests_per_hour = intval( $options['rate_limit_requests_per_hour'] );
+			$sanitized['rate_limit_requests_per_hour'] = max( 1, min( 10000, $requests_per_hour ) ); // Ensure 1-10000 range
+		}
+		
+		if ( isset( $options['rate_limit_time_window'] ) ) {
+			$time_window = intval( $options['rate_limit_time_window'] );
+			$sanitized['rate_limit_time_window'] = max( 60, min( 86400, $time_window ) ); // Ensure 60-86400 range
+		}
+		
+		if ( isset( $options['rate_limit_block_duration'] ) ) {
+			$block_duration = intval( $options['rate_limit_block_duration'] );
+			$sanitized['rate_limit_block_duration'] = max( 60, min( 86400, $block_duration ) ); // Ensure 60-86400 range
+		}
+		
+		if ( isset( $options['rate_limit_soft_threshold'] ) ) {
+			$soft_threshold = intval( $options['rate_limit_soft_threshold'] );
+			$sanitized['rate_limit_soft_threshold'] = max( 1, min( 100, $soft_threshold ) ); // Ensure 1-100 range
+		}
+		
+		if ( isset( $options['rate_limit_hard_threshold'] ) ) {
+			$hard_threshold = intval( $options['rate_limit_hard_threshold'] );
+			$sanitized['rate_limit_hard_threshold'] = max( 1, min( 100, $hard_threshold ) ); // Ensure 1-100 range
+		}
+		
+		if ( isset( $options['rate_limit_ban_threshold'] ) ) {
+			$ban_threshold = intval( $options['rate_limit_ban_threshold'] );
+			$sanitized['rate_limit_ban_threshold'] = max( 1, min( 100, $ban_threshold ) ); // Ensure 1-100 range
 		}
 		
 		// Sanitize boolean fields
@@ -307,6 +402,12 @@ class AI_FAQ_Admin_Settings {
 			'max_questions_per_batch' => 'absint',
 			'cache_duration' => 'absint',
 			'log_level' => 'sanitize_text_field',
+			'rate_limit_requests_per_hour' => 'absint',
+			'rate_limit_time_window' => 'absint',
+			'rate_limit_block_duration' => 'absint',
+			'rate_limit_soft_threshold' => 'absint',
+			'rate_limit_hard_threshold' => 'absint',
+			'rate_limit_ban_threshold' => 'absint',
 		);
 
 		foreach ( $fields_to_process as $field => $sanitizer ) {
@@ -580,12 +681,7 @@ class AI_FAQ_Admin_Settings {
 					'enabled' => true,
 					'rate_limit' => 10,
 				),
-				'topic_generator' => array(
-					'url' => 'https://faq-proxy-fetch.winter-cake-bf57.workers.dev',
-					'enabled' => true,
-					'rate_limit' => 10,
-				),
-				'faq_extractor' => array(
+				'url_faq_generator' => array(
 					'url' => 'https://url-to-faq-generator-worker.winter-cake-bf57.workers.dev',
 					'enabled' => true,
 					'rate_limit' => 10,
@@ -615,6 +711,12 @@ class AI_FAQ_Admin_Settings {
 			'enable_logging' => false,
 			'enable_analytics' => true,
 			'log_level' => 'error',
+			'rate_limit_requests_per_hour' => 100,
+			'rate_limit_time_window' => 3600,
+			'rate_limit_block_duration' => 3600,
+			'rate_limit_soft_threshold' => 3,
+			'rate_limit_hard_threshold' => 6,
+			'rate_limit_ban_threshold' => 12,
 		);
 
 		// Apply filters to allow customization of defaults
@@ -640,6 +742,128 @@ class AI_FAQ_Admin_Settings {
 				'message' => __( 'Failed to reset settings. Please try again.', '365i-ai-faq-generator' ),
 			);
 		}
+	}
+
+	/**
+	 * Rate limiting section callback.
+	 *
+	 * @since 2.1.0
+	 */
+	public function rate_limiting_section_callback() {
+		echo '<p>' . esc_html__( 'Configure rate limiting settings to prevent abuse and manage API usage across all workers.', '365i-ai-faq-generator' ) . '</p>';
+	}
+
+	/**
+	 * Enable rate limiting field callback.
+	 *
+	 * @since 2.1.0
+	 */
+	public function enable_rate_limiting_callback() {
+		$options = get_option( 'ai_faq_gen_options', array() );
+		$value = isset( $options['enable_rate_limiting'] ) ? $options['enable_rate_limiting'] : true;
+		
+		printf(
+			'<input type="checkbox" id="enable_rate_limiting" name="enable_rate_limiting" value="1" %s />',
+			checked( $value, true, false )
+		);
+		echo '<label for="enable_rate_limiting">' . esc_html__( 'Enable rate limiting for worker requests.', '365i-ai-faq-generator' ) . '</label>';
+		echo '<p class="description">' . esc_html__( 'Prevent excessive API calls and manage usage limits across all workers.', '365i-ai-faq-generator' ) . '</p>';
+	}
+
+	/**
+	 * Rate limit requests per hour field callback.
+	 *
+	 * @since 2.1.0
+	 */
+	public function rate_limit_requests_per_hour_callback() {
+		$options = get_option( 'ai_faq_gen_options', array() );
+		$value = isset( $options['rate_limit_requests_per_hour'] ) ? $options['rate_limit_requests_per_hour'] : 100;
+		
+		printf(
+			'<input type="number" id="rate_limit_requests_per_hour" name="rate_limit_requests_per_hour" value="%d" min="1" max="10000" class="regular-text" />',
+			intval( $value )
+		);
+		echo '<p class="description">' . esc_html__( 'Maximum number of requests allowed per hour per IP address (default: 100).', '365i-ai-faq-generator' ) . '</p>';
+	}
+
+	/**
+	 * Rate limit time window field callback.
+	 *
+	 * @since 2.1.0
+	 */
+	public function rate_limit_time_window_callback() {
+		$options = get_option( 'ai_faq_gen_options', array() );
+		$value = isset( $options['rate_limit_time_window'] ) ? $options['rate_limit_time_window'] : 3600;
+		
+		printf(
+			'<input type="number" id="rate_limit_time_window" name="rate_limit_time_window" value="%d" min="60" max="86400" class="regular-text" />',
+			intval( $value )
+		);
+		echo '<p class="description">' . esc_html__( 'Time window for rate limit calculations in seconds (default: 3600 = 1 hour).', '365i-ai-faq-generator' ) . '</p>';
+	}
+
+	/**
+	 * Rate limit block duration field callback.
+	 *
+	 * @since 2.1.0
+	 */
+	public function rate_limit_block_duration_callback() {
+		$options = get_option( 'ai_faq_gen_options', array() );
+		$value = isset( $options['rate_limit_block_duration'] ) ? $options['rate_limit_block_duration'] : 3600;
+		
+		printf(
+			'<input type="number" id="rate_limit_block_duration" name="rate_limit_block_duration" value="%d" min="60" max="86400" class="regular-text" />',
+			intval( $value )
+		);
+		echo '<p class="description">' . esc_html__( 'How long to block an IP after rate limit violation in seconds (default: 3600 = 1 hour).', '365i-ai-faq-generator' ) . '</p>';
+	}
+
+	/**
+	 * Rate limit soft threshold field callback.
+	 *
+	 * @since 2.1.0
+	 */
+	public function rate_limit_soft_threshold_callback() {
+		$options = get_option( 'ai_faq_gen_options', array() );
+		$value = isset( $options['rate_limit_soft_threshold'] ) ? $options['rate_limit_soft_threshold'] : 3;
+		
+		printf(
+			'<input type="number" id="rate_limit_soft_threshold" name="rate_limit_soft_threshold" value="%d" min="1" max="100" class="small-text" />',
+			intval( $value )
+		);
+		echo '<p class="description">' . esc_html__( 'Number of violations before soft warning (default: 3).', '365i-ai-faq-generator' ) . '</p>';
+	}
+
+	/**
+	 * Rate limit hard threshold field callback.
+	 *
+	 * @since 2.1.0
+	 */
+	public function rate_limit_hard_threshold_callback() {
+		$options = get_option( 'ai_faq_gen_options', array() );
+		$value = isset( $options['rate_limit_hard_threshold'] ) ? $options['rate_limit_hard_threshold'] : 6;
+		
+		printf(
+			'<input type="number" id="rate_limit_hard_threshold" name="rate_limit_hard_threshold" value="%d" min="1" max="100" class="small-text" />',
+			intval( $value )
+		);
+		echo '<p class="description">' . esc_html__( 'Number of violations before hard blocking (default: 6).', '365i-ai-faq-generator' ) . '</p>';
+	}
+
+	/**
+	 * Rate limit ban threshold field callback.
+	 *
+	 * @since 2.1.0
+	 */
+	public function rate_limit_ban_threshold_callback() {
+		$options = get_option( 'ai_faq_gen_options', array() );
+		$value = isset( $options['rate_limit_ban_threshold'] ) ? $options['rate_limit_ban_threshold'] : 12;
+		
+		printf(
+			'<input type="number" id="rate_limit_ban_threshold" name="rate_limit_ban_threshold" value="%d" min="1" max="100" class="small-text" />',
+			intval( $value )
+		);
+		echo '<p class="description">' . esc_html__( 'Number of violations before permanent ban (default: 12).', '365i-ai-faq-generator' ) . '</p>';
 	}
 
 	/**
@@ -770,6 +994,15 @@ class AI_FAQ_Admin_Settings {
 				true
 			);
 			
+			// Enqueue Cloudflare sync script
+			wp_enqueue_script(
+				'ai-faq-gen-cloudflare-sync',
+				AI_FAQ_GEN_URL . 'assets/js/cloudflare-sync.js',
+				array( 'jquery', 'ai-faq-gen-admin' ),
+				AI_FAQ_GEN_VERSION,
+				true
+			);
+			
 			// Localize script for settings page specifically.
 			wp_localize_script(
 				'ai-faq-gen-settings-admin',
@@ -783,6 +1016,22 @@ class AI_FAQ_Admin_Settings {
 						'error' => __( 'An error occurred. Please try again.', '365i-ai-faq-generator' ),
 						'success' => __( 'Operation completed successfully.', '365i-ai-faq-generator' ),
 						'confirm' => __( 'Are you sure?', '365i-ai-faq-generator' ),
+					),
+				)
+			);
+			
+			// Localize Cloudflare sync script
+			wp_localize_script(
+				'ai-faq-gen-cloudflare-sync',
+				'aiFaqCloudflareSync',
+				array(
+					'ajaxurl' => admin_url( 'admin-ajax.php' ),
+					'nonce' => wp_create_nonce( 'ai_faq_cloudflare_sync_nonce' ),
+					'strings' => array(
+						'testing' => __( 'Testing connection...', '365i-ai-faq-generator' ),
+						'syncing' => __( 'Syncing settings...', '365i-ai-faq-generator' ),
+						'success' => __( 'Operation completed successfully.', '365i-ai-faq-generator' ),
+						'error' => __( 'An error occurred. Please try again.', '365i-ai-faq-generator' ),
 					),
 				)
 			);

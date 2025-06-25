@@ -1,10 +1,10 @@
 <?php
 /**
- * FAQ Extractor Worker integration class for 365i AI FAQ Generator.
- * 
- * This class handles communication with the FAQ Extractor Cloudflare worker,
+ * URL FAQ Generator Worker integration class for 365i AI FAQ Generator.
+ *
+ * This class handles communication with the URL FAQ Generator Cloudflare worker,
  * including rate limiting, error handling, retry logic, and response validation.
- * 
+ *
  * @package AI_FAQ_Generator
  * @subpackage Workers
  * @since 2.0.0
@@ -31,7 +31,7 @@ class AI_FAQ_FAQ_Extractor {
 	 * @since 2.0.0
 	 * @var string
 	 */
-	private $worker_name = 'faq_extractor';
+	private $worker_name = 'url_faq_generator';
 
 	/**
 	 * Default worker URL.
@@ -144,7 +144,7 @@ class AI_FAQ_FAQ_Extractor {
 		);
 
 		// Apply filters to request data.
-		$request_data = apply_filters( 'ai_faq_gen_faq_extractor_request_data', $request_data, $url, $options );
+		$request_data = apply_filters( 'ai_faq_gen_url_faq_generator_request_data', $request_data, $url, $options );
 
 		// Make the request with retry logic.
 		$result = $this->make_request_with_retry( $request_data );
@@ -155,7 +155,7 @@ class AI_FAQ_FAQ_Extractor {
 		}
 
 		// Apply filters to response.
-		$result = apply_filters( 'ai_faq_gen_faq_extractor_response', $result, $request_data );
+		$result = apply_filters( 'ai_faq_gen_url_faq_generator_response', $result, $request_data );
 
 		return $result;
 	}
@@ -263,7 +263,7 @@ class AI_FAQ_FAQ_Extractor {
 		);
 
 		// Apply filters to request arguments.
-		$args = apply_filters( 'ai_faq_gen_faq_extractor_request_args', $args, $data );
+		$args = apply_filters( 'ai_faq_gen_url_faq_generator_request_args', $args, $data );
 
 		// Make the request.
 		$response = wp_remote_request( $worker_url, $args );

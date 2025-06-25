@@ -149,8 +149,7 @@ $worker_display_names = array(
 	'answer_generator' => 'Answer Generator',
 	'faq_enhancer' => 'FAQ Enhancer',
 	'seo_analyzer' => 'SEO Analyzer',
-	'faq_extractor' => 'FAQ Extractor',
-	'topic_generator' => 'Topic Generator',
+	'url_faq_generator' => 'URL FAQ Generator',
 );
 
 $worker_chart_labels = array_map( function( $worker ) use ( $worker_display_names ) {

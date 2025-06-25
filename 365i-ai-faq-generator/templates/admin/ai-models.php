@@ -44,18 +44,18 @@ $worker_definitions = array(
 		'icon' => 'search',
 		'use_case' => __( 'Ideal for technical SEO analysis and search optimization', '365i-ai-faq-generator' ),
 	),
-	'faq_extractor' => array(
-		'name' => __( 'FAQ Extractor', '365i-ai-faq-generator' ),
-		'description' => __( 'Extracts existing FAQ schema from websites', '365i-ai-faq-generator' ),
-		'icon' => 'download',
+	'faq_proxy_fetch' => array(
+		'name' => __( 'Proxy Fetch Worker', '365i-ai-faq-generator' ),
+		'description' => __( 'Gathers context from user-supplied URLs', '365i-ai-faq-generator' ),
+		'icon' => 'admin-links',
 		'use_case' => __( 'Proxy service - no AI model required', '365i-ai-faq-generator' ),
 		'no_model' => true,
 	),
-	'topic_generator' => array(
-		'name' => __( 'Topic Generator', '365i-ai-faq-generator' ),
-		'description' => __( 'Generates comprehensive FAQ sets from website URLs', '365i-ai-faq-generator' ),
-		'icon' => 'networking',
-		'use_case' => __( 'Best for comprehensive content analysis and topic extraction', '365i-ai-faq-generator' ),
+	'url_faq_generator' => array(
+		'name' => __( 'URL FAQ Generator', '365i-ai-faq-generator' ),
+		'description' => __( 'Generates comprehensive FAQs from URL content using AI analysis and optimization', '365i-ai-faq-generator' ),
+		'icon' => 'admin-page',
+		'use_case' => __( 'Best for creating complete FAQ sets from website content with AI-powered analysis', '365i-ai-faq-generator' ),
 	),
 );
 ?>

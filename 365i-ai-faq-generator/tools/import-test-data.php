@@ -128,10 +128,8 @@ class AI_FAQ_Test_Data_Importer {
                 $this->import_worker_test_data( 'faq_enhancer', $data );
             } elseif ( strpos( basename( $file_path ), 'seo-analyzer' ) !== false ) {
                 $this->import_worker_test_data( 'seo_analyzer', $data );
-            } elseif ( strpos( basename( $file_path ), 'faq-extractor' ) !== false ) {
-                $this->import_worker_test_data( 'faq_extractor', $data );
-            } elseif ( strpos( basename( $file_path ), 'topic-generator' ) !== false ) {
-                $this->import_worker_test_data( 'topic_generator', $data );
+            } elseif ( strpos( basename( $file_path ), 'url-to-faq-generator' ) !== false ) {
+            	$this->import_worker_test_data( 'url_faq_generator', $data );
             }
             
             $this->stats['files_processed']++;

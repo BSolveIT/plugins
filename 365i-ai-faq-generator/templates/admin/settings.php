@@ -37,6 +37,14 @@ $max_questions_per_batch = isset( $options['max_questions_per_batch'] ) ? $optio
 $enable_logging = isset( $options['enable_logging'] ) ? $options['enable_logging'] : false;
 $log_level = isset( $options['log_level'] ) ? $options['log_level'] : 'error';
 $enable_analytics = isset( $options['enable_analytics'] ) ? $options['enable_analytics'] : true;
+
+// Rate limiting settings with defaults.
+$rate_limit_requests_per_hour = isset( $options['rate_limit_requests_per_hour'] ) ? $options['rate_limit_requests_per_hour'] : 100;
+$rate_limit_time_window = isset( $options['rate_limit_time_window'] ) ? $options['rate_limit_time_window'] : 3600;
+$rate_limit_block_duration = isset( $options['rate_limit_block_duration'] ) ? $options['rate_limit_block_duration'] : 3600;
+$rate_limit_soft_threshold = isset( $options['rate_limit_soft_threshold'] ) ? $options['rate_limit_soft_threshold'] : 3;
+$rate_limit_hard_threshold = isset( $options['rate_limit_hard_threshold'] ) ? $options['rate_limit_hard_threshold'] : 6;
+$rate_limit_ban_threshold = isset( $options['rate_limit_ban_threshold'] ) ? $options['rate_limit_ban_threshold'] : 12;
 ?>
 
 <div class="ai-faq-gen-settings">
@@ -79,6 +87,64 @@ $enable_analytics = isset( $options['enable_analytics'] ) ? $options['enable_ana
 						<p class="description">
 							<?php esc_html_e( 'API token with Workers:Edit and Account:Read permissions.', '365i-ai-faq-generator' ); ?>
 							<a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank"><?php esc_html_e( 'Create token', '365i-ai-faq-generator' ); ?></a>
+						</p>
+					</td>
+				</tr>
+			</table>
+		</div>
+
+		<!-- Cloudflare Sync Configuration -->
+		<div class="ai-faq-gen-section cloudflare-sync-section">
+			<h3>
+				<span class="dashicons dashicons-cloud"></span>
+				<?php esc_html_e( 'Cloudflare Sync Configuration', '365i-ai-faq-generator' ); ?>
+			</h3>
+			
+			<p><?php esc_html_e( 'Manage synchronization of WordPress settings to Cloudflare KV storage for dynamic worker configuration.', '365i-ai-faq-generator' ); ?></p>
+			
+			<table class="form-table">
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Connection Status', '365i-ai-faq-generator' ); ?></th>
+					<td>
+						<div id="cloudflare-connection-status" class="connection-status">
+							<span class="status-indicator unknown">
+								<span class="dashicons dashicons-warning"></span>
+								<?php esc_html_e( 'Unknown - Click "Test Connection" to check', '365i-ai-faq-generator' ); ?>
+							</span>
+						</div>
+					</td>
+				</tr>
+				
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Sync Status', '365i-ai-faq-generator' ); ?></th>
+					<td>
+						<div id="cloudflare-sync-status" class="sync-status">
+							<span class="status-indicator unknown">
+								<span class="dashicons dashicons-admin-generic"></span>
+								<span id="sync-status-text"><?php esc_html_e( 'Ready to sync', '365i-ai-faq-generator' ); ?></span>
+							</span>
+							<div id="last-sync-time" class="last-sync-time" style="margin-top: 5px; font-style: italic; color: #666;">
+								<?php esc_html_e( 'Never synced', '365i-ai-faq-generator' ); ?>
+							</div>
+						</div>
+					</td>
+				</tr>
+				
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Manual Actions', '365i-ai-faq-generator' ); ?></th>
+					<td>
+						<button type="button" id="test-cloudflare-connection" class="button button-secondary">
+							<span class="dashicons dashicons-admin-network"></span>
+							<?php esc_html_e( 'Test Connection', '365i-ai-faq-generator' ); ?>
+						</button>
+						
+						<button type="button" id="sync-to-cloudflare" class="button button-secondary" style="margin-left: 10px;">
+							<span class="dashicons dashicons-update"></span>
+							<?php esc_html_e( 'Sync Settings Now', '365i-ai-faq-generator' ); ?>
+						</button>
+						
+						<p class="description">
+							<?php esc_html_e( 'Test your Cloudflare API connection or manually sync current settings to KV storage. Settings are automatically synced when saved.', '365i-ai-faq-generator' ); ?>
 						</p>
 					</td>
 				</tr>
@@ -202,20 +268,9 @@ $enable_analytics = isset( $options['enable_analytics'] ) ? $options['enable_ana
 				<?php esc_html_e( 'Performance Settings', '365i-ai-faq-generator' ); ?>
 			</h3>
 			
-			<p><?php esc_html_e( 'Configure caching, rate limiting, and performance optimization settings.', '365i-ai-faq-generator' ); ?></p>
+			<p><?php esc_html_e( 'Configure caching and performance optimization settings.', '365i-ai-faq-generator' ); ?></p>
 			
 			<table class="form-table">
-				<tr>
-					<th scope="row"><?php esc_html_e( 'Rate Limiting', '365i-ai-faq-generator' ); ?></th>
-					<td>
-						<label>
-							<input type="checkbox" name="enable_rate_limiting" value="1" <?php checked( $enable_rate_limiting ); ?>>
-							<?php esc_html_e( 'Enable rate limiting for worker requests', '365i-ai-faq-generator' ); ?>
-						</label>
-						<p class="description"><?php esc_html_e( 'Prevent excessive API calls and manage usage limits.', '365i-ai-faq-generator' ); ?></p>
-					</td>
-				</tr>
-				
 				<tr>
 					<th scope="row"><?php esc_html_e( 'Caching', '365i-ai-faq-generator' ); ?></th>
 					<td>
@@ -234,6 +289,89 @@ $enable_analytics = isset( $options['enable_analytics'] ) ? $options['enable_ana
 					<td>
 						<input type="number" id="cache_duration" name="cache_duration" value="<?php echo esc_attr( $cache_duration ); ?>" min="300" max="86400" class="regular-text">
 						<p class="description"><?php esc_html_e( 'How long to cache generated content (300-86400 seconds).', '365i-ai-faq-generator' ); ?></p>
+					</td>
+				</tr>
+			</table>
+		</div>
+
+		<!-- Rate Limiting Configuration -->
+		<div class="ai-faq-gen-section rate-limiting-section">
+			<h3>
+				<span class="dashicons dashicons-shield"></span>
+				<?php esc_html_e( 'Rate Limiting Configuration', '365i-ai-faq-generator' ); ?>
+			</h3>
+			
+			<p><?php esc_html_e( 'Configure rate limiting settings to prevent abuse and manage API usage across all workers.', '365i-ai-faq-generator' ); ?></p>
+			
+			<table class="form-table">
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Enable Rate Limiting', '365i-ai-faq-generator' ); ?></th>
+					<td>
+						<label>
+							<input type="checkbox" name="enable_rate_limiting" value="1" <?php checked( $enable_rate_limiting ); ?>>
+							<?php esc_html_e( 'Enable rate limiting for worker requests', '365i-ai-faq-generator' ); ?>
+						</label>
+						<p class="description"><?php esc_html_e( 'Prevent excessive API calls and manage usage limits across all workers.', '365i-ai-faq-generator' ); ?></p>
+					</td>
+				</tr>
+				
+				<tr>
+					<th scope="row">
+						<label for="rate_limit_requests_per_hour"><?php esc_html_e( 'Requests Per Hour Limit', '365i-ai-faq-generator' ); ?></label>
+					</th>
+					<td>
+						<input type="number" id="rate_limit_requests_per_hour" name="rate_limit_requests_per_hour" value="<?php echo esc_attr( $rate_limit_requests_per_hour ); ?>" min="1" max="10000" class="regular-text">
+						<p class="description"><?php esc_html_e( 'Maximum number of requests allowed per hour per IP address (default: 100).', '365i-ai-faq-generator' ); ?></p>
+					</td>
+				</tr>
+				
+				<tr>
+					<th scope="row">
+						<label for="rate_limit_time_window"><?php esc_html_e( 'Time Window (seconds)', '365i-ai-faq-generator' ); ?></label>
+					</th>
+					<td>
+						<input type="number" id="rate_limit_time_window" name="rate_limit_time_window" value="<?php echo esc_attr( $rate_limit_time_window ); ?>" min="60" max="86400" class="regular-text">
+						<p class="description"><?php esc_html_e( 'Time window for rate limit calculations in seconds (default: 3600 = 1 hour).', '365i-ai-faq-generator' ); ?></p>
+					</td>
+				</tr>
+				
+				<tr>
+					<th scope="row">
+						<label for="rate_limit_block_duration"><?php esc_html_e( 'Block Duration (seconds)', '365i-ai-faq-generator' ); ?></label>
+					</th>
+					<td>
+						<input type="number" id="rate_limit_block_duration" name="rate_limit_block_duration" value="<?php echo esc_attr( $rate_limit_block_duration ); ?>" min="60" max="86400" class="regular-text">
+						<p class="description"><?php esc_html_e( 'How long to block an IP after rate limit violation in seconds (default: 3600 = 1 hour).', '365i-ai-faq-generator' ); ?></p>
+					</td>
+				</tr>
+				
+				<tr>
+					<th scope="row">
+						<label for="rate_limit_soft_threshold"><?php esc_html_e( 'Soft Violation Threshold', '365i-ai-faq-generator' ); ?></label>
+					</th>
+					<td>
+						<input type="number" id="rate_limit_soft_threshold" name="rate_limit_soft_threshold" value="<?php echo esc_attr( $rate_limit_soft_threshold ); ?>" min="1" max="100" class="small-text">
+						<p class="description"><?php esc_html_e( 'Number of violations before soft warning (default: 3).', '365i-ai-faq-generator' ); ?></p>
+					</td>
+				</tr>
+				
+				<tr>
+					<th scope="row">
+						<label for="rate_limit_hard_threshold"><?php esc_html_e( 'Hard Violation Threshold', '365i-ai-faq-generator' ); ?></label>
+					</th>
+					<td>
+						<input type="number" id="rate_limit_hard_threshold" name="rate_limit_hard_threshold" value="<?php echo esc_attr( $rate_limit_hard_threshold ); ?>" min="1" max="100" class="small-text">
+						<p class="description"><?php esc_html_e( 'Number of violations before hard blocking (default: 6).', '365i-ai-faq-generator' ); ?></p>
+					</td>
+				</tr>
+				
+				<tr>
+					<th scope="row">
+						<label for="rate_limit_ban_threshold"><?php esc_html_e( 'Ban Violation Threshold', '365i-ai-faq-generator' ); ?></label>
+					</th>
+					<td>
+						<input type="number" id="rate_limit_ban_threshold" name="rate_limit_ban_threshold" value="<?php echo esc_attr( $rate_limit_ban_threshold ); ?>" min="1" max="100" class="small-text">
+						<p class="description"><?php esc_html_e( 'Number of violations before permanent ban (default: 12).', '365i-ai-faq-generator' ); ?></p>
 					</td>
 				</tr>
 			</table>
