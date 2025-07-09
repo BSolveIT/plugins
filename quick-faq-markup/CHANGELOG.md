@@ -5,6 +5,18 @@ All notable changes to the Quick FAQ Markup plugin will be documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2025-01-09
+
+### Fixed
+- **CRITICAL**: Fixed fatal error in `Quick_FAQ_Markup_Frontend` class preventing shortcode usage
+- Resolved `Call to undefined method Quick_FAQ_Markup_Frontend::add_faqs_to_schema()` error
+- Fixed malformed PHP code structure that mixed JavaScript and PHP methods
+- Restored ability to save and edit pages containing `[qfm_faq]` shortcode
+- Corrected JavaScript/PHP code separation in frontend class
+
+### Security
+- Maintained all existing security measures during code restructuring
+
 ## [2.0.0] - 2025-01-09
 
 ### Added
