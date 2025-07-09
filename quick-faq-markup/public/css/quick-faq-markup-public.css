@@ -1,0 +1,649 @@
+/*!
+ * Quick FAQ Markup - Frontend Styles
+ * Contains 4 display styles with WCAG 2.1 AA compliance
+ * Version: 1.0.0
+ */
+
+/* =============================================================================
+   Base Styles & Variables
+   ============================================================================= */
+
+:root {
+	--qfm-primary-color: #2271b1;
+	--qfm-secondary-color: #50575e;
+	--qfm-text-color: #1d2327;
+	--qfm-light-text: #646970;
+	--qfm-border-color: #c3c4c7;
+	--qfm-light-border: #dcdcde;
+	--qfm-background: #ffffff;
+	--qfm-light-background: #f6f7f7;
+	--qfm-hover-background: #f0f0f1;
+	--qfm-focus-color: #005cee;
+	--qfm-success-color: #00a32a;
+	--qfm-warning-color: #dba617;
+	--qfm-error-color: #d63638;
+	--qfm-shadow: 0 1px 3px rgba(0, 0, 0, 0.13);
+	--qfm-shadow-hover: 0 2px 6px rgba(0, 0, 0, 0.15);
+	--qfm-border-radius: 4px;
+	--qfm-transition: all 0.2s ease-in-out;
+	--qfm-spacing-xs: 0.5rem;
+	--qfm-spacing-sm: 0.75rem;
+	--qfm-spacing-md: 1rem;
+	--qfm-spacing-lg: 1.5rem;
+	--qfm-spacing-xl: 2rem;
+}
+
+/* =============================================================================
+   Base FAQ Container
+   ============================================================================= */
+
+.qfm-faq-container {
+	margin: var(--qfm-spacing-lg) 0;
+	line-height: 1.6;
+	color: var(--qfm-text-color);
+}
+
+.qfm-faq-container * {
+	box-sizing: border-box;
+}
+
+/* No FAQs Message */
+.qfm-no-faqs {
+	padding: var(--qfm-spacing-lg);
+	text-align: center;
+	color: var(--qfm-light-text);
+	font-style: italic;
+	border: 1px solid var(--qfm-light-border);
+	border-radius: var(--qfm-border-radius);
+	background: var(--qfm-light-background);
+}
+
+/* Search Box */
+.qfm-search-box {
+	position: relative;
+	margin-bottom: var(--qfm-spacing-lg);
+	max-width: 400px;
+}
+
+.qfm-search-input {
+	width: 100%;
+	padding: var(--qfm-spacing-sm) var(--qfm-spacing-md);
+	padding-right: 2.5rem;
+	border: 2px solid var(--qfm-border-color);
+	border-radius: var(--qfm-border-radius);
+	font-size: 1rem;
+	transition: var(--qfm-transition);
+	background: var(--qfm-background);
+}
+
+.qfm-search-input:focus {
+	outline: 2px solid var(--qfm-focus-color);
+	outline-offset: 2px;
+	border-color: var(--qfm-focus-color);
+}
+
+.qfm-search-clear {
+	position: absolute;
+	right: var(--qfm-spacing-xs);
+	top: 50%;
+	transform: translateY(-50%);
+	background: none;
+	border: none;
+	font-size: 1.25rem;
+	color: var(--qfm-light-text);
+	cursor: pointer;
+	padding: var(--qfm-spacing-xs);
+	border-radius: var(--qfm-border-radius);
+	transition: var(--qfm-transition);
+}
+
+.qfm-search-clear:hover {
+	color: var(--qfm-text-color);
+	background: var(--qfm-hover-background);
+}
+
+.qfm-search-clear:focus {
+	outline: 2px solid var(--qfm-focus-color);
+	outline-offset: 2px;
+}
+
+/* Anchor Links */
+.qfm-anchor-link {
+	color: inherit;
+	text-decoration: none;
+	display: inline-block;
+	width: 100%;
+}
+
+.qfm-anchor-link:hover {
+	color: var(--qfm-primary-color);
+}
+
+.qfm-anchor-link:focus {
+	outline: 2px solid var(--qfm-focus-color);
+	outline-offset: 2px;
+	border-radius: var(--qfm-border-radius);
+}
+
+/* Screen Reader Only Text */
+.screen-reader-text {
+	position: absolute !important;
+	clip-path: inset(50%);
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+}
+
+/* =============================================================================
+   Style 1: Classic List
+   ============================================================================= */
+
+.qfm-style-classic .qfm-classic-list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--qfm-spacing-xl);
+}
+
+.qfm-style-classic .qfm-faq-item {
+	padding: var(--qfm-spacing-lg);
+	border: 1px solid var(--qfm-light-border);
+	border-radius: var(--qfm-border-radius);
+	background: var(--qfm-background);
+	transition: var(--qfm-transition);
+}
+
+.qfm-style-classic .qfm-faq-item:hover {
+	border-color: var(--qfm-border-color);
+	box-shadow: var(--qfm-shadow);
+}
+
+.qfm-style-classic .qfm-faq-item:target {
+	border-color: var(--qfm-primary-color);
+	box-shadow: 0 0 0 2px rgba(34, 113, 177, 0.1);
+}
+
+.qfm-style-classic .qfm-question {
+	margin: 0 0 var(--qfm-spacing-md) 0;
+	font-size: 1.25rem;
+	font-weight: 600;
+	line-height: 1.4;
+	color: var(--qfm-text-color);
+}
+
+.qfm-style-classic .qfm-answer {
+	color: var(--qfm-secondary-color);
+	line-height: 1.6;
+}
+
+.qfm-style-classic .qfm-answer p:first-child {
+	margin-top: 0;
+}
+
+.qfm-style-classic .qfm-answer p:last-child {
+	margin-bottom: 0;
+}
+
+/* =============================================================================
+   Style 2 & 3: Accordion Styles (Modern & Minimal)
+   ============================================================================= */
+
+.qfm-accordion {
+	border: 1px solid var(--qfm-light-border);
+	border-radius: var(--qfm-border-radius);
+	overflow: hidden;
+	background: var(--qfm-background);
+}
+
+.qfm-accordion-item {
+	border-bottom: 1px solid var(--qfm-light-border);
+}
+
+.qfm-accordion-item:last-child {
+	border-bottom: none;
+}
+
+.qfm-accordion-item:target .qfm-accordion-button {
+	background: rgba(34, 113, 177, 0.05);
+	border-color: var(--qfm-primary-color);
+}
+
+.qfm-accordion-button {
+	width: 100%;
+	padding: var(--qfm-spacing-lg);
+	border: none;
+	background: var(--qfm-background);
+	text-align: left;
+	cursor: pointer;
+	font-size: 1.125rem;
+	font-weight: 600;
+	color: var(--qfm-text-color);
+	transition: var(--qfm-transition);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	position: relative;
+}
+
+.qfm-accordion-button:hover {
+	background: var(--qfm-hover-background);
+}
+
+.qfm-accordion-button:focus {
+	outline: 2px solid var(--qfm-focus-color);
+	outline-offset: -2px;
+	background: var(--qfm-hover-background);
+}
+
+.qfm-accordion-button[aria-expanded="true"] {
+	background: var(--qfm-light-background);
+}
+
+.qfm-question-text {
+	flex: 1;
+	line-height: 1.4;
+}
+
+.qfm-accordion-icon {
+	flex-shrink: 0;
+	width: 1.5rem;
+	height: 1.5rem;
+	margin-left: var(--qfm-spacing-md);
+	position: relative;
+	transition: var(--qfm-transition);
+}
+
+.qfm-accordion-icon::before,
+.qfm-accordion-icon::after {
+	content: '';
+	position: absolute;
+	background: currentColor;
+	transition: var(--qfm-transition);
+}
+
+.qfm-accordion-icon::before {
+	top: 50%;
+	left: 0;
+	right: 0;
+	height: 2px;
+	transform: translateY(-50%);
+}
+
+.qfm-accordion-icon::after {
+	top: 0;
+	bottom: 0;
+	left: 50%;
+	width: 2px;
+	transform: translateX(-50%);
+}
+
+.qfm-accordion-button[aria-expanded="true"] .qfm-accordion-icon::after {
+	transform: translateX(-50%) rotate(90deg);
+	opacity: 0;
+}
+
+.qfm-accordion-panel {
+	overflow: hidden;
+	transition: var(--qfm-transition);
+}
+
+.qfm-accordion-panel[hidden] {
+	display: none;
+}
+
+.qfm-accordion-panel .qfm-answer {
+	padding: 0 var(--qfm-spacing-lg) var(--qfm-spacing-lg);
+	color: var(--qfm-secondary-color);
+	line-height: 1.6;
+}
+
+.qfm-accordion-panel .qfm-answer p:first-child {
+	margin-top: 0;
+}
+
+.qfm-accordion-panel .qfm-answer p:last-child {
+	margin-bottom: 0;
+}
+
+/* Modern Accordion Specific Styles */
+.qfm-style-accordion-modern .qfm-accordion {
+	box-shadow: var(--qfm-shadow);
+}
+
+.qfm-style-accordion-modern .qfm-accordion-item:target {
+	box-shadow: inset 3px 0 0 var(--qfm-primary-color);
+}
+
+.qfm-style-accordion-modern .qfm-accordion-button {
+	padding: var(--qfm-spacing-xl) var(--qfm-spacing-lg);
+}
+
+.qfm-style-accordion-modern .qfm-accordion-button:hover {
+	background: linear-gradient(90deg, var(--qfm-hover-background) 0%, var(--qfm-background) 100%);
+}
+
+.qfm-style-accordion-modern .qfm-accordion-panel .qfm-answer {
+	padding: 0 var(--qfm-spacing-lg) var(--qfm-spacing-xl);
+	background: var(--qfm-light-background);
+}
+
+/* Minimal Accordion Specific Styles */
+.qfm-style-accordion-minimal .qfm-accordion {
+	border: none;
+	background: transparent;
+}
+
+.qfm-style-accordion-minimal .qfm-accordion-item {
+	border: none;
+	border-bottom: 1px solid var(--qfm-light-border);
+	background: transparent;
+}
+
+.qfm-style-accordion-minimal .qfm-accordion-button {
+	padding: var(--qfm-spacing-lg) 0;
+	background: transparent;
+	font-weight: 500;
+}
+
+.qfm-style-accordion-minimal .qfm-accordion-button:hover {
+	background: transparent;
+	color: var(--qfm-primary-color);
+}
+
+.qfm-style-accordion-minimal .qfm-accordion-button:focus {
+	background: transparent;
+	outline-offset: 2px;
+}
+
+.qfm-style-accordion-minimal .qfm-accordion-button[aria-expanded="true"] {
+	background: transparent;
+	color: var(--qfm-primary-color);
+}
+
+.qfm-style-accordion-minimal .qfm-accordion-panel .qfm-answer {
+	padding: var(--qfm-spacing-md) 0 var(--qfm-spacing-lg);
+	background: transparent;
+}
+
+/* =============================================================================
+   Style 4: Card Layout
+   ============================================================================= */
+
+.qfm-style-card-layout .qfm-card-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+	gap: var(--qfm-spacing-lg);
+}
+
+.qfm-style-card-layout .qfm-card {
+	padding: var(--qfm-spacing-lg);
+	border: 1px solid var(--qfm-light-border);
+	border-radius: var(--qfm-border-radius);
+	background: var(--qfm-background);
+	box-shadow: var(--qfm-shadow);
+	transition: var(--qfm-transition);
+	height: fit-content;
+}
+
+.qfm-style-card-layout .qfm-card:hover {
+	box-shadow: var(--qfm-shadow-hover);
+	transform: translateY(-2px);
+	border-color: var(--qfm-border-color);
+}
+
+.qfm-style-card-layout .qfm-card:target {
+	border-color: var(--qfm-primary-color);
+	box-shadow: 0 0 0 2px rgba(34, 113, 177, 0.1), var(--qfm-shadow-hover);
+}
+
+.qfm-style-card-layout .qfm-card-question {
+	margin: 0 0 var(--qfm-spacing-md) 0;
+	font-size: 1.125rem;
+	font-weight: 600;
+	line-height: 1.4;
+	color: var(--qfm-text-color);
+}
+
+.qfm-style-card-layout .qfm-card-answer {
+	color: var(--qfm-secondary-color);
+	line-height: 1.6;
+}
+
+.qfm-style-card-layout .qfm-card-answer p:first-child {
+	margin-top: 0;
+}
+
+.qfm-style-card-layout .qfm-card-answer p:last-child {
+	margin-bottom: 0;
+}
+
+/* =============================================================================
+   Responsive Design
+   ============================================================================= */
+
+/* Tablet Styles */
+@media (max-width: 768px) {
+	:root {
+		--qfm-spacing-lg: 1.25rem;
+		--qfm-spacing-xl: 1.5rem;
+	}
+
+	.qfm-style-classic .qfm-question {
+		font-size: 1.125rem;
+	}
+
+	.qfm-accordion-button {
+		font-size: 1rem;
+		padding: var(--qfm-spacing-md) var(--qfm-spacing-sm);
+	}
+
+	.qfm-style-accordion-modern .qfm-accordion-button {
+		padding: var(--qfm-spacing-lg) var(--qfm-spacing-md);
+	}
+
+	.qfm-style-card-layout .qfm-card-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.qfm-style-card-layout .qfm-card-question {
+		font-size: 1rem;
+	}
+}
+
+/* Mobile Styles */
+@media (max-width: 480px) {
+	:root {
+		--qfm-spacing-sm: 0.5rem;
+		--qfm-spacing-md: 0.75rem;
+		--qfm-spacing-lg: 1rem;
+		--qfm-spacing-xl: 1.25rem;
+	}
+
+	.qfm-faq-container {
+		margin: var(--qfm-spacing-md) 0;
+	}
+
+	.qfm-style-classic .qfm-faq-item {
+		padding: var(--qfm-spacing-md);
+	}
+
+	.qfm-style-classic .qfm-question {
+		font-size: 1rem;
+	}
+
+	.qfm-accordion-button {
+		padding: var(--qfm-spacing-md);
+		font-size: 0.9375rem;
+	}
+
+	.qfm-style-accordion-modern .qfm-accordion-button {
+		padding: var(--qfm-spacing-md);
+	}
+
+	.qfm-style-card-layout .qfm-card {
+		padding: var(--qfm-spacing-md);
+	}
+
+	.qfm-question-text {
+		line-height: 1.3;
+	}
+
+	.qfm-accordion-icon {
+		width: 1.25rem;
+		height: 1.25rem;
+		margin-left: var(--qfm-spacing-sm);
+	}
+}
+
+/* =============================================================================
+   High Contrast Mode Support
+   ============================================================================= */
+
+@media (prefers-contrast: high) {
+	:root {
+		--qfm-border-color: #000000;
+		--qfm-light-border: #666666;
+		--qfm-text-color: #000000;
+		--qfm-light-text: #333333;
+		--qfm-background: #ffffff;
+		--qfm-hover-background: #f0f0f0;
+	}
+
+	.qfm-accordion-button:focus,
+	.qfm-search-input:focus,
+	.qfm-anchor-link:focus {
+		outline: 3px solid #000000;
+	}
+}
+
+/* =============================================================================
+   Reduced Motion Support
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+	:root {
+		--qfm-transition: none;
+	}
+
+	.qfm-accordion-icon,
+	.qfm-accordion-icon::before,
+	.qfm-accordion-icon::after {
+		transition: none;
+	}
+
+	.qfm-style-card-layout .qfm-card:hover {
+		transform: none;
+	}
+}
+
+/* =============================================================================
+   Print Styles
+   ============================================================================= */
+
+@media print {
+	.qfm-faq-container {
+		color: #000000 !important;
+		background: #ffffff !important;
+	}
+
+	.qfm-search-box {
+		display: none;
+	}
+
+	.qfm-accordion-panel {
+		display: block !important;
+	}
+
+	.qfm-accordion-panel[hidden] {
+		display: block !important;
+	}
+
+	.qfm-accordion-button {
+		pointer-events: none;
+	}
+
+	.qfm-accordion-icon {
+		display: none;
+	}
+
+	.qfm-card,
+	.qfm-faq-item,
+	.qfm-accordion-item {
+		break-inside: avoid;
+		page-break-inside: avoid;
+	}
+
+	.qfm-anchor-link {
+		color: inherit !important;
+		text-decoration: none !important;
+	}
+}
+
+/* =============================================================================
+   Animation Classes (for JavaScript interactions)
+   ============================================================================= */
+
+.qfm-fade-in {
+	animation: qfmFadeIn 0.3s ease-in-out;
+}
+
+.qfm-fade-out {
+	animation: qfmFadeOut 0.3s ease-in-out;
+}
+
+.qfm-slide-down {
+	animation: qfmSlideDown 0.3s ease-in-out;
+}
+
+.qfm-slide-up {
+	animation: qfmSlideUp 0.3s ease-in-out;
+}
+
+@keyframes qfmFadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes qfmFadeOut {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
+}
+
+@keyframes qfmSlideDown {
+	from {
+		max-height: 0;
+		opacity: 0;
+	}
+	to {
+		max-height: 1000px;
+		opacity: 1;
+	}
+}
+
+@keyframes qfmSlideUp {
+	from {
+		max-height: 1000px;
+		opacity: 1;
+	}
+	to {
+		max-height: 0;
+		opacity: 0;
+	}
+}
+
+/* Disable animations for reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+	.qfm-fade-in,
+	.qfm-fade-out,
+	.qfm-slide-down,
+	.qfm-slide-up {
+		animation: none;
+	}
+}

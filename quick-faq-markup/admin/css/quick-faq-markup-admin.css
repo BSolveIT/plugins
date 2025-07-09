@@ -1,0 +1,413 @@
+/**
+ * Admin styles for Quick FAQ Markup
+ *
+ * This file contains all the admin-specific styles for the plugin.
+ *
+ * @package Quick_FAQ_Markup
+ * @since 1.0.0
+ */
+
+/* ==========================
+   Meta Box Styles
+   ========================== */
+
+.qfm-meta-box .form-table {
+	border-collapse: collapse;
+	width: 100%;
+}
+
+.qfm-meta-box .form-table th {
+	width: 150px;
+	padding: 15px 10px 15px 0;
+	vertical-align: top;
+	font-weight: 600;
+	color: #23282d;
+}
+
+.qfm-meta-box .form-table td {
+	padding: 15px 10px 15px 0;
+	vertical-align: top;
+}
+
+.qfm-meta-box .form-table tr {
+	border-bottom: 1px solid #f0f0f1;
+}
+
+.qfm-meta-box .form-table tr:last-child {
+	border-bottom: none;
+}
+
+.qfm-meta-box textarea {
+	width: 100%;
+	max-width: 100%;
+	resize: vertical;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.qfm-meta-box input[type="text"],
+.qfm-meta-box input[type="number"] {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.qfm-meta-box .description {
+	font-style: italic;
+	color: #646970;
+	margin-top: 5px;
+}
+
+/* Shortcode Hint Box */
+.qfm-shortcode-hint {
+	margin-top: 20px;
+	padding: 15px;
+	background: #f9f9f9;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+}
+
+.qfm-shortcode-hint h4 {
+	margin-top: 0;
+	margin-bottom: 10px;
+	font-size: 14px;
+	color: #23282d;
+}
+
+.qfm-shortcode-hint code {
+	background: #fff;
+	padding: 4px 8px;
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	font-family: Consolas, Monaco, "Courier New", monospace;
+	font-size: 12px;
+	color: #d63384;
+}
+
+.qfm-shortcode-hint p {
+	margin: 8px 0;
+	font-size: 13px;
+}
+
+/* ==========================
+   Admin List Table Styles
+   ========================== */
+
+.wp-list-table .column-faq_question {
+	width: 25%;
+}
+
+.wp-list-table .column-faq_answer {
+	width: 30%;
+}
+
+
+.wp-list-table .column-faq_order {
+	width: 10%;
+}
+
+.wp-list-table .column-title {
+	width: 20%;
+}
+
+/* Order Input Field */
+.qfm-order-input {
+	width: 60px;
+	text-align: center;
+}
+
+.qfm-order-input:focus {
+	border-color: #007cba;
+	box-shadow: 0 0 0 1px #007cba;
+}
+
+/* FAQ List Row Styles */
+.wp-list-table tbody tr.qfm-faq-row {
+	cursor: move;
+}
+
+.wp-list-table tbody tr.qfm-faq-row:hover {
+	background-color: #f6f7f7;
+}
+
+.wp-list-table tbody tr.qfm-faq-row.ui-sortable-helper {
+	background-color: #fff;
+	border: 1px solid #ddd;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.wp-list-table tbody tr.qfm-faq-row.ui-sortable-placeholder {
+	background-color: #f0f6fc;
+	border: 2px dashed #007cba;
+	height: 50px;
+}
+
+/* Drag Handle - Horizontal Layout */
+.qfm-title-wrapper {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.qfm-drag-handle {
+	cursor: move;
+	color: #a7aaad;
+	font-size: 16px;
+	padding: 0 2px;
+	line-height: 1;
+	flex-shrink: 0;
+	user-select: none;
+	transition: color 0.2s ease;
+}
+
+.qfm-drag-handle:hover {
+	color: #1d2327;
+}
+
+.qfm-title-link,
+.qfm-title-text {
+	flex: 1;
+	min-width: 0;
+	word-wrap: break-word;
+}
+
+.qfm-title-link {
+	color: #2271b1;
+	text-decoration: none;
+}
+
+.qfm-title-link:hover {
+	color: #135e96;
+}
+
+.qfm-title-text {
+	color: #1d2327;
+}
+
+/* ==========================
+   Settings Page Styles
+   ========================== */
+
+.qfm-settings-page {
+	max-width: 800px;
+}
+
+.qfm-settings-page .form-table {
+	margin-top: 20px;
+}
+
+.qfm-settings-page .form-table th {
+	width: 200px;
+	padding: 20px 10px 20px 0;
+}
+
+.qfm-settings-page .form-table td {
+	padding: 20px 10px 20px 0;
+}
+
+.qfm-settings-page .description {
+	margin-top: 5px;
+	font-style: italic;
+	color: #646970;
+}
+
+/* Settings Sections */
+.qfm-settings-section {
+	margin-bottom: 40px;
+}
+
+.qfm-settings-section h3 {
+	margin-bottom: 10px;
+	color: #23282d;
+	border-bottom: 1px solid #ddd;
+	padding-bottom: 10px;
+}
+
+/* Style Preview */
+.qfm-style-preview {
+	display: inline-block;
+	margin-left: 10px;
+	padding: 5px 10px;
+	background: #f0f0f1;
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	font-size: 12px;
+	color: #646970;
+}
+
+/* ==========================
+   Loading States
+   ========================== */
+
+.qfm-loading {
+	opacity: 0.6;
+	pointer-events: none;
+}
+
+.qfm-loading::after {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 20px;
+	height: 20px;
+	margin: -10px 0 0 -10px;
+	border: 2px solid #f3f3f3;
+	border-top: 2px solid #007cba;
+	border-radius: 50%;
+	animation: qfm-spin 1s linear infinite;
+}
+
+@keyframes qfm-spin {
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
+}
+
+/* ==========================
+   Notices and Messages
+   ========================== */
+
+.qfm-notice {
+	margin: 15px 0;
+	padding: 10px 15px;
+	border-radius: 4px;
+	font-size: 14px;
+}
+
+.qfm-notice.success {
+	background: #d4edda;
+	color: #155724;
+	border: 1px solid #c3e6cb;
+}
+
+.qfm-notice.error {
+	background: #f8d7da;
+	color: #721c24;
+	border: 1px solid #f5c6cb;
+}
+
+.qfm-notice.warning {
+	background: #fff3cd;
+	color: #856404;
+	border: 1px solid #ffeaa7;
+}
+
+/* ==========================
+   Help Text and Documentation
+   ========================== */
+
+.qfm-help-text {
+	padding: 15px;
+	background: #fff;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	margin: 20px 0;
+}
+
+.qfm-help-text h4 {
+	margin-top: 0;
+	color: #23282d;
+}
+
+.qfm-help-text p {
+	margin-bottom: 10px;
+	line-height: 1.6;
+}
+
+.qfm-help-text ul {
+	padding-left: 20px;
+}
+
+.qfm-help-text li {
+	margin-bottom: 5px;
+}
+
+.qfm-help-text code {
+	background: #f1f1f1;
+	padding: 2px 4px;
+	border-radius: 2px;
+	font-family: Consolas, Monaco, "Courier New", monospace;
+	font-size: 90%;
+}
+
+/* ==========================
+   Responsive Design
+   ========================== */
+
+@media screen and (max-width: 782px) {
+	.qfm-meta-box .form-table th,
+	.qfm-meta-box .form-table td {
+		display: block;
+		width: 100%;
+		padding: 10px 0;
+	}
+	
+	.qfm-meta-box .form-table th {
+		padding-bottom: 5px;
+		border-bottom: none;
+	}
+	
+	.qfm-meta-box .form-table td {
+		padding-top: 0;
+	}
+	
+	.wp-list-table .column-faq_question,
+	.wp-list-table .column-faq_answer,
+	.wp-list-table .column-faq_order,
+	.wp-list-table .column-title {
+		width: auto;
+	}
+	
+	.qfm-settings-page .form-table th,
+	.qfm-settings-page .form-table td {
+		display: block;
+		width: 100%;
+		padding: 10px 0;
+	}
+}
+
+/* ==========================
+   Accessibility Enhancements
+   ========================== */
+
+.qfm-sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+.qfm-meta-box label {
+	cursor: pointer;
+}
+
+.qfm-meta-box input:focus,
+.qfm-meta-box textarea:focus,
+.qfm-meta-box select:focus {
+	outline: 2px solid #007cba;
+	outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+	.qfm-shortcode-hint {
+		border: 2px solid #000;
+	}
+	
+	.qfm-help-text {
+		border: 2px solid #000;
+	}
+	
+	.qfm-notice {
+		border-width: 2px;
+	}
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+	.qfm-loading::after {
+		animation: none;
+	}
+}

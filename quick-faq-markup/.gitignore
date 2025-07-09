@@ -1,0 +1,99 @@
+# WordPress plugin .gitignore
+
+# WordPress core files
+wp-config.php
+wp-content/uploads/
+wp-content/cache/
+wp-content/backup-db/
+wp-content/advanced-cache.php
+wp-content/wp-cache-config.php
+wp-content/blogs.dir/
+wp-content/upgrade/
+wp-content/backup-db/
+wp-content/updraft/
+wp-content/backupwordpress-*/
+wp-content/managewp/
+wp-content/themes/*/
+wp-content/plugins/*/
+wp-content/mu-plugins/*/
+
+# Exclude this plugin from the above
+!wp-content/plugins/quick-faq-markup/
+
+# Log files
+*.log
+debug.log
+error_log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE and editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Composer
+vendor/
+composer.lock
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+
+# Build files
+*.min.js
+*.min.css
+build/
+dist/
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.test
+
+# Database files
+*.sql
+*.sqlite
+*.db
+
+# Cache files
+*.cache
+wp-content/cache/
+cache/
+
+# Backup files
+*.zip
+*.tar.gz
+*.tar
+*.rar
+
+# Configuration files that might contain sensitive data
+wp-config-local.php
+wp-config-production.php
+wp-config-staging.php
+
+# Plugin specific ignores
+# Keep translations but ignore backup files
+languages/*.mo~
+languages/*.po~
+languages/*.pot~
