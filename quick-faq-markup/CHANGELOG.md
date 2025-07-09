@@ -5,6 +5,20 @@ All notable changes to the Quick FAQ Markup plugin will be documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.3] - 2025-01-09
+
+### Fixed
+- **CRITICAL**: Fixed infinite loop in auto-increment order functionality causing display order values like 3844
+- Fixed `Maximum execution time of 60 seconds exceeded` error during FAQ creation
+- Replaced `wp_update_post()` with `wp_insert_post_data` filter to prevent recursive save_post hook triggers
+- Added `temp_order_for_save` property to safely store calculated order values
+- Improved post save logic to prevent hang/timeout issues during FAQ creation
+
+### Technical
+- Added `filter_post_data_for_order()` method to handle order assignment without recursion
+- Modified `save_meta_data()` to use temporary storage instead of `wp_update_post()`
+- Enhanced logging to track order assignment via wp_insert_post_data filter
+
 ## [2.0.2] - 2025-01-09
 
 ### Added

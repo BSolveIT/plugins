@@ -41,6 +41,14 @@ class Quick_FAQ_Markup_Admin {
 	private $version;
 
 	/**
+	 * Temporary storage for calculated order during post save.
+	 *
+	 * @since 2.0.3
+	 * @var int|null $temp_order_for_save Temporary order storage.
+	 */
+	private $temp_order_for_save = null;
+
+	/**
 	 * Initialize the class and set its properties.
 	 *
 	 * @since 1.0.0
@@ -313,17 +321,48 @@ class Quick_FAQ_Markup_Admin {
 			$order = $this->get_next_faq_order();
 		}
 
-		// Update the post's menu_order
-		wp_update_post( array(
-			'ID'         => $post_id,
-			'menu_order' => $order,
-		) );
+		// Store order temporarily for wp_insert_post_data filter
+		$this->temp_order_for_save = $order;
 
 		// Log the save action
 		quick_faq_markup_log(
 			sprintf( 'FAQ meta data saved for post ID: %d, order: %d', $post_id, $order ),
 			'info'
 		);
+	}
+
+	/**
+	 * Filter post data before saving to set menu_order without triggering recursive saves.
+	 *
+	 * @since 2.0.3
+	 * @param array $data    An array of slashed post data.
+	 * @param array $postarr An array of sanitized, but otherwise unmodified post data.
+	 * @return array Modified post data.
+	 */
+	public function filter_post_data_for_order( $data, $postarr ) {
+		// Only process FAQ posts
+		if ( 'qfm_faq' !== $data['post_type'] ) {
+			return $data;
+		}
+
+		// Only process if we have a calculated order
+		if ( null === $this->temp_order_for_save ) {
+			return $data;
+		}
+
+		// Set the menu_order in the post data
+		$data['menu_order'] = $this->temp_order_for_save;
+
+		// Clear the temporary order
+		$this->temp_order_for_save = null;
+
+		// Log the order assignment
+		quick_faq_markup_log(
+			sprintf( 'FAQ menu_order set via wp_insert_post_data filter: %d', $data['menu_order'] ),
+			'info'
+		);
+
+		return $data;
 	}
 
 	/**

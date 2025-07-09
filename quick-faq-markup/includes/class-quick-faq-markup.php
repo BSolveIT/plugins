@@ -154,6 +154,7 @@ class Quick_FAQ_Markup {
 		// Meta box hooks
 		add_action( 'add_meta_boxes', array( $this->admin, 'add_meta_boxes' ) );
 		add_action( 'save_post', array( $this->admin, 'save_meta_data' ) );
+		add_filter( 'wp_insert_post_data', array( $this->admin, 'filter_post_data_for_order' ), 10, 2 );
 
 		// Admin column hooks
 		add_filter( 'manage_qfm_faq_posts_columns', array( $this->admin, 'add_admin_columns' ) );
