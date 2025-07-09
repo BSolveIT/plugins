@@ -345,8 +345,34 @@ class Quick_FAQ_Markup_Admin {
 			return $data;
 		}
 
-		// Only process if we have a calculated order
+		// Log the current state for debugging
+		quick_faq_markup_log(
+			sprintf( 'wp_insert_post_data filter called - temp_order_for_save: %s, posted order: %s',
+				var_export( $this->temp_order_for_save, true ),
+				var_export( $_POST['qfm_faq_order'] ?? 'not set', true )
+			),
+			'debug'
+		);
+
+		// Check if we should calculate order directly here
 		if ( null === $this->temp_order_for_save ) {
+			// Handle display order calculation during post creation
+			$order = isset( $_POST['qfm_faq_order'] ) ? absint( $_POST['qfm_faq_order'] ) : 0;
+			
+			// Auto-increment order for new posts if order is 0
+			if ( 0 === $order ) {
+				$order = $this->get_next_faq_order();
+			}
+			
+			// Set the menu_order in the post data
+			$data['menu_order'] = $order;
+			
+			// Log the order assignment
+			quick_faq_markup_log(
+				sprintf( 'FAQ menu_order calculated directly in wp_insert_post_data filter: %d', $order ),
+				'info'
+			);
+			
 			return $data;
 		}
 
@@ -358,7 +384,7 @@ class Quick_FAQ_Markup_Admin {
 
 		// Log the order assignment
 		quick_faq_markup_log(
-			sprintf( 'FAQ menu_order set via wp_insert_post_data filter: %d', $data['menu_order'] ),
+			sprintf( 'FAQ menu_order set via wp_insert_post_data filter from temp storage: %d', $data['menu_order'] ),
 			'info'
 		);
 
