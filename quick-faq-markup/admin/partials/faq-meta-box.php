@@ -18,25 +18,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<table class="form-table">
 		<tr>
 			<th scope="row">
-				<label for="qfm_faq_question"><?php esc_html_e( 'Question', 'quick-faq-markup' ); ?></label>
-			</th>
-			<td>
-				<textarea 
-					id="qfm_faq_question" 
-					name="qfm_faq_question" 
-					class="large-text" 
-					rows="3" 
-					placeholder="<?php esc_attr_e( 'Enter the frequently asked question here...', 'quick-faq-markup' ); ?>"
-					required
-				><?php echo esc_textarea( $question ); ?></textarea>
-				<p class="description">
-					<?php esc_html_e( 'The question that visitors frequently ask. This will be displayed as the clickable header.', 'quick-faq-markup' ); ?>
-				</p>
-			</td>
-		</tr>
-		
-		<tr>
-			<th scope="row">
 				<label for="qfm_faq_answer"><?php esc_html_e( 'Answer', 'quick-faq-markup' ); ?></label>
 			</th>
 			<td>
@@ -82,11 +63,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 					step="1"
 				/>
 				<p class="description">
-					<?php esc_html_e( 'Controls the display order of this FAQ. Lower numbers appear first. You can also drag and drop to reorder in the FAQ list.', 'quick-faq-markup' ); ?>
+					<?php esc_html_e( 'Controls the display order of this FAQ. Lower numbers appear first. Leave empty for auto-increment.', 'quick-faq-markup' ); ?>
 				</p>
 			</td>
 		</tr>
 	</table>
+	
+	<div class="qfm-usage-hint">
+		<h4><?php esc_html_e( 'Usage Instructions', 'quick-faq-markup' ); ?></h4>
+		<p><strong><?php esc_html_e( 'Question:', 'quick-faq-markup' ); ?></strong> <?php esc_html_e( 'Enter your question in the title field above.', 'quick-faq-markup' ); ?></p>
+		<p><strong><?php esc_html_e( 'Answer:', 'quick-faq-markup' ); ?></strong> <?php esc_html_e( 'Provide the detailed answer using the rich text editor.', 'quick-faq-markup' ); ?></p>
+		<p><strong><?php esc_html_e( 'Order:', 'quick-faq-markup' ); ?></strong> <?php esc_html_e( 'Leave empty for automatic ordering, or set a specific number.', 'quick-faq-markup' ); ?></p>
+	</div>
 	
 	<div class="qfm-shortcode-hint">
 		<h4><?php esc_html_e( 'Shortcode Usage', 'quick-faq-markup' ); ?></h4>
@@ -107,6 +95,26 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 .qfm-meta-box .form-table td {
 	padding-left: 10px;
+}
+
+.qfm-usage-hint {
+	margin-top: 20px;
+	padding: 15px;
+	background: #e7f3ff;
+	border: 1px solid #bde0ff;
+	border-radius: 4px;
+}
+
+.qfm-usage-hint h4 {
+	margin-top: 0;
+	margin-bottom: 10px;
+	font-size: 14px;
+	color: #0073aa;
+}
+
+.qfm-usage-hint p {
+	margin: 8px 0;
+	font-size: 13px;
 }
 
 .qfm-shortcode-hint {

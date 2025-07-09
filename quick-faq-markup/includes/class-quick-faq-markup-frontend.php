@@ -401,12 +401,6 @@ class Quick_FAQ_Markup_Frontend {
 			'posts_per_page' => (int) $args['limit'],
 			'orderby'        => 'menu_order',
 			'order'          => sanitize_text_field( $args['order'] ),
-			'meta_query'     => array(
-				array(
-					'key'     => '_qfm_faq_question',
-					'compare' => 'EXISTS',
-				),
-			),
 		);
 
 		// Add category filter if specified
@@ -450,10 +444,10 @@ class Quick_FAQ_Markup_Frontend {
 				
 				$faq_data = array(
 					'id'         => $post_id,
-					'question'   => get_post_meta( $post_id, '_qfm_faq_question', true ),
+					'question'   => get_the_title( $post_id ),
 					'answer'     => get_post_meta( $post_id, '_qfm_faq_answer', true ),
 					'categories' => ! is_wp_error( $categories ) ? $categories : array(),
-					'order'      => get_post_meta( $post_id, '_qfm_faq_order', true ),
+					'order'      => get_post_field( 'menu_order', $post_id ),
 				);
 
 				// Skip if question or answer is empty

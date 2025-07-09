@@ -5,6 +5,38 @@ All notable changes to the Quick FAQ Markup plugin will be documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.2] - 2025-01-09
+
+### Added
+- Auto-increment order functionality for new FAQs
+- `get_next_faq_order()` method for automatic order assignment
+- Usage instructions in meta box to guide users
+
+### Changed
+- **UX IMPROVEMENT**: WordPress title field now serves as the question field
+- **UX IMPROVEMENT**: Removed separate "Question" meta field to eliminate confusion
+- **UX IMPROVEMENT**: Removed duplicate order fields by removing page-attributes support
+- **UX IMPROVEMENT**: New FAQs automatically receive incremental order numbers
+- Updated admin columns to reflect new structure (title column now labeled "Question")
+- Updated frontend to use `get_the_title()` instead of meta field for questions
+- Simplified meta box interface with cleaner, more intuitive layout
+- Enhanced save logic to handle auto-increment order assignment
+
+### Removed
+- Separate "Question" meta field from FAQ meta box
+- `page-attributes` support from FAQ post type (eliminates duplicate order interface)
+- Question field handling from admin save logic
+- Question column from admin list (now uses title column)
+
+### Fixed
+- Eliminated user confusion from duplicate title/question fields
+- Removed duplicate order field interfaces
+- Streamlined FAQ creation workflow
+- Improved consistency with WordPress post editing experience
+
+### Security
+- Maintained all existing security measures during UX improvements
+
 ## [2.0.1] - 2025-01-09
 
 ### Fixed

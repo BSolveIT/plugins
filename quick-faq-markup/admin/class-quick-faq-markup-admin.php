@@ -209,7 +209,7 @@ class Quick_FAQ_Markup_Admin {
 			'label'                 => __( 'FAQ', 'quick-faq-markup' ),
 			'description'           => __( 'Frequently Asked Questions', 'quick-faq-markup' ),
 			'labels'                => $labels,
-			'supports'              => array( 'title', 'page-attributes' ),
+			'supports'              => array( 'title' ),
 			'hierarchical'          => false,
 			'public'                => false,
 			'show_ui'               => true,
@@ -265,8 +265,7 @@ class Quick_FAQ_Markup_Admin {
 		wp_nonce_field( 'qfm_faq_meta_box_action', 'qfm_faq_meta_box_nonce' );
 
 		// Get current values
-		$question = get_post_meta( $post->ID, '_qfm_faq_question', true );
-		$answer   = get_post_meta( $post->ID, '_qfm_faq_answer', true );
+		$answer = get_post_meta( $post->ID, '_qfm_faq_answer', true );
 
 		// Include the meta box template
 		include QUICK_FAQ_MARKUP_PLUGIN_DIR . 'admin/partials/faq-meta-box.php';
@@ -300,24 +299,49 @@ class Quick_FAQ_Markup_Admin {
 			return;
 		}
 
-		// Sanitize and save question
-		if ( isset( $_POST['qfm_faq_question'] ) ) {
-			$question = sanitize_textarea_field( wp_unslash( $_POST['qfm_faq_question'] ) );
-			update_post_meta( $post_id, '_qfm_faq_question', $question );
-		}
-
 		// Sanitize and save answer (allow HTML)
 		if ( isset( $_POST['qfm_faq_answer'] ) ) {
 			$answer = wp_kses_post( wp_unslash( $_POST['qfm_faq_answer'] ) );
 			update_post_meta( $post_id, '_qfm_faq_answer', $answer );
 		}
 
+		// Handle display order
+		$order = isset( $_POST['qfm_faq_order'] ) ? absint( $_POST['qfm_faq_order'] ) : 0;
+		
+		// Auto-increment order for new posts if order is 0
+		if ( 0 === $order ) {
+			$order = $this->get_next_faq_order();
+		}
+
+		// Update the post's menu_order
+		wp_update_post( array(
+			'ID'         => $post_id,
+			'menu_order' => $order,
+		) );
 
 		// Log the save action
-		quick_faq_markup_log( 
-			sprintf( 'FAQ meta data saved for post ID: %d', $post_id ), 
-			'info' 
+		quick_faq_markup_log(
+			sprintf( 'FAQ meta data saved for post ID: %d, order: %d', $post_id, $order ),
+			'info'
 		);
+	}
+
+	/**
+	 * Get the next auto-increment order number for FAQs.
+	 *
+	 * @since 2.0.2
+	 * @return int Next order number.
+	 */
+	private function get_next_faq_order() {
+		global $wpdb;
+
+		$max_order = $wpdb->get_var( $wpdb->prepare(
+			"SELECT MAX(menu_order) FROM {$wpdb->posts} WHERE post_type = %s AND post_status != %s",
+			'qfm_faq',
+			'trash'
+		) );
+
+		return ( $max_order ? (int) $max_order + 1 : 1 );
 	}
 
 	/**
@@ -335,13 +359,12 @@ class Quick_FAQ_Markup_Admin {
 			$new_columns['cb'] = $columns['cb'];
 		}
 
-		// Add title column first (after checkbox)
+		// Add title column first (after checkbox) - this is now the question
 		if ( isset( $columns['title'] ) ) {
-			$new_columns['title'] = $columns['title'];
+			$new_columns['title'] = __( 'Question', 'quick-faq-markup' );
 		}
 
 		// Add custom columns in new order
-		$new_columns['faq_question'] = __( 'Question', 'quick-faq-markup' );
 		$new_columns['faq_answer']   = __( 'Answer', 'quick-faq-markup' );
 		$new_columns['faq_category'] = __( 'Category', 'quick-faq-markup' );
 		$new_columns['faq_order']    = __( 'Order', 'quick-faq-markup' );
@@ -363,11 +386,6 @@ class Quick_FAQ_Markup_Admin {
 	 */
 	public function populate_admin_columns( $column, $post_id ) {
 		switch ( $column ) {
-			case 'faq_question':
-				$question = get_post_meta( $post_id, '_qfm_faq_question', true );
-				echo esc_html( wp_trim_words( $question, 10 ) );
-				break;
-
 			case 'faq_answer':
 				$answer = get_post_meta( $post_id, '_qfm_faq_answer', true );
 				echo esc_html( wp_trim_words( wp_strip_all_tags( $answer ), 15 ) );
