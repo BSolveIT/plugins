@@ -345,9 +345,17 @@ class Quick_FAQ_Markup_Admin {
 			return $data;
 		}
 
+		// Enhanced debugging - log post ID and current menu_order
+		$post_id = $postarr['ID'] ?? 0;
+		$is_new_post = empty( $post_id );
+		$current_menu_order = isset( $data['menu_order'] ) ? $data['menu_order'] : 'not set';
+		
 		// Log the current state for debugging
 		quick_faq_markup_log(
-			sprintf( 'wp_insert_post_data filter called - temp_order_for_save: %s, posted order: %s',
+			sprintf( 'wp_insert_post_data filter called - Post ID: %d, Is New: %s, Current menu_order: %s, temp_order_for_save: %s, posted order: %s',
+				$post_id,
+				$is_new_post ? 'YES' : 'NO',
+				$current_menu_order,
 				var_export( $this->temp_order_for_save, true ),
 				var_export( $_POST['qfm_faq_order'] ?? 'not set', true )
 			),
@@ -359,9 +367,31 @@ class Quick_FAQ_Markup_Admin {
 			// Handle display order calculation during post creation
 			$order = isset( $_POST['qfm_faq_order'] ) ? absint( $_POST['qfm_faq_order'] ) : 0;
 			
-			// Auto-increment order for new posts if order is 0
-			if ( 0 === $order ) {
+			// Auto-increment order ONLY for new posts if order is 0
+			if ( 0 === $order && $is_new_post ) {
 				$order = $this->get_next_faq_order();
+				
+				// Log auto-increment action
+				quick_faq_markup_log(
+					sprintf( 'AUTO-INCREMENT TRIGGERED - Post ID: %d, Is New: %s, Calculated Order: %d',
+						$post_id,
+						$is_new_post ? 'YES' : 'NO',
+						$order
+					),
+					'info'
+				);
+			} elseif ( 0 === $order && ! $is_new_post ) {
+				// For existing posts with no order specified, preserve current order
+				$order = isset( $data['menu_order'] ) ? $data['menu_order'] : $current_menu_order;
+				
+				// Log preservation of existing order
+				quick_faq_markup_log(
+					sprintf( 'EXISTING POST ORDER PRESERVED - Post ID: %d, Order: %s',
+						$post_id,
+						$order
+					),
+					'info'
+				);
 			}
 			
 			// Set the menu_order in the post data
@@ -369,7 +399,7 @@ class Quick_FAQ_Markup_Admin {
 			
 			// Log the order assignment
 			quick_faq_markup_log(
-				sprintf( 'FAQ menu_order calculated directly in wp_insert_post_data filter: %d', $order ),
+				sprintf( 'FAQ menu_order calculated directly in wp_insert_post_data filter: %d (Post ID: %d)', $order, $post_id ),
 				'info'
 			);
 			
@@ -384,7 +414,7 @@ class Quick_FAQ_Markup_Admin {
 
 		// Log the order assignment
 		quick_faq_markup_log(
-			sprintf( 'FAQ menu_order set via wp_insert_post_data filter from temp storage: %d', $data['menu_order'] ),
+			sprintf( 'FAQ menu_order set via wp_insert_post_data filter from temp storage: %d (Post ID: %d)', $data['menu_order'], $post_id ),
 			'info'
 		);
 
