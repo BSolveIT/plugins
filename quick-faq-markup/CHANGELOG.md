@@ -5,6 +5,29 @@ All notable changes to the Quick FAQ Markup plugin will be documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.4] - 2025-01-09
+
+### Added
+- Default sorting by menu_order for FAQ admin list
+- `set_default_faq_admin_sorting()` method to handle automatic sorting
+- Enhanced debug logging for admin query state tracking
+
+### Changed
+- **UX IMPROVEMENT**: FAQs now display in numerical order (1, 2, 3, 4, 5) by default without requiring manual sorting
+- **UX IMPROVEMENT**: Order column now shows as active/sorted column in admin interface by default
+- Admin list page now automatically sorts by Order column (ascending) when no other sorting is specified
+- URL parameters are automatically set to ensure visual sorting indicators match actual behavior
+
+### Fixed
+- Fixed misleading visual indicator where Date column appeared sorted when FAQs were actually sorted by Order
+- Resolved visual disconnect between actual sorting behavior and admin interface indicators
+- Enhanced admin interface consistency with proper sorting column highlighting
+
+### Technical
+- Added pre_get_posts hook registration for `set_default_faq_admin_sorting` method
+- Implemented URL parameter manipulation to synchronize visual indicators with query behavior
+- Enhanced debugging capabilities with comprehensive query state logging
+
 ## [2.0.3] - 2025-01-09
 
 ### Fixed

@@ -164,6 +164,7 @@ class Quick_FAQ_Markup {
 		// Admin filtering hooks
 		add_action( 'restrict_manage_posts', array( $this->admin, 'add_category_filter' ) );
 		add_action( 'pre_get_posts', array( $this->admin, 'filter_faqs_by_category' ) );
+		add_action( 'pre_get_posts', array( $this->admin, 'set_default_faq_admin_sorting' ) );
 
 		// AJAX hooks
 		add_action( 'wp_ajax_qfm_update_faq_order', array( $this->admin, 'handle_ajax_reorder' ) );

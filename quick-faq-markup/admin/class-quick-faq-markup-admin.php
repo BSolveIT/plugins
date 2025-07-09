@@ -838,6 +838,56 @@ class Quick_FAQ_Markup_Admin {
 	}
 
 	/**
+	 * Set default sorting for FAQ admin list.
+	 *
+	 * @since 2.0.4
+	 * @param WP_Query $query Current query.
+	 */
+	public function set_default_faq_admin_sorting( $query ) {
+		// Only process admin queries for FAQ post type
+		if ( ! is_admin() || ! $query->is_main_query() ) {
+			return;
+		}
+
+		// Check if we're on the FAQ list page
+		if ( 'qfm_faq' !== $query->get( 'post_type' ) ) {
+			return;
+		}
+
+		// Debug logging to understand current query state
+		$current_orderby = $query->get( 'orderby' );
+		$current_order = $query->get( 'order' );
+		$get_orderby = isset( $_GET['orderby'] ) ? sanitize_text_field( wp_unslash( $_GET['orderby'] ) ) : 'not set';
+		$get_order = isset( $_GET['order'] ) ? sanitize_text_field( wp_unslash( $_GET['order'] ) ) : 'not set';
+
+		quick_faq_markup_log(
+			sprintf( 'FAQ admin list query - Current orderby: %s, Current order: %s, GET orderby: %s, GET order: %s',
+				var_export( $current_orderby, true ),
+				var_export( $current_order, true ),
+				$get_orderby,
+				$get_order
+			),
+			'debug'
+		);
+
+		// Only set default sorting if no specific orderby is requested
+		if ( empty( $current_orderby ) && ! isset( $_GET['orderby'] ) ) {
+			// Set default URL parameters to match the sorting behavior
+			$_GET['orderby'] = 'menu_order';
+			$_GET['order'] = 'asc';
+			
+			// Also set the query parameters
+			$query->set( 'orderby', 'menu_order' );
+			$query->set( 'order', 'ASC' );
+
+			quick_faq_markup_log(
+				'FAQ admin list default sorting applied: orderby=menu_order, order=ASC (with URL params)',
+				'info'
+			);
+		}
+	}
+
+	/**
 	 * Inject drag handles into title column for horizontal layout.
 	 * This method outputs JavaScript to modify the title column after page load.
 	 *
