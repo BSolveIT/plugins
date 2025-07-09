@@ -602,6 +602,13 @@ class Quick_FAQ_Markup_Frontend {
 			// Handle initial load
 			if (document.readyState === 'loading') {
 				document.addEventListener('DOMContentLoaded', handleAnchorOnLoad);
+			} else {
+				handleAnchorOnLoad();
+			}
+		})();
+		</script>
+		<?php
+	}
 
 	/**
 	 * Add FAQs to schema generation system.
@@ -630,12 +637,5 @@ class Quick_FAQ_Markup_Frontend {
 		}
 		
 		return null;
-	}
-			} else {
-				handleAnchorOnLoad();
-			}
-		})();
-		</script>
-		<?php
 	}
 }
