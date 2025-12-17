@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+### [1.3.1] - 2025-12-17
+
+#### Removed
+- Post-Upload Processing setting, AJAX handler, and upload completion script to prevent upload slowdowns.
+- Admin UI rows and settings fields related to post-upload processing.
+
+#### Changed
+- Default image engine now prioritizes ImageMagick, including activation defaults and admin guidance.
+- Uninstall cleanup simplified to drop legacy upload-processing options.
+
+### [1.3.0] - 2025-06-16
+
+#### Security
+- Added capability checks to restrict upload-triggered queue runs to users who can upload files.
+
+#### Compatibility
+- Switched upload completion handling to bind to the core uploader instead of overriding prototypes for WordPress 6.9.
+- Broadened admin screen detection (plus a filter) so CPT uploads still trigger background processing.
+- Loaded the plugin text domain to ensure translations work with WordPress.org i18n checks.
+
+#### Performance
+- Throttled the fallback metadata hook so ActionScheduler is triggered once per request during bulk uploads.
+
+#### Maintenance
+- Updated metadata to Tested up to WordPress 6.9 and raised minimum PHP to 8.0.
+
 ### [1.2.0] - 2025-06-16
 
 #### Added

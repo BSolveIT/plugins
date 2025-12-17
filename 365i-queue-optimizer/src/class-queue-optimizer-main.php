@@ -38,14 +38,13 @@ class Queue_Optimizer_Main {
 	 * Constructor.
 	 */
 	private function __construct() {
+		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
+
 		// Check WordPress version compatibility.
 		if ( version_compare( $GLOBALS['wp_version'], esc_html( QUEUE_OPTIMIZER_MIN_WP_VERSION ), '<' ) ) {
 			add_action( 'admin_notices', array( $this, 'display_version_notice' ) );
 			return;
 		}
-
-		// Handle option name upgrade for backward compatibility.
-		$this->maybe_handle_option_upgrade();
 
 		$this->init_hooks();
 	}
@@ -66,13 +65,19 @@ class Queue_Optimizer_Main {
 		add_filter( 'action_scheduler_queue_runner_concurrent_batches', array( $this, 'set_concurrent_batches' ) );
 		add_filter( 'wp_image_editors', array( $this, 'set_image_editor' ) );
 
-		// Add hooks for post-upload processing.
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
-		add_action( 'wp_ajax_queue_optimizer_upload_complete', array( $this, 'handle_upload_complete_ajax' ) );
-		add_filter( 'wp_generate_attachment_metadata', array( $this, 'on_attachment_metadata_generated' ), 999, 2 );
-
 		// Plugin activation hook.
 		register_activation_hook( QUEUE_OPTIMIZER_PLUGIN_DIR . '365i-queue-optimizer.php', array( __CLASS__, 'activate' ) );
+	}
+
+	/**
+	 * Load plugin translations.
+	 */
+	public function load_textdomain() {
+		load_plugin_textdomain(
+			'365i-queue-optimizer',
+			false,
+			dirname( QUEUE_OPTIMIZER_PLUGIN_BASENAME ) . '/languages/'
+		);
 	}
 
 	/**
@@ -86,74 +91,6 @@ class Queue_Optimizer_Main {
 				esc_html( QUEUE_OPTIMIZER_MIN_WP_VERSION )
 			) .
 			'</p></div>';
-	}
-
-	/**
-	 * Enqueue admin scripts for media uploader detection.
-	 */
-	public function enqueue_admin_scripts() {
-		// Only enqueue on media-related pages.
-		$screen = get_current_screen();
-		if ( ! $screen || ! in_array( $screen->id, array( 'upload', 'post', 'page' ), true ) ) {
-			return;
-		}
-
-		wp_enqueue_script(
-			'queue-optimizer-upload-complete',
-			plugin_dir_url( QUEUE_OPTIMIZER_PLUGIN_DIR . '365i-queue-optimizer.php' ) . 'assets/js/upload-complete-trigger.js',
-			array( 'jquery', 'media-views' ),
-			'1.2.0',
-			true
-		);
-
-		wp_localize_script(
-			'queue-optimizer-upload-complete',
-			'QueueOptimizer',
-			array(
-				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-				'nonce'   => wp_create_nonce( 'queue-optimizer-upload-complete' ),
-			)
-		);
-	}
-
-	/**
-	 * Handle the AJAX request when uploads complete.
-	 */
-	public function handle_upload_complete_ajax() {
-		// Verify nonce.
-		check_ajax_referer( 'queue-optimizer-upload-complete', 'nonce' );
-
-		// Check if post-upload processing is enabled.
-		$enabled = get_option( 'queue_optimizer_post_upload_processing', true );
-		if ( ! $enabled ) {
-			wp_send_json_success( 'Processing disabled by settings.' );
-			return;
-		}
-
-		// Trigger ActionScheduler to run now.
-		if ( class_exists( 'ActionScheduler' ) ) {
-			do_action( 'action_scheduler_run_queue', 'upload-complete-trigger' );
-			do_action( 'queue_optimizer_processing_triggered' );
-		}
-
-		wp_send_json_success( 'Queue processing triggered.' );
-	}
-
-	/**
-	 * Maybe handle option name upgrade for backward compatibility.
-	 */
-	private function maybe_handle_option_upgrade() {
-		// Check if the old option exists but the new one doesn't.
-		if ( get_option( 'queue_optimizer_immediate_processing' ) !== false &&
-			 get_option( 'queue_optimizer_post_upload_processing' ) === false ) {
-
-			// Copy value from old option to new option.
-			$old_value = get_option( 'queue_optimizer_immediate_processing' );
-			add_option( 'queue_optimizer_post_upload_processing', $old_value );
-
-			// Remove old option.
-			delete_option( 'queue_optimizer_immediate_processing' );
-		}
 	}
 
 	/**
@@ -203,11 +140,11 @@ class Queue_Optimizer_Main {
 	 * @return array Modified array with preferred editor prioritized.
 	 */
 	public function set_image_editor( $editors ) {
-		$allowed   = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
-		$preferred = get_option( 'queue_optimizer_image_engine', 'WP_Image_Editor_GD' );
+		$allowed   = array( 'WP_Image_Editor_Imagick', 'WP_Image_Editor_GD' );
+		$preferred = get_option( 'queue_optimizer_image_engine', 'WP_Image_Editor_Imagick' );
 
 		if ( ! in_array( $preferred, $allowed, true ) ) {
-			$preferred = 'WP_Image_Editor_GD';
+			$preferred = 'WP_Image_Editor_Imagick';
 		}
 
 		$result = array_merge( array( $preferred ), array_diff( $editors, array( $preferred ) ) );
@@ -220,50 +157,6 @@ class Queue_Optimizer_Main {
 		 * @param array  $editors The original editors array.
 		 */
 		return apply_filters( 'queue_optimizer_image_editors', $result, $preferred, $editors );
-	}
-
-	/**
-	 * Process attachment metadata for single uploads (fallback).
-	 *
-	 * @param array $metadata      Attachment metadata.
-	 * @param int   $attachment_id Attachment ID.
-	 * @return array Unmodified metadata.
-	 */
-	public function on_attachment_metadata_generated( $metadata, $attachment_id ) {
-		// Check if it's an image.
-		if ( ! wp_attachment_is_image( $attachment_id ) ) {
-			return $metadata;
-		}
-
-		// Check if post-upload processing is enabled.
-		$enabled = get_option( 'queue_optimizer_post_upload_processing', true );
-		if ( ! $enabled ) {
-			return $metadata;
-		}
-
-		// Only trigger for non-AJAX contexts or when not already handled by our JavaScript.
-		// This serves as a fallback for uploads that don't use the media modal.
-		if ( ! defined( 'DOING_AJAX' ) || ! $this->is_our_ajax_action() ) {
-			// Trigger ActionScheduler for this single upload.
-			if ( class_exists( 'ActionScheduler' ) ) {
-				do_action( 'action_scheduler_run_queue', 'single-upload-trigger' );
-				do_action( 'queue_optimizer_processing_triggered' );
-			}
-		}
-
-		return $metadata;
-	}
-
-	/**
-	 * Check if we're in our own AJAX action context.
-	 *
-	 * @return bool True if we're in our AJAX action.
-	 */
-	private function is_our_ajax_action() {
-		// Safely check if we're in our own AJAX action without accessing $_POST directly.
-		return defined( 'DOING_AJAX' ) && 
-			   wp_doing_ajax() && 
-			   current_action() === 'wp_ajax_queue_optimizer_upload_complete';
 	}
 
 	/**
@@ -287,8 +180,7 @@ class Queue_Optimizer_Main {
 		// Set default options.
 		add_option( 'queue_optimizer_time_limit', 60 );
 		add_option( 'queue_optimizer_concurrent_batches', 4 );
-		add_option( 'queue_optimizer_image_engine', 'WP_Image_Editor_GD' );
-		add_option( 'queue_optimizer_post_upload_processing', true );
+		add_option( 'queue_optimizer_image_engine', 'WP_Image_Editor_Imagick' );
 		add_option( 'queue_optimizer_activated', time() );
 
 		// Clear any caches.

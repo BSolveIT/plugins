@@ -2,9 +2,9 @@
 Contributors: 365i
 Tags: actionscheduler, queue, optimization, performance, background-tasks
 Requires at least: 5.8
-Tested up to: 6.8
-Stable tag: 1.2.0
-Requires PHP: 7.4
+Tested up to: 6.9
+Stable tag: 1.3.1
+Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,7 +12,7 @@ A lightweight WordPress plugin to optimize ActionScheduler queue processing for 
 
 == Description ==
 
-**365i Queue Optimizer** is an ultra-lightweight WordPress plugin designed to optimize ActionScheduler performance for faster image processing and background task execution. Now featuring revolutionary JavaScript-based post-upload processing that eliminates upload slowdowns. Perfect for sites using image optimization plugins, WooCommerce, or any plugin that relies on ActionScheduler.
+**365i Queue Optimizer** is an ultra-lightweight WordPress plugin designed to optimize ActionScheduler performance for faster image processing and background task execution. It prioritizes ImageMagick out of the box while keeping background queue tuning simple. Perfect for sites using image optimization plugins, WooCommerce, or any plugin that relies on ActionScheduler.
 
 ### What This Plugin Does
 
@@ -20,7 +20,7 @@ This plugin applies three essential ActionScheduler optimizations:
 
 * **Time Limit Control** - Sets how long ActionScheduler processes tasks (default: 60 seconds, configurable 10-300)
 * **Concurrent Batch Processing** - Controls simultaneous background processes (default: 4 batches, configurable 1-10)
-* **Image Processing Engine** - Prioritizes your chosen image processor (GD or ImageMagick)
+* **Image Processing Engine** - Prioritizes your chosen image processor (ImageMagick by default, GD fallback)
 
 ### Key Features
 
@@ -30,6 +30,7 @@ This plugin applies three essential ActionScheduler optimizations:
 * **Instant Results** - Optimizations apply automatically after activation
 * **WordPress Standards** - Follows all WordPress coding and security standards
 * **Performance Focused** - Based on proven optimization techniques
+* **ImageMagick-First Defaults** - Prefers ImageMagick for better quality and stability when available
 
 ### Perfect For
 
@@ -68,7 +69,7 @@ Simple, fast, and effective. This plugin does one thing well: optimize ActionSch
 2. Configure your preferred settings:
    - **Time Limit**: How long ActionScheduler runs per batch (10-300 seconds)
    - **Concurrent Batches**: Number of simultaneous processes (1-10 batches)
-   - **Image Engine**: Choose GD or ImageMagick for image processing
+   - **Image Engine**: Prioritize ImageMagick (default) or switch to GD if needed
 3. Click **Save Settings**
 4. Optimizations apply automatically - no further setup required
 
@@ -82,8 +83,8 @@ Controls how long ActionScheduler processes tasks in each batch. Higher values p
 **Concurrent Batches (1-10 batches, default: 4)**
 Determines how many background processes run simultaneously. More batches can speed up processing but increase server load. Start with 4 and adjust based on your server capacity.
 
-**Image Processing Engine (GD or ImageMagick, default: GD)**
-Prioritizes your chosen image processing library. GD is more universally compatible, while ImageMagick often provides better quality and performance for image operations.
+**Image Processing Engine (ImageMagick or GD, default: ImageMagick)**
+Prioritizes your chosen image processing library. ImageMagick is preferred for quality and stability; GD remains available as a fallback for hosts without ImageMagick.
 
 ### Current Status
 
@@ -127,9 +128,22 @@ After activation, image processing and background tasks should be noticeably fas
 
 1. **Settings Page** - Simple configuration interface under Tools > Queue Optimizer
 2. **Current Status** - Shows your optimization settings and ActionScheduler status
+= 1.3.1 - 2025-12-17 =
+* Removed the Post-Upload Processing setting and associated upload completion trigger to avoid slowing uploads.
+* Simplified the settings and status UI to match the streamlined feature set.
+* Switched ImageMagick to the default/recommended image engine across settings and activation defaults.
+* Cleaned uninstall logic to drop legacy upload-processing options.
+= 1.3.0 - 2025-06-16 =
+* Added capability checks to restrict upload-triggered queue runs to users who can upload files.
+* Bound upload completion handling to the core uploader instead of overriding prototypes for WordPress 6.9 compatibility.
+* Broadened admin screen detection (with a new filter) so CPT uploads trigger background processing.
+* Loaded the plugin text domain for translations and tighter repository compliance.
+* Throttled the fallback metadata hook to fire queue runs once per request.
+* Tested up to WordPress 6.9 and raised minimum PHP to 8.0.
+
 = 1.2.0 - 2025-06-16 =
 
-**Revolutionary JavaScript-Based Post-Upload Processing**
+**Revolutionary JavaScript-Based Post-Upload Processing (removed in 1.3.1)**
 
 This major update introduces a groundbreaking approach to post-upload processing that completely eliminates upload slowdowns while maintaining instant ActionScheduler optimization.
 
@@ -152,7 +166,7 @@ This major update introduces a groundbreaking approach to post-upload processing
 * Added safer AJAX action detection methods
 
 **Technical:**
-* New JavaScript file: assets/js/upload-complete-trigger.js
+* New JavaScript file: assets/js/upload-complete-trigger.js (removed in 1.3.1)
 * Enhanced main class with upload detection capabilities
 * Updated settings terminology from "Immediate Processing" to "Post-Upload Processing"
 * Smart script loading only on relevant admin pages
@@ -217,6 +231,9 @@ Major update preparing the plugin for WordPress repository submission. Includes 
 * Complete cleanup on uninstall
 
 == Upgrade Notice ==
+
+= 1.3.0 =
+Security and compatibility release for WordPress 6.9. Adds capability checks, safer media handling, and translation loading.
 
 = 1.0.0 =
 Initial release of 365i Queue Optimizer. A lightweight solution for optimizing ActionScheduler performance with minimal overhead.

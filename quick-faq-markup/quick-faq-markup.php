@@ -3,7 +3,7 @@
  * Plugin Name: Quick FAQ Markup
  * Plugin URI: https://github.com/BSolveIT/plugins
  * Description: A WordPress plugin for creating and managing FAQ sections with drag-and-drop reordering, multiple display styles, and JSON-LD schema markup support. Supports shortcodes, accessibility features, and direct linking.
- * Version: 2.0.4
+ * Version: 2.1.2
  * Author: BSolveIT
  * Author URI: https://bsolveit.com
  * License: GPL v2 or later
@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Currently plugin version.
  */
-define( 'QUICK_FAQ_MARKUP_VERSION', '2.0.4' );
+define( 'QUICK_FAQ_MARKUP_VERSION', '2.1.2' );
 
 /**
  * Plugin name for internal use.

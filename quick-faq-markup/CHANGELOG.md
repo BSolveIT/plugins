@@ -5,6 +5,42 @@ All notable changes to the Quick FAQ Markup plugin will be documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.2] - 2025-07-09
+
+### Fixed
+- **CRITICAL**: Fixed persistent migration notice that kept reappearing indefinitely
+- **CRITICAL**: Fixed excessive order numbers (10093, 10095) by implementing sequential numbering system
+- **CRITICAL**: Replaced complex order calculation formula with simple sequential ordering (1, 2, 3, etc.)
+- Migration notice now shows for only 24 hours instead of a full week
+- Added proper AJAX dismissal functionality for migration notice
+- Improved order recalculation performance by processing all FAQs sequentially
+- Fixed order integrity issues in category-specific ordering system
+
+### Changed
+- Migration notice display duration reduced from 7 days to 24 hours
+- Order calculation now uses sequential numbering instead of priority-based formula
+- Improved logging for order recalculation operations
+
+### Technical Details
+- Rewrote `recalculate_global_order()` method to use sequential numbering
+- Added `handle_dismiss_migration_notice()` AJAX handler
+- Enhanced migration notice with proper dismissal JavaScript
+- Improved order validation and integrity checking
+
+## [2.1.1] - 2025-01-09
+
+### Fixed
+- **CRITICAL**: Fixed category-specific ordering system initialization bug
+- Resolved "Category ordering system not available" error message when filtering by category
+- Fixed incorrect global variable reference in `get_category_order_instance()` method
+- Restored drag-and-drop functionality when category filter is applied
+- Fixed category-specific order input fields not displaying properly
+
+### Technical
+- Corrected global variable name from `$quick_faq_markup_plugin` to `$quick_faq_markup` in admin class
+- Enhanced category filtering interface messaging for better user experience
+- Improved category order instance retrieval reliability
+
 ## [2.0.4] - 2025-01-09
 
 ### Added

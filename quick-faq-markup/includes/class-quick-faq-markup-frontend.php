@@ -399,26 +399,43 @@ class Quick_FAQ_Markup_Frontend {
 			'post_type'      => 'qfm_faq',
 			'post_status'    => 'publish',
 			'posts_per_page' => (int) $args['limit'],
-			'orderby'        => 'menu_order',
 			'order'          => sanitize_text_field( $args['order'] ),
 		);
 
-		// Add category filter if specified
+		// Determine ordering strategy based on category parameter
+		$category_term = null;
 		if ( ! empty( $args['category'] ) ) {
-			$query_args['tax_query'] = array(
-				array(
-					'taxonomy' => 'qfm_faq_category',
-					'field'    => 'slug',
-					'terms'    => sanitize_text_field( $args['category'] ),
-				),
-			);
+			// Get category term for category-specific ordering
+			$category_term = get_term_by( 'slug', $args['category'], 'qfm_faq_category' );
+			
+			if ( $category_term && ! is_wp_error( $category_term ) ) {
+				// Use category-specific ordering
+				$query_args = $this->apply_category_specific_ordering( $query_args, $category_term );
+				
+				// Add category filter
+				$query_args['tax_query'] = array(
+					array(
+						'taxonomy' => 'qfm_faq_category',
+						'field'    => 'slug',
+						'terms'    => sanitize_text_field( $args['category'] ),
+					),
+				);
+			} else {
+				// Invalid category, fall back to global ordering
+				$query_args['orderby'] = 'menu_order';
+			}
+		} else {
+			// No category specified, use global ordering
+			$query_args['orderby'] = 'menu_order';
 		}
 
-		// Add specific IDs if provided
+		// Add specific IDs if provided (overrides category-specific ordering)
 		if ( ! empty( $args['ids'] ) ) {
 			$ids = array_map( 'intval', explode( ',', $args['ids'] ) );
 			$query_args['post__in'] = $ids;
 			$query_args['orderby'] = 'post__in';
+			// Remove meta_query when using specific IDs
+			unset( $query_args['meta_query'] );
 		}
 
 		/**
@@ -449,6 +466,14 @@ class Quick_FAQ_Markup_Frontend {
 					'categories' => ! is_wp_error( $categories ) ? $categories : array(),
 					'order'      => get_post_field( 'menu_order', $post_id ),
 				);
+
+				// Add category-specific order if available
+				if ( $category_term ) {
+					$category_order = $this->get_category_order_for_faq( $post_id, $category_term->term_id );
+					if ( $category_order !== false ) {
+						$faq_data['category_order'] = $category_order;
+					}
+				}
 
 				// Skip if question or answer is empty
 				if ( empty( $faq_data['question'] ) || empty( $faq_data['answer'] ) ) {
@@ -615,6 +640,85 @@ class Quick_FAQ_Markup_Frontend {
 		if ( $schema_instance && method_exists( $schema_instance, 'add_page_faqs' ) ) {
 			$schema_instance->add_page_faqs( $faqs );
 		}
+	}
+
+	/**
+	 * Apply category-specific ordering to query arguments.
+	 *
+	 * @since 2.1.0
+	 * @param array   $query_args Current query arguments.
+	 * @param WP_Term $category_term Category term object.
+	 * @return array Modified query arguments with category-specific ordering.
+	 */
+	private function apply_category_specific_ordering( $query_args, $category_term ) {
+		// Use meta_query to order by category-specific meta field
+		$meta_key = '_faq_order_' . $category_term->term_id;
+		
+		// Add meta query for category-specific ordering
+		$query_args['meta_query'] = array(
+			'relation' => 'OR',
+			array(
+				'key'     => $meta_key,
+				'compare' => 'EXISTS',
+				'type'    => 'NUMERIC',
+			),
+			array(
+				'key'     => $meta_key,
+				'compare' => 'NOT EXISTS',
+			),
+		);
+		
+		// Order by category-specific meta, then by global menu_order as fallback
+		$query_args['orderby'] = array(
+			'meta_value_num' => $query_args['order'],
+			'menu_order'     => $query_args['order'],
+			'post_date'      => 'DESC', // Final fallback
+		);
+		
+		// Set meta_key for ordering
+		$query_args['meta_key'] = $meta_key;
+		
+		// Log the category-specific ordering
+		quick_faq_markup_log(
+			sprintf( 'Applied category-specific ordering for category: %s (ID: %d)', $category_term->name, $category_term->term_id ),
+			'info'
+		);
+		
+		return $query_args;
+	}
+
+	/**
+	 * Get category-specific order for an FAQ.
+	 *
+	 * @since 2.1.0
+	 * @param int $post_id FAQ post ID.
+	 * @param int $category_id Category term ID.
+	 * @return int|false Category-specific order or false if not found.
+	 */
+	private function get_category_order_for_faq( $post_id, $category_id ) {
+		$category_order_instance = $this->get_category_order_instance();
+		
+		if ( ! $category_order_instance ) {
+			return false;
+		}
+		
+		return $category_order_instance->get_faq_order_in_category( $post_id, $category_id );
+	}
+
+	/**
+	 * Get category order instance from global plugin instance.
+	 *
+	 * @since 2.1.0
+	 * @return Quick_FAQ_Markup_Category_Order|null Category order instance or null if not available.
+	 */
+	private function get_category_order_instance() {
+		global $quick_faq_markup_plugin;
+		
+		if ( isset( $quick_faq_markup_plugin ) && method_exists( $quick_faq_markup_plugin, 'get_category_order' ) ) {
+			return $quick_faq_markup_plugin->get_category_order();
+		}
+		
+		return null;
 	}
 
 	/**

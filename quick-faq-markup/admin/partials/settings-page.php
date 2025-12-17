@@ -174,6 +174,80 @@ $settings = wp_parse_args( $settings, $defaults );
 		<?php submit_button(); ?>
 	</form>
 	
+	<div class="qfm-settings-section">
+		<h3><?php esc_html_e( 'Order Management Tools', 'quick-faq-markup' ); ?></h3>
+		<p class="description">
+			<?php esc_html_e( 'These tools help maintain data integrity and performance for the category-specific ordering system.', 'quick-faq-markup' ); ?>
+		</p>
+		
+		<table class="form-table">
+			<tr>
+				<th scope="row">
+					<label><?php esc_html_e( 'Recalculate Orders', 'quick-faq-markup' ); ?></label>
+				</th>
+				<td>
+					<button type="button" class="button button-secondary" id="qfm-recalculate-orders">
+						<?php esc_html_e( 'Recalculate All Orders', 'quick-faq-markup' ); ?>
+					</button>
+					<span class="qfm-tool-status" id="qfm-recalculate-status"></span>
+					<p class="description">
+						<?php esc_html_e( 'Recalculates global menu_order values based on category-specific orders. Use this if orders appear incorrect.', 'quick-faq-markup' ); ?>
+					</p>
+				</td>
+			</tr>
+			
+			<tr>
+				<th scope="row">
+					<label><?php esc_html_e( 'Validate Order Integrity', 'quick-faq-markup' ); ?></label>
+				</th>
+				<td>
+					<button type="button" class="button button-secondary" id="qfm-validate-orders">
+						<?php esc_html_e( 'Validate Order Integrity', 'quick-faq-markup' ); ?>
+					</button>
+					<span class="qfm-tool-status" id="qfm-validate-status"></span>
+					<p class="description">
+						<?php esc_html_e( 'Checks for duplicate orders, missing meta fields, and other integrity issues. Provides a detailed report.', 'quick-faq-markup' ); ?>
+					</p>
+				</td>
+			</tr>
+			
+			<tr>
+				<th scope="row">
+					<label><?php esc_html_e( 'Clear Order Cache', 'quick-faq-markup' ); ?></label>
+				</th>
+				<td>
+					<button type="button" class="button button-secondary" id="qfm-clear-cache">
+						<?php esc_html_e( 'Clear Order Cache', 'quick-faq-markup' ); ?>
+					</button>
+					<span class="qfm-tool-status" id="qfm-clear-cache-status"></span>
+					<p class="description">
+						<?php esc_html_e( 'Clears all cached FAQ query results. Use this after making manual database changes.', 'quick-faq-markup' ); ?>
+					</p>
+				</td>
+			</tr>
+			
+			<tr>
+				<th scope="row">
+					<label><?php esc_html_e( 'Migration Status', 'quick-faq-markup' ); ?></label>
+				</th>
+				<td>
+					<button type="button" class="button button-secondary" id="qfm-check-migration">
+						<?php esc_html_e( 'Check Migration Status', 'quick-faq-markup' ); ?>
+					</button>
+					<span class="qfm-tool-status" id="qfm-migration-status"></span>
+					<p class="description">
+						<?php esc_html_e( 'Checks if the category-specific ordering migration has been completed successfully.', 'quick-faq-markup' ); ?>
+					</p>
+				</td>
+			</tr>
+		</table>
+		
+		<div id="qfm-tool-results" class="qfm-tool-results" style="display: none;">
+			<h4><?php esc_html_e( 'Tool Results', 'quick-faq-markup' ); ?></h4>
+			<div id="qfm-tool-results-content"></div>
+		</div>
+	</div>
+	
 	<div class="qfm-help-text">
 		<h4><?php esc_html_e( 'Quick Start Guide', 'quick-faq-markup' ); ?></h4>
 		<p><?php esc_html_e( 'Follow these steps to get started with Quick FAQ Markup:', 'quick-faq-markup' ); ?></p>

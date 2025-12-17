@@ -36,6 +36,15 @@
 			
 			// Handle meta box form validation
 			$(document).on('submit', '#post', this.validateMetaBox);
+			
+			// Handle admin tool buttons
+			$(document).on('click', '#qfm-recalculate-orders', this.handleRecalculateOrders);
+			$(document).on('click', '#qfm-validate-orders', this.handleValidateOrders);
+			$(document).on('click', '#qfm-clear-cache', this.handleClearCache);
+			$(document).on('click', '#qfm-check-migration', this.handleCheckMigration);
+			
+			// Handle migration notice dismissal
+			$(document).on('click', '.notice-dismiss', this.handleMigrationNoticeDismiss);
 		},
 
 		/**
@@ -310,6 +319,231 @@
 					$counter.addClass('warning');
 				} else {
 					$counter.removeClass('warning');
+				}
+			});
+		},
+
+		/**
+		 * Handle recalculate orders button click
+		 */
+		handleRecalculateOrders: function(e) {
+			e.preventDefault();
+			
+			var $button = $(this);
+			var $status = $('#qfm-recalculate-status');
+			
+			// Confirm action
+			if (!confirm('Are you sure you want to recalculate all FAQ orders? This will update the global menu_order values based on category-specific orders.')) {
+				return;
+			}
+			
+			QFMAdmin.executeAdminTool('qfm_recalculate_orders', $button, $status, function(response) {
+				if (response.success && response.data.stats) {
+					var stats = response.data.stats;
+					var message = response.data.message + '<br><br>';
+					message += '<strong>Statistics:</strong><br>';
+					message += 'Total FAQs: ' + stats.total_faqs + '<br>';
+					message += 'FAQs with category orders: ' + stats.faqs_with_category_orders + '<br>';
+					message += 'Total categories: ' + stats.total_categories;
+					
+					QFMAdmin.displayToolResult(message, 'success');
+				}
+			});
+		},
+
+		/**
+		 * Handle validate orders button click
+		 */
+		handleValidateOrders: function(e) {
+			e.preventDefault();
+			
+			var $button = $(this);
+			var $status = $('#qfm-validate-status');
+			
+			QFMAdmin.executeAdminTool('qfm_validate_orders', $button, $status, function(response) {
+				if (response.success && response.data.report) {
+					var report = response.data.report;
+					var message = '<strong>Order Integrity Report:</strong><br><br>';
+					
+					// Show status
+					message += '<strong>Status:</strong> ' + (report.status === 'success' ? 'Good' : 'Issues Found') + '<br><br>';
+					
+					// Show issues
+					if (report.issues && report.issues.length > 0) {
+						message += '<strong>Issues:</strong><br>';
+						for (var i = 0; i < report.issues.length; i++) {
+							message += '• ' + report.issues[i] + '<br>';
+						}
+						message += '<br>';
+					}
+					
+					// Show warnings
+					if (report.warnings && report.warnings.length > 0) {
+						message += '<strong>Warnings:</strong><br>';
+						for (var i = 0; i < report.warnings.length; i++) {
+							message += '• ' + report.warnings[i] + '<br>';
+						}
+						message += '<br>';
+					}
+					
+					// Show info
+					if (report.info && report.info.length > 0) {
+						message += '<strong>Statistics:</strong><br>';
+						for (var i = 0; i < report.info.length; i++) {
+							message += '• ' + report.info[i] + '<br>';
+						}
+					}
+					
+					var resultType = report.status === 'success' ? 'success' : 'warning';
+					QFMAdmin.displayToolResult(message, resultType);
+				}
+			});
+		},
+
+		/**
+		 * Handle clear cache button click
+		 */
+		handleClearCache: function(e) {
+			e.preventDefault();
+			
+			var $button = $(this);
+			var $status = $('#qfm-clear-cache-status');
+			
+			QFMAdmin.executeAdminTool('qfm_clear_cache', $button, $status, function(response) {
+				if (response.success) {
+					QFMAdmin.displayToolResult(response.data.message, 'success');
+				}
+			});
+		},
+
+		/**
+		 * Handle check migration button click
+		 */
+		handleCheckMigration: function(e) {
+			e.preventDefault();
+			
+			var $button = $(this);
+			var $status = $('#qfm-migration-status');
+			
+			QFMAdmin.executeAdminTool('qfm_check_migration', $button, $status, function(response) {
+				if (response.success && response.data.status) {
+					var status = response.data.status;
+					var message = '<strong>Migration Status Report:</strong><br><br>';
+					
+					message += '<strong>Migration Status:</strong> ' + (status.migrated ? 'Completed' : 'Not Completed') + '<br>';
+					message += '<strong>Legacy Orders:</strong> ' + status.legacy_orders + '<br>';
+					message += '<strong>Category Orders:</strong> ' + status.category_orders + '<br>';
+					message += '<strong>Needs Migration:</strong> ' + (status.needs_migration ? 'Yes' : 'No') + '<br>';
+					
+					if (status.needs_migration) {
+						message += '<br><strong>Action Required:</strong> Run the migration process to convert legacy orders to category-specific orders.';
+					}
+					
+					var resultType = status.migrated ? 'success' : (status.needs_migration ? 'warning' : 'info');
+					QFMAdmin.displayToolResult(message, resultType);
+				}
+			});
+		},
+
+		/**
+		 * Execute admin tool via AJAX
+		 */
+		executeAdminTool: function(action, $button, $status, callback) {
+			$.ajax({
+				url: qfmAdmin.ajaxUrl,
+				type: 'POST',
+				data: {
+					action: action,
+					nonce: qfmAdmin.nonce
+				},
+				beforeSend: function() {
+					$button.prop('disabled', true).text(qfmAdmin.messages.processing);
+					$status.html('<span class="qfm-loading">Processing...</span>');
+				},
+				success: function(response) {
+					if (response.success) {
+						$status.html('<span class="qfm-success">✓ ' + response.data.message + '</span>');
+						if (callback) {
+							callback(response);
+						}
+					} else {
+						$status.html('<span class="qfm-error">✗ ' + response.data.message + '</span>');
+						QFMAdmin.displayToolResult('Error: ' + response.data.message, 'error');
+					}
+				},
+				error: function(xhr, status, error) {
+					$status.html('<span class="qfm-error">✗ AJAX Error</span>');
+					QFMAdmin.displayToolResult('AJAX Error: ' + error, 'error');
+				},
+				complete: function() {
+					// Reset button after delay
+					setTimeout(function() {
+						$button.prop('disabled', false);
+						$status.html('');
+						
+						// Reset button text based on action
+						if (action === 'qfm_recalculate_orders') {
+							$button.text('Recalculate All Orders');
+						} else if (action === 'qfm_validate_orders') {
+							$button.text('Validate Order Integrity');
+						} else if (action === 'qfm_clear_cache') {
+							$button.text('Clear Order Cache');
+						} else if (action === 'qfm_check_migration') {
+							$button.text('Check Migration Status');
+						}
+					}, 2000);
+				}
+			});
+		},
+
+		/**
+		 * Display tool result in results area
+		 */
+		displayToolResult: function(message, type) {
+			var $results = $('#qfm-tool-results');
+			var $content = $('#qfm-tool-results-content');
+			
+			// Set content
+			$content.html('<div class="qfm-tool-result qfm-tool-result-' + type + '">' + message + '</div>');
+			
+			// Show results area
+			$results.show();
+			
+			// Scroll to results
+			$('html, body').animate({
+				scrollTop: $results.offset().top - 100
+			}, 500);
+		},
+
+		/**
+		 * Handle migration notice dismissal
+		 */
+		handleMigrationNoticeDismiss: function(e) {
+			var $notice = $(e.target).closest('.notice');
+			
+			// Check if this is a migration notice
+			if (!$notice.find('strong').text().includes('Quick FAQ Markup Migration')) {
+				return;
+			}
+			
+			// Send AJAX request to dismiss the notice
+			$.ajax({
+				url: qfmAdmin.ajaxUrl,
+				type: 'POST',
+				data: {
+					action: 'qfm_dismiss_migration_notice',
+					nonce: qfmAdmin.nonce
+				},
+				success: function(response) {
+					if (response.success) {
+						// Notice will be hidden automatically by WordPress
+						console.log('Migration notice dismissed successfully');
+					} else {
+						console.error('Failed to dismiss migration notice:', response.data.message);
+					}
+				},
+				error: function(xhr, status, error) {
+					console.error('AJAX error while dismissing migration notice:', error);
 				}
 			});
 		}

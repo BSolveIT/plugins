@@ -73,6 +73,14 @@ class Quick_FAQ_Markup {
 	protected $schema;
 
 	/**
+	 * The category ordering functionality of the plugin.
+	 *
+	 * @since 2.1.0
+	 * @var Quick_FAQ_Markup_Category_Order $category_order The category ordering functionality of the plugin.
+	 */
+	protected $category_order;
+
+	/**
 	 * Define the core functionality of the plugin.
 	 *
 	 * Set the plugin name and the plugin version that can be used throughout the plugin.
@@ -117,10 +125,16 @@ class Quick_FAQ_Markup {
 		 */
 		require_once QUICK_FAQ_MARKUP_PLUGIN_DIR . 'includes/class-quick-faq-markup-schema.php';
 
+		/**
+		 * The class responsible for category-specific ordering functionality.
+		 */
+		require_once QUICK_FAQ_MARKUP_PLUGIN_DIR . 'includes/class-quick-faq-markup-category-order.php';
+
 		$this->admin = new Quick_FAQ_Markup_Admin( $this->get_plugin_name(), $this->get_version() );
 		$this->frontend = new Quick_FAQ_Markup_Frontend( $this->get_plugin_name(), $this->get_version() );
 		$this->schema = new Quick_FAQ_Markup_Schema( $this->get_plugin_name(), $this->get_version() );
 		$this->shortcode = new Quick_FAQ_Markup_Shortcode( $this->frontend );
+		$this->category_order = new Quick_FAQ_Markup_Category_Order();
 	}
 
 	/**
@@ -169,10 +183,24 @@ class Quick_FAQ_Markup {
 		// AJAX hooks
 		add_action( 'wp_ajax_qfm_update_faq_order', array( $this->admin, 'handle_ajax_reorder' ) );
 		add_action( 'wp_ajax_qfm_single_faq_order', array( $this->admin, 'handle_single_faq_order' ) );
+		add_action( 'wp_ajax_qfm_update_faq_category_order', array( $this->admin, 'handle_ajax_category_reorder' ) );
+		
+		// Admin tool AJAX hooks
+		add_action( 'wp_ajax_qfm_recalculate_orders', array( $this->admin, 'handle_ajax_recalculate_orders' ) );
+		add_action( 'wp_ajax_qfm_validate_orders', array( $this->admin, 'handle_ajax_validate_orders' ) );
+		add_action( 'wp_ajax_qfm_clear_cache', array( $this->admin, 'handle_ajax_clear_cache' ) );
+		add_action( 'wp_ajax_qfm_check_migration', array( $this->admin, 'handle_ajax_check_migration' ) );
+		add_action( 'wp_ajax_qfm_dismiss_migration_notice', array( $this->category_order, 'handle_dismiss_migration_notice' ) );
 
 		// Settings page hooks
 		add_action( 'admin_menu', array( $this->admin, 'create_settings_page' ) );
 		add_action( 'admin_init', array( $this->admin, 'register_settings' ) );
+
+		// Category form field hooks
+		add_action( 'qfm_faq_category_add_form_fields', array( $this->admin, 'add_category_order_field_to_add_form' ) );
+		add_action( 'qfm_faq_category_edit_form_fields', array( $this->admin, 'add_category_order_field_to_edit_form' ), 10, 2 );
+		add_action( 'created_qfm_faq_category', array( $this->admin, 'save_category_order_on_create' ), 10, 2 );
+		add_action( 'edited_qfm_faq_category', array( $this->admin, 'save_category_order_on_update' ), 10, 2 );
 
 		// Cache invalidation hooks for taxonomy changes
 		add_action( 'created_qfm_faq_category', array( $this->admin, 'clear_faq_cache_on_term_change' ), 10, 3 );
@@ -270,6 +298,16 @@ class Quick_FAQ_Markup {
 	 */
 	public function get_schema() {
 		return $this->schema;
+	}
+
+	/**
+	 * Get the category order instance.
+	 *
+	 * @since 2.1.0
+	 * @return Quick_FAQ_Markup_Category_Order The category order instance.
+	 */
+	public function get_category_order() {
+		return $this->category_order;
 	}
 
 	/**

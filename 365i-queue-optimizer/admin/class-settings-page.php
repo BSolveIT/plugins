@@ -85,13 +85,7 @@ class Queue_Optimizer_Settings_Page {
 		register_setting( 'queue_optimizer_settings', 'queue_optimizer_image_engine', array(
 			'type'              => 'string',
 			'sanitize_callback' => array( $this, 'sanitize_image_engine' ),
-			'default'           => 'WP_Image_Editor_GD',
-		) );
-
-		register_setting( 'queue_optimizer_settings', 'queue_optimizer_post_upload_processing', array(
-			'type'              => 'boolean',
-			'sanitize_callback' => array( $this, 'sanitize_post_upload_processing' ),
-			'default'           => true,
+			'default'           => 'WP_Image_Editor_Imagick',
 		) );
 
 		// Add settings section.
@@ -123,14 +117,6 @@ class Queue_Optimizer_Settings_Page {
 			'queue_optimizer_image_engine',
 			__( 'Image Processing Engine', '365i-queue-optimizer' ),
 			array( $this, 'render_image_engine_field' ),
-			'queue_optimizer_settings',
-			'queue_optimizer_main'
-		);
-
-		add_settings_field(
-			'queue_optimizer_post_upload_processing',
-			__( 'Post-Upload Processing', '365i-queue-optimizer' ),
-			array( $this, 'render_post_upload_processing_field' ),
 			'queue_optimizer_settings',
 			'queue_optimizer_main'
 		);
@@ -220,39 +206,19 @@ class Queue_Optimizer_Settings_Page {
 	 * Render image engine field.
 	 */
 	public function render_image_engine_field() {
-		$value = get_option( 'queue_optimizer_image_engine', 'WP_Image_Editor_GD' );
+		$value = get_option( 'queue_optimizer_image_engine', 'WP_Image_Editor_Imagick' );
 		?>
 		<select id="queue_optimizer_image_engine" name="queue_optimizer_image_engine">
-			<option value="WP_Image_Editor_GD" <?php selected( $value, 'WP_Image_Editor_GD' ); ?>>
-				<?php esc_html_e( 'GD Library (Recommended)', '365i-queue-optimizer' ); ?>
-			</option>
 			<option value="WP_Image_Editor_Imagick" <?php selected( $value, 'WP_Image_Editor_Imagick' ); ?>>
-				<?php esc_html_e( 'ImageMagick', '365i-queue-optimizer' ); ?>
+				<?php esc_html_e( 'ImageMagick (Recommended)', '365i-queue-optimizer' ); ?>
+			</option>
+			<option value="WP_Image_Editor_GD" <?php selected( $value, 'WP_Image_Editor_GD' ); ?>>
+				<?php esc_html_e( 'GD Library', '365i-queue-optimizer' ); ?>
 			</option>
 		</select>
 		<span class="description">
-			<?php esc_html_e( 'Image processing engine to prioritize. GD is usually faster for basic operations.', '365i-queue-optimizer' ); ?>
+			<?php esc_html_e( 'Image processing engine to prioritize. ImageMagick is preferred for quality and performance when available.', '365i-queue-optimizer' ); ?>
 		</span>
-		<?php
-	}
-
-	/**
-	 * Render post-upload processing field.
-	 */
-	public function render_post_upload_processing_field() {
-		$value = get_option( 'queue_optimizer_post_upload_processing', true );
-		?>
-		<input type="checkbox" 
-			   id="queue_optimizer_post_upload_processing" 
-			   name="queue_optimizer_post_upload_processing" 
-			   value="1" 
-			   <?php checked( $value, true ); ?> />
-		<label for="queue_optimizer_post_upload_processing">
-			<?php esc_html_e( 'Enable post-upload processing', '365i-queue-optimizer' ); ?>
-		</label>
-		<p class="description">
-			<?php esc_html_e( 'Automatically process the optimization queue immediately after image uploads complete.', '365i-queue-optimizer' ); ?>
-		</p>
 		<?php
 	}
 
@@ -286,16 +252,6 @@ class Queue_Optimizer_Settings_Page {
 	 */
 	public function sanitize_image_engine( $value ) {
 		$allowed = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
-		return in_array( $value, $allowed, true ) ? $value : 'WP_Image_Editor_GD';
-	}
-
-	/**
-	 * Sanitize post-upload processing setting.
-	 *
-	 * @param mixed $value The value to sanitize.
-	 * @return bool Sanitized value.
-	 */
-	public function sanitize_post_upload_processing( $value ) {
-		return (bool) $value;
+		return in_array( $value, $allowed, true ) ? $value : 'WP_Image_Editor_Imagick';
 	}
 }
