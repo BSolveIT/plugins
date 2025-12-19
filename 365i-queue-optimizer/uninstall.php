@@ -1,4 +1,4 @@
-<?php
+ <?php
 /**
  * Uninstall 365i Queue Optimizer
  *
