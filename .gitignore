@@ -1,0 +1,21 @@
+# WordPress
+*.log
+.DS_Store
+Thumbs.db
+
+# Zip packages
+*.zip
+
+# IDE
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Temporary files
+*.tmp
+*.bak
+*~
+
+# Documentation (keep in repo but exclude from distribution)
+specification.md

@@ -1,0 +1,302 @@
+/* ========================================
+   Admin Bar Environment Label
+   ======================================== */
+#wpadminbar #wp-admin-bar-ei-environment .ab-item {
+	background: #23282d;
+	border-radius: 3px;
+	color: #ffffff;
+	font-weight: 700;
+	height: 20px;
+	line-height: 20px;
+	margin-top: 6px;
+	padding: 0 12px;
+	text-transform: uppercase;
+}
+
+body.ei-env-dev #wp-admin-bar-ei-environment .ab-item {
+	background: #2e8b57;
+}
+
+body.ei-env-staging #wp-admin-bar-ei-environment .ab-item {
+	background: #f39c12;
+}
+
+body.ei-env-live #wp-admin-bar-ei-environment .ab-item {
+	background: #c0392b;
+}
+
+/* Optional admin bar background */
+body.ei-admin-bar-bg.ei-env-dev #wpadminbar {
+	background: #2e8b57;
+}
+
+body.ei-admin-bar-bg.ei-env-staging #wpadminbar {
+	background: #f39c12;
+}
+
+body.ei-admin-bar-bg.ei-env-live #wpadminbar {
+	background: #c0392b;
+}
+
+body.ei-admin-bar-bg #wpadminbar .ab-item,
+body.ei-admin-bar-bg #wpadminbar a.ab-item,
+body.ei-admin-bar-bg #wpadminbar .ab-icon,
+body.ei-admin-bar-bg #wpadminbar .ab-label {
+	color: #ffffff;
+}
+
+body.ei-admin-bar-bg #wpadminbar .ab-item:focus,
+body.ei-admin-bar-bg #wpadminbar .ab-item:hover,
+body.ei-admin-bar-bg #wpadminbar > #wp-toolbar > #wp-admin-bar-root-default .ab-item:hover {
+	background: rgba(255, 255, 255, 0.15);
+}
+
+/* Optional admin top border */
+body.ei-admin-top-border.ei-env-dev #wpcontent {
+	border-top: 4px solid #2e8b57;
+}
+
+body.ei-admin-top-border.ei-env-staging #wpcontent {
+	border-top: 4px solid #f39c12;
+}
+
+body.ei-admin-top-border.ei-env-live #wpcontent {
+	border-top: 4px solid #c0392b;
+}
+
+/* ========================================
+   Admin Footer Watermark
+   ======================================== */
+.ei-footer-watermark {
+	font-size: 12px;
+	margin-left: 8px;
+	opacity: 0.7;
+}
+
+body.ei-env-dev .ei-footer-watermark {
+	color: #2e8b57;
+}
+
+body.ei-env-staging .ei-footer-watermark {
+	color: #f39c12;
+}
+
+body.ei-env-live .ei-footer-watermark {
+	color: #c0392b;
+}
+
+/* ========================================
+   Dashboard Widget
+   ======================================== */
+.ei-dashboard-widget {
+	padding: 12px;
+}
+
+.ei-dashboard-widget .ei-env-badge {
+	display: inline-block;
+	padding: 12px 24px;
+	border-radius: 6px;
+	margin-bottom: 20px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.ei-dashboard-widget .ei-env-label {
+	color: #ffffff;
+	font-size: 18px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.ei-dashboard-widget .ei-widget-info {
+	background: #f5f5f5;
+	border-left: 4px solid #ddd;
+	padding: 15px;
+	margin-bottom: 15px;
+}
+
+.ei-dashboard-widget .ei-info-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 8px 0;
+	border-bottom: 1px solid #e0e0e0;
+}
+
+.ei-dashboard-widget .ei-info-row:last-child {
+	border-bottom: none;
+}
+
+.ei-dashboard-widget .ei-info-label {
+	font-weight: 600;
+	color: #555;
+	flex: 0 0 140px;
+}
+
+.ei-dashboard-widget .ei-info-value {
+	flex: 1;
+	color: #333;
+	text-align: right;
+}
+
+.ei-dashboard-widget .ei-info-value code {
+	background: #fff;
+	padding: 3px 8px;
+	border-radius: 3px;
+	font-size: 12px;
+	border: 1px solid #ddd;
+}
+
+.ei-dashboard-widget .ei-widget-actions {
+	text-align: right;
+	padding-top: 10px;
+	border-top: 1px solid #ddd;
+}
+
+/* ========================================
+   Settings Page
+   ======================================== */
+.ei-settings-wrap .form-table th {
+	font-weight: 600;
+	padding-left: 0;
+}
+
+.ei-settings-wrap .form-table td {
+	padding-right: 0;
+}
+
+.ei-settings-wrap h2 {
+	border-bottom: 2px solid #0073aa;
+	padding-bottom: 10px;
+	margin-top: 30px;
+	color: #23282d;
+	font-weight: 600;
+}
+
+.ei-settings-wrap h2:first-of-type {
+	margin-top: 20px;
+}
+
+/* Live Preview Box */
+.ei-preview-box {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	border-radius: 8px;
+	padding: 25px;
+	margin: 20px 0 30px 0;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.ei-preview-label {
+	color: rgba(255, 255, 255, 0.9);
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	font-weight: 600;
+	margin-bottom: 12px;
+}
+
+.ei-preview-badge {
+	display: inline-block;
+	padding: 12px 32px;
+	border-radius: 6px;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+	margin-bottom: 15px;
+	transition: transform 0.2s ease;
+}
+
+.ei-preview-badge:hover {
+	transform: scale(1.05);
+}
+
+.ei-preview-badge span {
+	color: #ffffff;
+	font-size: 20px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+}
+
+.ei-preview-info {
+	color: rgba(255, 255, 255, 0.95);
+	font-size: 13px;
+	line-height: 1.6;
+}
+
+.ei-preview-info strong {
+	color: #ffffff;
+}
+
+.ei-preview-info code {
+	background: rgba(255, 255, 255, 0.2);
+	padding: 3px 8px;
+	border-radius: 3px;
+	font-size: 12px;
+	color: #ffffff;
+	border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Current Environment Display */
+.ei-current-env {
+	font-size: 16px;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+	transition: transform 0.2s ease;
+}
+
+.ei-current-env:hover {
+	transform: scale(1.05);
+}
+
+/* Export/Import Section */
+.ei-export-import-section h4 {
+	margin: 15px 0 10px 0;
+	color: #23282d;
+	font-weight: 600;
+	font-size: 14px;
+}
+
+.ei-export-import-section p {
+	margin: 5px 0 10px 0;
+	color: #555;
+}
+
+/* Settings Sections */
+.ei-settings-wrap .form-table {
+	margin-top: 15px;
+}
+
+.ei-settings-wrap .description {
+	font-style: italic;
+	color: #666;
+	margin-top: 5px;
+}
+
+/* Color Picker Adjustments */
+.ei-color-picker {
+	max-width: 100px;
+}
+
+.wp-picker-container {
+	display: inline-block;
+}
+
+/* Responsive */
+@media screen and (max-width: 782px) {
+	.ei-dashboard-widget .ei-info-row {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.ei-dashboard-widget .ei-info-label {
+		margin-bottom: 5px;
+	}
+
+	.ei-dashboard-widget .ei-info-value {
+		text-align: left;
+	}
+
+	.ei-preview-badge span {
+		font-size: 16px;
+	}
+}
