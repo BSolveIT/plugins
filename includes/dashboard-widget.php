@@ -113,8 +113,10 @@ function ei_render_dashboard_widget() {
 
 		echo '<div class="ei-widget-footer">';
 		echo '<a href="' . esc_url( $settings_url ) . '" class="ei-settings-link">';
+		echo '<span style="display: flex; align-items: center; gap: 8px;">';
 		echo '<span class="dashicons dashicons-admin-generic"></span>';
 		echo '<span>' . esc_html__( 'Configure Settings', 'environment-indicator' ) . '</span>';
+		echo '</span>';
 		echo '<span class="dashicons dashicons-arrow-right-alt2"></span>';
 		echo '</a>';
 		echo '</div>';

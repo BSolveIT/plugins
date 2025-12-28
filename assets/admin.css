@@ -277,20 +277,20 @@ body.ei-env-live .ei-footer-watermark {
 .ei-dashboard-widget .ei-settings-link {
 	display: flex;
 	align-items: center;
-	justify-content: center;
-	gap: 10px;
-	padding: 12px 20px;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 10px 16px;
 	background: #ffffff;
 	color: #1e293b;
 	text-decoration: none;
 	border-radius: 8px;
 	border: 1.5px solid #cbd5e1;
-	font-size: 14px;
+	font-size: 13px;
 	font-weight: 600;
 	transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 	box-sizing: border-box;
-	max-width: 100%;
+	width: 100%;
 }
 
 .ei-dashboard-widget .ei-settings-link:hover {
@@ -314,7 +314,6 @@ body.ei-env-live .ei-footer-watermark {
 }
 
 .ei-dashboard-widget .ei-settings-link .dashicons-arrow-right-alt2 {
-	margin-left: auto;
 	transition: transform 0.25s ease;
 }
 
