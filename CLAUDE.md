@@ -10,7 +10,7 @@ This is a **WordPress plugin** designed for submission to the WordPress.org Plug
 - **Plugin Slug:** environment-indicator
 - **Text Domain:** environment-indicator
 - **Function Prefix:** `ei_`
-- **Version:** 1.0.0
+- **Current Version:** 1.0.2
 - **Requirements:** WordPress 6.0+, PHP 7.4+
 
 ## Core Architecture
@@ -163,6 +163,62 @@ When modifying this plugin:
 3. **Test manually:** Verify in actual WordPress installation
 4. **Update documentation:** Keep `readme.txt` changelog current
 5. **Preserve WP.org compliance:** This plugin must remain submission-ready
+
+## Version Management (CRITICAL)
+
+This plugin follows **STRICT SEMANTIC VERSIONING** (Major.Minor.Patch). **ANY code change REQUIRES a version bump and changelog update.**
+
+### Version Bump Requirements
+
+**ALWAYS increment the version number for:**
+- Bug fixes (patch version: 1.0.1 → 1.0.2)
+- New features (minor version: 1.0.2 → 1.1.0)
+- Breaking changes (major version: 1.1.0 → 2.0.0)
+- UI/UX improvements
+- Performance optimizations
+- Code refactoring
+- Documentation updates that affect functionality
+
+**NO EXCEPTIONS.** Every commit that changes functionality must increment the version.
+
+### Files That MUST Be Updated With Every Version Change
+
+1. **environment-indicator.php** (line 5) - Plugin header version
+2. **environment-indicator.php** (line 18) - `EI_VERSION` constant
+3. **readme.txt** (line 7) - Stable tag
+4. **readme.txt** - Changelog section (add new entry)
+5. **readme.txt** - Upgrade Notice section (add new entry)
+6. **CLAUDE.md** (line 13) - Current Version
+
+### Changelog Entry Format
+
+Every version must have a changelog entry in `readme.txt`:
+
+```
+= 1.0.2 =
+* Fix: Description of bug fix
+* Enhancement: Description of improvement
+* New: Description of new feature
+```
+
+### Version Bump Workflow
+
+1. Make code changes
+2. Update ALL version numbers in files listed above
+3. Write detailed changelog entry
+4. Commit with message: "Release version X.X.X"
+5. Create git tag: `git tag vX.X.X`
+6. Push tag: `git push origin vX.X.X`
+7. Create installation package: `git archive --format=zip --prefix=environment-indicator/ -o ../environment-indicator-X.X.X.zip HEAD`
+
+### Significant Updates Require Full Documentation Review
+
+For **minor or major version bumps**, also review and update:
+- **specification.md** - If features/architecture changed
+- **README screenshots** - If UI changed significantly
+- **Installation instructions** - If setup process changed
+
+**CRITICAL REMINDER:** Version numbers are NOT optional. Every functional change, no matter how small, requires a version bump. This ensures WordPress.org users receive proper update notifications and can track changes through the changelog.
 
 ## Text Domain & Internationalization
 
