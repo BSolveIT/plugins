@@ -398,9 +398,36 @@ function ei_render_settings_page() {
 		settings_fields( 'ei_settings_group' );
 	}
 
-	do_settings_sections( 'ei_settings' );
+	// Render all sections except import/export.
+	global $wp_settings_sections, $wp_settings_fields;
+	if ( isset( $wp_settings_sections['ei_settings'] ) ) {
+		foreach ( (array) $wp_settings_sections['ei_settings'] as $section ) {
+			if ( 'ei_import_export_section' === $section['id'] ) {
+				continue; // Skip import/export section in main form.
+			}
+			if ( $section['title'] ) {
+				echo '<h2>' . esc_html( $section['title'] ) . '</h2>';
+			}
+			if ( $section['callback'] ) {
+				call_user_func( $section['callback'], $section );
+			}
+			if ( isset( $wp_settings_fields['ei_settings'][ $section['id'] ] ) ) {
+				echo '<table class="form-table" role="presentation">';
+				do_settings_fields( 'ei_settings', $section['id'] );
+				echo '</table>';
+			}
+		}
+	}
+
 	submit_button();
 	echo '</form>';
+
+	// Render export/import section separately, outside the main form.
+	echo '<hr style="margin: 40px 0;" />';
+	echo '<h2>' . esc_html__( 'Export / Import', 'environment-indicator' ) . '</h2>';
+	ei_import_export_section_callback( array() );
+	ei_field_export_import();
+
 	echo '</div>';
 }
 
@@ -600,22 +627,25 @@ function ei_field_role_visibility() {
  * Field: Export/Import functionality.
  */
 function ei_field_export_import() {
-	echo '<div class="ei-export-import-section">';
+	$is_network = ei_is_network_active() && is_network_admin();
+	$form_action = $is_network ? network_admin_url( 'settings.php?page=environment-indicator' ) : admin_url( 'options-general.php?page=environment-indicator' );
+
+	echo '<div class="ei-export-import-section" style="max-width: 800px;">';
 
 	// Export.
-	echo '<h4>' . esc_html__( 'Export Settings', 'environment-indicator' ) . '</h4>';
+	echo '<h3>' . esc_html__( 'Export Settings', 'environment-indicator' ) . '</h3>';
 	echo '<p>' . esc_html__( 'Export your current settings as a JSON file to use on another site.', 'environment-indicator' ) . '</p>';
 	echo '<button type="button" id="ei_export_settings" class="button button-secondary">' . esc_html__( 'Download Settings', 'environment-indicator' ) . '</button>';
 	echo '<textarea id="ei_export_data" style="display:none;">' . esc_textarea( ei_export_settings() ) . '</textarea>';
 
 	// Import.
-	echo '<h4 style="margin-top: 25px;">' . esc_html__( 'Import Settings', 'environment-indicator' ) . '</h4>';
+	echo '<h3 style="margin-top: 35px;">' . esc_html__( 'Import Settings', 'environment-indicator' ) . '</h3>';
 	echo '<p>' . esc_html__( 'Import settings from a JSON file. This will overwrite your current settings.', 'environment-indicator' ) . '</p>';
-	echo '<form method="post" enctype="multipart/form-data" style="margin-top: 10px;">';
+	echo '<form method="post" action="' . esc_url( $form_action ) . '" enctype="multipart/form-data" style="margin-top: 10px;">';
 	wp_nonce_field( 'ei_import_settings' );
-	echo '<input type="file" name="ei_import_json" accept=".json" required />';
+	echo '<input type="file" name="ei_import_json" accept=".json" required style="margin-right: 10px;" />';
 	echo '<input type="hidden" name="ei_import_file" value="1" />';
-	echo '<button type="submit" class="button button-secondary" style="margin-left: 10px;">' . esc_html__( 'Import Settings', 'environment-indicator' ) . '</button>';
+	echo '<button type="submit" class="button button-secondary">' . esc_html__( 'Import Settings', 'environment-indicator' ) . '</button>';
 	echo '</form>';
 
 	echo '</div>';
