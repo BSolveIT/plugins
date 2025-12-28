@@ -91,17 +91,62 @@ body.ei-env-live .ei-footer-watermark {
 .ei-dashboard-widget {
 	margin: -12px;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	background: #ffffff;
 }
 
-/* Widget Header with Environment Badge */
+/* Widget Header */
 .ei-dashboard-widget .ei-widget-header {
-	margin-bottom: 20px;
+	background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+	padding: 24px 24px 20px 24px;
+	border-bottom: 1px solid #e2e8f0;
+	position: relative;
+}
+
+.ei-dashboard-widget .ei-widget-header::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 3px;
+	background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+}
+
+.ei-dashboard-widget .ei-header-content {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.ei-dashboard-widget .ei-env-status {
+	flex: 1;
+}
+
+.ei-dashboard-widget .ei-status-label {
+	display: block;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	color: #64748b;
+	margin-bottom: 10px;
+}
+
+.ei-dashboard-widget .ei-env-badge-wrapper {
+	display: inline-block;
 }
 
 .ei-dashboard-widget .ei-env-badge {
+	display: inline-block;
+	padding: 10px 24px;
+	border-radius: 6px;
+	font-size: 16px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 1.2px;
+	color: #ffffff;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.08);
 	position: relative;
-	padding: 24px;
-	border-radius: 0;
 	overflow: hidden;
 }
 
@@ -109,172 +154,190 @@ body.ei-env-live .ei-footer-watermark {
 	content: '';
 	position: absolute;
 	top: 0;
-	right: 0;
-	width: 100px;
-	height: 100px;
-	background: rgba(255, 255, 255, 0.1);
-	border-radius: 50%;
-	transform: translate(30%, -30%);
+	left: -100%;
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+	transition: left 0.5s ease;
 }
 
-.ei-dashboard-widget .ei-badge-content {
-	position: relative;
-	z-index: 1;
-}
-
-.ei-dashboard-widget .ei-badge-title {
-	display: block;
-	color: rgba(255, 255, 255, 0.9);
-	font-size: 11px;
-	font-weight: 500;
-	text-transform: uppercase;
-	letter-spacing: 0.8px;
-	margin-bottom: 6px;
-}
-
-.ei-dashboard-widget .ei-env-label {
-	display: block;
-	color: #ffffff;
-	font-size: 28px;
-	font-weight: 700;
-	text-transform: uppercase;
-	letter-spacing: 1px;
-	text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+.ei-dashboard-widget .ei-env-badge:hover::before {
+	left: 100%;
 }
 
 /* Widget Body */
 .ei-dashboard-widget .ei-widget-body {
-	padding: 0 20px 20px 20px;
+	padding: 20px 24px 24px 24px;
+	background: #ffffff;
 }
 
 /* Info Grid */
 .ei-dashboard-widget .ei-info-grid {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
-	gap: 12px;
-	margin-bottom: 20px;
+	gap: 14px;
 }
 
 .ei-dashboard-widget .ei-info-card {
-	display: flex;
-	align-items: flex-start;
-	padding: 16px;
-	background: #f8f9fa;
-	border-radius: 8px;
-	border: 1px solid #e3e8ee;
-	transition: all 0.2s ease;
+	background: #ffffff;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	padding: 0;
+	overflow: hidden;
+	transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .ei-dashboard-widget .ei-info-card:hover {
-	background: #ffffff;
-	border-color: #d0d5dd;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-	transform: translateY(-1px);
+	border-color: #cbd5e1;
+	box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+	transform: translateY(-2px);
 }
 
-.ei-dashboard-widget .ei-info-icon {
+.ei-dashboard-widget .ei-card-header {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 14px 16px;
+	background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+	border-bottom: 1px solid #e2e8f0;
+}
+
+.ei-dashboard-widget .ei-card-icon {
 	flex-shrink: 0;
-	width: 36px;
-	height: 36px;
+	width: 32px;
+	height: 32px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background: #ffffff;
-	border-radius: 6px;
-	margin-right: 12px;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+	border-radius: 8px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+	transition: all 0.2s ease;
 }
 
-.ei-dashboard-widget .ei-info-icon .dashicons {
-	font-size: 18px;
-	width: 18px;
-	height: 18px;
-	color: #6366f1;
+.ei-dashboard-widget .ei-card-icon .dashicons {
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+	color: #ffffff;
 }
 
-.ei-dashboard-widget .ei-info-content {
-	flex: 1;
-	min-width: 0;
+.ei-dashboard-widget .ei-icon-detection {
+	background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
 }
 
-.ei-dashboard-widget .ei-info-label {
-	font-size: 11px;
+.ei-dashboard-widget .ei-icon-url {
+	background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.ei-dashboard-widget .ei-icon-wp {
+	background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+.ei-dashboard-widget .ei-icon-php {
+	background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.ei-dashboard-widget .ei-info-card:hover .ei-card-icon {
+	transform: scale(1.1) rotate(5deg);
+}
+
+.ei-dashboard-widget .ei-card-title {
+	font-size: 12px;
 	font-weight: 600;
-	color: #6b7280;
 	text-transform: uppercase;
-	letter-spacing: 0.5px;
-	margin-bottom: 4px;
+	letter-spacing: 0.6px;
+	color: #475569;
 }
 
-.ei-dashboard-widget .ei-info-value {
-	font-size: 15px;
-	font-weight: 600;
-	color: #1f2937;
-	line-height: 1.4;
-	word-break: break-word;
+.ei-dashboard-widget .ei-card-body {
+	padding: 14px 16px;
+	font-size: 14px;
+	font-weight: 500;
+	color: #1e293b;
+	line-height: 1.5;
+	background: #ffffff;
 }
 
-.ei-dashboard-widget .ei-info-url {
+.ei-dashboard-widget .ei-card-url {
 	font-family: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace;
 	font-size: 13px;
-	font-weight: 500;
+	color: #3b82f6;
+	word-break: break-word;
 }
 
 /* Widget Footer */
 .ei-dashboard-widget .ei-widget-footer {
-	padding: 16px 20px;
-	background: #f8f9fa;
-	border-top: 1px solid #e3e8ee;
+	padding: 18px 24px;
+	background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+	border-top: 1px solid #e2e8f0;
 	margin: 0 -12px -12px -12px;
 }
 
 .ei-dashboard-widget .ei-settings-link {
 	display: inline-flex;
 	align-items: center;
-	gap: 8px;
-	padding: 10px 18px;
+	justify-content: space-between;
+	gap: 10px;
+	padding: 12px 20px;
 	background: #ffffff;
-	color: #374151;
+	color: #1e293b;
 	text-decoration: none;
-	border-radius: 6px;
-	border: 1px solid #d1d5db;
+	border-radius: 8px;
+	border: 1.5px solid #cbd5e1;
 	font-size: 14px;
-	font-weight: 500;
-	transition: all 0.2s ease;
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+	font-weight: 600;
+	transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+	width: 100%;
 }
 
 .ei-dashboard-widget .ei-settings-link:hover {
-	background: #6366f1;
+	background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
 	color: #ffffff;
-	border-color: #6366f1;
-	box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
-	transform: translateY(-1px);
+	border-color: #3b82f6;
+	box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3), 0 2px 4px rgba(0, 0, 0, 0.1);
+	transform: translateY(-2px);
 }
 
 .ei-dashboard-widget .ei-settings-link:focus {
 	outline: none;
-	box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+	box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
 }
 
 .ei-dashboard-widget .ei-settings-link .dashicons {
-	font-size: 16px;
-	width: 16px;
-	height: 16px;
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+	transition: transform 0.25s ease;
+}
+
+.ei-dashboard-widget .ei-settings-link:hover .dashicons-arrow-right-alt2 {
+	transform: translateX(4px);
 }
 
 /* Responsive adjustments */
 @media screen and (max-width: 782px) {
 	.ei-dashboard-widget .ei-info-grid {
 		grid-template-columns: 1fr;
+		gap: 12px;
 	}
 
-	.ei-dashboard-widget .ei-env-label {
-		font-size: 24px;
+	.ei-dashboard-widget .ei-widget-header {
+		padding: 20px 18px 16px 18px;
 	}
 
 	.ei-dashboard-widget .ei-widget-body {
-		padding: 0 16px 16px 16px;
+		padding: 16px 18px 20px 18px;
+	}
+
+	.ei-dashboard-widget .ei-widget-footer {
+		padding: 16px 18px;
+	}
+
+	.ei-dashboard-widget .ei-env-badge {
+		font-size: 14px;
+		padding: 8px 20px;
 	}
 }
 

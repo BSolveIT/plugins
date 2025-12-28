@@ -38,15 +38,20 @@ function ei_render_dashboard_widget() {
 	$color       = ei_get_environment_color( $environment );
 	$source      = ei_get_detection_source();
 	$settings    = ei_get_settings();
+	$env_lower   = strtolower( $environment );
 
 	echo '<div class="ei-dashboard-widget">';
 
 	// Header with environment badge.
 	echo '<div class="ei-widget-header">';
-	echo '<div class="ei-env-badge" style="background: linear-gradient(135deg, ' . esc_attr( $color ) . ' 0%, ' . esc_attr( ei_adjust_color_brightness( $color, -20 ) ) . ' 100%);">';
-	echo '<div class="ei-badge-content">';
-	echo '<span class="ei-badge-title">' . esc_html__( 'Current Environment', 'environment-indicator' ) . '</span>';
-	echo '<span class="ei-env-label">' . esc_html( $label ) . '</span>';
+	echo '<div class="ei-header-content">';
+	echo '<div class="ei-env-status">';
+	echo '<span class="ei-status-label">' . esc_html__( 'Environment Status', 'environment-indicator' ) . '</span>';
+	echo '<div class="ei-env-badge-wrapper">';
+	echo '<span class="ei-env-badge ei-env-' . esc_attr( $env_lower ) . '" style="background: linear-gradient(135deg, ' . esc_attr( $color ) . ' 0%, ' . esc_attr( ei_adjust_color_brightness( $color, -15 ) ) . ' 100%);">';
+	echo esc_html( $label );
+	echo '</span>';
+	echo '</div>';
 	echo '</div>';
 	echo '</div>';
 	echo '</div>';
@@ -57,10 +62,11 @@ function ei_render_dashboard_widget() {
 
 	// Detection method.
 	echo '<div class="ei-info-card">';
-	echo '<div class="ei-info-icon"><span class="dashicons dashicons-admin-settings"></span></div>';
-	echo '<div class="ei-info-content">';
-	echo '<div class="ei-info-label">' . esc_html__( 'Detection Method', 'environment-indicator' ) . '</div>';
-	echo '<div class="ei-info-value">';
+	echo '<div class="ei-card-header">';
+	echo '<span class="ei-card-icon ei-icon-detection"><span class="dashicons dashicons-search"></span></span>';
+	echo '<span class="ei-card-title">' . esc_html__( 'Detection', 'environment-indicator' ) . '</span>';
+	echo '</div>';
+	echo '<div class="ei-card-body">';
 	if ( empty( $settings['auto_detect'] ) ) {
 		echo esc_html__( 'Manual Selection', 'environment-indicator' );
 	} else {
@@ -68,33 +74,32 @@ function ei_render_dashboard_widget() {
 	}
 	echo '</div>';
 	echo '</div>';
-	echo '</div>';
 
 	// Site URL.
 	echo '<div class="ei-info-card">';
-	echo '<div class="ei-info-icon"><span class="dashicons dashicons-admin-site"></span></div>';
-	echo '<div class="ei-info-content">';
-	echo '<div class="ei-info-label">' . esc_html__( 'Site URL', 'environment-indicator' ) . '</div>';
-	echo '<div class="ei-info-value ei-info-url">' . esc_html( parse_url( get_home_url(), PHP_URL_HOST ) ) . '</div>';
+	echo '<div class="ei-card-header">';
+	echo '<span class="ei-card-icon ei-icon-url"><span class="dashicons dashicons-admin-site"></span></span>';
+	echo '<span class="ei-card-title">' . esc_html__( 'Site URL', 'environment-indicator' ) . '</span>';
 	echo '</div>';
+	echo '<div class="ei-card-body ei-card-url">' . esc_html( parse_url( get_home_url(), PHP_URL_HOST ) ) . '</div>';
 	echo '</div>';
 
 	// WordPress version.
 	echo '<div class="ei-info-card">';
-	echo '<div class="ei-info-icon"><span class="dashicons dashicons-wordpress"></span></div>';
-	echo '<div class="ei-info-content">';
-	echo '<div class="ei-info-label">' . esc_html__( 'WordPress', 'environment-indicator' ) . '</div>';
-	echo '<div class="ei-info-value">' . esc_html( get_bloginfo( 'version' ) ) . '</div>';
+	echo '<div class="ei-card-header">';
+	echo '<span class="ei-card-icon ei-icon-wp"><span class="dashicons dashicons-wordpress-alt"></span></span>';
+	echo '<span class="ei-card-title">' . esc_html__( 'WordPress', 'environment-indicator' ) . '</span>';
 	echo '</div>';
+	echo '<div class="ei-card-body">Version ' . esc_html( get_bloginfo( 'version' ) ) . '</div>';
 	echo '</div>';
 
 	// PHP version.
 	echo '<div class="ei-info-card">';
-	echo '<div class="ei-info-icon"><span class="dashicons dashicons-editor-code"></span></div>';
-	echo '<div class="ei-info-content">';
-	echo '<div class="ei-info-label">' . esc_html__( 'PHP', 'environment-indicator' ) . '</div>';
-	echo '<div class="ei-info-value">' . esc_html( phpversion() ) . '</div>';
+	echo '<div class="ei-card-header">';
+	echo '<span class="ei-card-icon ei-icon-php"><span class="dashicons dashicons-editor-code"></span></span>';
+	echo '<span class="ei-card-title">' . esc_html__( 'PHP', 'environment-indicator' ) . '</span>';
 	echo '</div>';
+	echo '<div class="ei-card-body">Version ' . esc_html( phpversion() ) . '</div>';
 	echo '</div>';
 
 	echo '</div>'; // .ei-info-grid
@@ -110,6 +115,7 @@ function ei_render_dashboard_widget() {
 		echo '<a href="' . esc_url( $settings_url ) . '" class="ei-settings-link">';
 		echo '<span class="dashicons dashicons-admin-generic"></span>';
 		echo '<span>' . esc_html__( 'Configure Settings', 'environment-indicator' ) . '</span>';
+		echo '<span class="dashicons dashicons-arrow-right-alt2"></span>';
 		echo '</a>';
 		echo '</div>';
 	}
