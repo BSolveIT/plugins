@@ -4,7 +4,7 @@ Tags: environment, development, staging, production, admin bar, developer, workf
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -142,6 +142,17 @@ For legacy Bedrock:
 
 == Changelog ==
 
+= 1.0.1 =
+* Enhancement: Redesigned dashboard widget with professional, modern UI
+* Enhancement: Added gradient header with rainbow accent bar
+* Enhancement: Color-coded card icons with gradient backgrounds (blue, green, purple, orange)
+* Enhancement: Smooth hover animations and micro-interactions
+* Enhancement: Improved responsive design for mobile devices
+* Enhancement: Better typography with proper font weights and spacing
+* Enhancement: Enhanced settings button with animated arrow on hover
+* Fix: Separated import/export form from main settings form to prevent save button triggering file upload prompt
+* Fix: Improved visual hierarchy and information architecture
+
 = 1.0.0 =
 * Initial release
 * Automatic environment detection (WordPress core, WP Engine, Pantheon, Kinsta, Flywheel)
@@ -156,6 +167,9 @@ For legacy Bedrock:
 * Manual environment override
 
 == Upgrade Notice ==
+
+= 1.0.1 =
+Dashboard widget redesigned with professional UI, improved animations, and better mobile responsiveness. Settings form bug fix.
 
 = 1.0.0 =
 Initial release with comprehensive environment detection, customization options, and visual enhancements.
