@@ -89,7 +89,6 @@ body.ei-env-live .ei-footer-watermark {
    Dashboard Widget
    ======================================== */
 .ei-dashboard-widget {
-	margin: -12px;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 	background: #ffffff;
 }
@@ -271,7 +270,6 @@ body.ei-env-live .ei-footer-watermark {
 	padding: 18px 24px;
 	background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 	border-top: 1px solid #e2e8f0;
-	margin: 0 -12px -12px -12px;
 }
 
 .ei-dashboard-widget .ei-settings-link {

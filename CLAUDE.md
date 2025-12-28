@@ -10,7 +10,7 @@ This is a **WordPress plugin** designed for submission to the WordPress.org Plug
 - **Plugin Slug:** environment-indicator
 - **Text Domain:** environment-indicator
 - **Function Prefix:** `ei_`
-- **Current Version:** 1.0.2
+- **Current Version:** 1.0.3
 - **Requirements:** WordPress 6.0+, PHP 7.4+
 
 ## Core Architecture

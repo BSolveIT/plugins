@@ -4,7 +4,7 @@ Tags: environment, development, staging, production, admin bar, developer, workf
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -142,6 +142,10 @@ For legacy Bedrock:
 
 == Changelog ==
 
+= 1.0.3 =
+* Fix: Removed negative margins from dashboard widget to improve integration
+* Enhancement: Widget footer now properly contained within widget boundaries
+
 = 1.0.2 =
 * Fix: Dashboard widget settings button layout and sizing improvements
 * Fix: Button now properly fits within widget footer container
@@ -172,6 +176,9 @@ For legacy Bedrock:
 * Manual environment override
 
 == Upgrade Notice ==
+
+= 1.0.3 =
+Dashboard widget visual improvements with proper footer integration and removed negative margins.
 
 = 1.0.2 =
 Dashboard widget settings button layout improvements and proper container fitting.
