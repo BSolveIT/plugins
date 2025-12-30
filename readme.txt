@@ -1,10 +1,10 @@
-=== Environment Indicator ===
+=== 365i Environment Indicator ===
 Contributors: bsolveit
-Tags: environment, development, staging, production, admin bar, developer, workflow, safety
+Tags: environment, development, staging, production, admin bar
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.3
+Stable tag: 1.0.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -142,6 +142,15 @@ For legacy Bedrock:
 
 == Changelog ==
 
+= 1.0.5 =
+* Fix: Added translators comment for sprintf() placeholder in detection.php
+* Fix: Replaced parse_url() with wp_parse_url() in dashboard-widget.php for consistency
+* Fix: Sanitized $_FILES input in settings.php for WordPress.org compliance
+* Fix: Reduced tags to 5 (WordPress.org limit)
+
+= 1.0.4 =
+* Fix: Updated text domain to match plugin slug (365i-environment-indicator) for WordPress.org compliance
+
 = 1.0.3 =
 * Fix: Removed negative margins from dashboard widget to improve integration
 * Enhancement: Widget footer now properly contained within widget boundaries
@@ -176,6 +185,12 @@ For legacy Bedrock:
 * Manual environment override
 
 == Upgrade Notice ==
+
+= 1.0.5 =
+WordPress.org compliance fixes: translators comment, wp_parse_url usage, sanitized file upload, reduced tags.
+
+= 1.0.4 =
+Text domain updated to match plugin slug for WordPress.org compliance. No functional changes.
 
 = 1.0.3 =
 Dashboard widget visual improvements with proper footer integration and removed negative margins.

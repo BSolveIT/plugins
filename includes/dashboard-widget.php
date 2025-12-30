@@ -23,7 +23,7 @@ function ei_register_dashboard_widget() {
 
 	wp_add_dashboard_widget(
 		'ei_dashboard_widget',
-		__( 'Environment Status', 'environment-indicator' ),
+		__( 'Environment Status', '365i-environment-indicator' ),
 		'ei_render_dashboard_widget'
 	);
 }
@@ -46,7 +46,7 @@ function ei_render_dashboard_widget() {
 	echo '<div class="ei-widget-header">';
 	echo '<div class="ei-header-content">';
 	echo '<div class="ei-env-status">';
-	echo '<span class="ei-status-label">' . esc_html__( 'Environment Status', 'environment-indicator' ) . '</span>';
+	echo '<span class="ei-status-label">' . esc_html__( 'Environment Status', '365i-environment-indicator' ) . '</span>';
 	echo '<div class="ei-env-badge-wrapper">';
 	echo '<span class="ei-env-badge ei-env-' . esc_attr( $env_lower ) . '" style="background: linear-gradient(135deg, ' . esc_attr( $color ) . ' 0%, ' . esc_attr( ei_adjust_color_brightness( $color, -15 ) ) . ' 100%);">';
 	echo esc_html( $label );
@@ -64,11 +64,11 @@ function ei_render_dashboard_widget() {
 	echo '<div class="ei-info-card">';
 	echo '<div class="ei-card-header">';
 	echo '<span class="ei-card-icon ei-icon-detection"><span class="dashicons dashicons-search"></span></span>';
-	echo '<span class="ei-card-title">' . esc_html__( 'Detection', 'environment-indicator' ) . '</span>';
+	echo '<span class="ei-card-title">' . esc_html__( 'Detection', '365i-environment-indicator' ) . '</span>';
 	echo '</div>';
 	echo '<div class="ei-card-body">';
 	if ( empty( $settings['auto_detect'] ) ) {
-		echo esc_html__( 'Manual Selection', 'environment-indicator' );
+		echo esc_html__( 'Manual Selection', '365i-environment-indicator' );
 	} else {
 		echo esc_html( $source );
 	}
@@ -79,16 +79,16 @@ function ei_render_dashboard_widget() {
 	echo '<div class="ei-info-card">';
 	echo '<div class="ei-card-header">';
 	echo '<span class="ei-card-icon ei-icon-url"><span class="dashicons dashicons-admin-site"></span></span>';
-	echo '<span class="ei-card-title">' . esc_html__( 'Site URL', 'environment-indicator' ) . '</span>';
+	echo '<span class="ei-card-title">' . esc_html__( 'Site URL', '365i-environment-indicator' ) . '</span>';
 	echo '</div>';
-	echo '<div class="ei-card-body ei-card-url">' . esc_html( parse_url( get_home_url(), PHP_URL_HOST ) ) . '</div>';
+	echo '<div class="ei-card-body ei-card-url">' . esc_html( wp_parse_url( get_home_url(), PHP_URL_HOST ) ) . '</div>';
 	echo '</div>';
 
 	// WordPress version.
 	echo '<div class="ei-info-card">';
 	echo '<div class="ei-card-header">';
 	echo '<span class="ei-card-icon ei-icon-wp"><span class="dashicons dashicons-wordpress-alt"></span></span>';
-	echo '<span class="ei-card-title">' . esc_html__( 'WordPress', 'environment-indicator' ) . '</span>';
+	echo '<span class="ei-card-title">' . esc_html__( 'WordPress', '365i-environment-indicator' ) . '</span>';
 	echo '</div>';
 	echo '<div class="ei-card-body">Version ' . esc_html( get_bloginfo( 'version' ) ) . '</div>';
 	echo '</div>';
@@ -97,7 +97,7 @@ function ei_render_dashboard_widget() {
 	echo '<div class="ei-info-card">';
 	echo '<div class="ei-card-header">';
 	echo '<span class="ei-card-icon ei-icon-php"><span class="dashicons dashicons-editor-code"></span></span>';
-	echo '<span class="ei-card-title">' . esc_html__( 'PHP', 'environment-indicator' ) . '</span>';
+	echo '<span class="ei-card-title">' . esc_html__( 'PHP', '365i-environment-indicator' ) . '</span>';
 	echo '</div>';
 	echo '<div class="ei-card-body">Version ' . esc_html( phpversion() ) . '</div>';
 	echo '</div>';
@@ -115,7 +115,7 @@ function ei_render_dashboard_widget() {
 		echo '<a href="' . esc_url( $settings_url ) . '" class="ei-settings-link">';
 		echo '<span style="display: flex; align-items: center; gap: 8px;">';
 		echo '<span class="dashicons dashicons-admin-generic"></span>';
-		echo '<span>' . esc_html__( 'Configure Settings', 'environment-indicator' ) . '</span>';
+		echo '<span>' . esc_html__( 'Configure Settings', '365i-environment-indicator' ) . '</span>';
 		echo '</span>';
 		echo '<span class="dashicons dashicons-arrow-right-alt2"></span>';
 		echo '</a>';

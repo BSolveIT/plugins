@@ -214,11 +214,11 @@ function ei_import_settings( $json ) {
 	$data = json_decode( $json, true );
 
 	if ( json_last_error() !== JSON_ERROR_NONE ) {
-		return new WP_Error( 'invalid_json', __( 'Invalid JSON format.', 'environment-indicator' ) );
+		return new WP_Error( 'invalid_json', __( 'Invalid JSON format.', '365i-environment-indicator' ) );
 	}
 
 	if ( ! is_array( $data ) ) {
-		return new WP_Error( 'invalid_data', __( 'Invalid settings data.', 'environment-indicator' ) );
+		return new WP_Error( 'invalid_data', __( 'Invalid settings data.', '365i-environment-indicator' ) );
 	}
 
 	$defaults = ei_get_default_settings();

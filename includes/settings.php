@@ -23,14 +23,14 @@ function ei_register_settings() {
 	// Detection Settings.
 	add_settings_section(
 		'ei_detection_section',
-		esc_html__( 'Environment Detection', 'environment-indicator' ),
+		esc_html__( 'Environment Detection', '365i-environment-indicator' ),
 		'ei_detection_section_callback',
 		'ei_settings'
 	);
 
 	add_settings_field(
 		'ei_auto_detect',
-		esc_html__( 'Detection Mode', 'environment-indicator' ),
+		esc_html__( 'Detection Mode', '365i-environment-indicator' ),
 		'ei_field_auto_detect',
 		'ei_settings',
 		'ei_detection_section'
@@ -38,7 +38,7 @@ function ei_register_settings() {
 
 	add_settings_field(
 		'ei_manual_environment',
-		esc_html__( 'Manual Environment', 'environment-indicator' ),
+		esc_html__( 'Manual Environment', '365i-environment-indicator' ),
 		'ei_field_manual_environment',
 		'ei_settings',
 		'ei_detection_section'
@@ -46,7 +46,7 @@ function ei_register_settings() {
 
 	add_settings_field(
 		'ei_detected_environment',
-		esc_html__( 'Current Environment', 'environment-indicator' ),
+		esc_html__( 'Current Environment', '365i-environment-indicator' ),
 		'ei_field_detected_environment',
 		'ei_settings',
 		'ei_detection_section'
@@ -55,14 +55,14 @@ function ei_register_settings() {
 	// Customization Settings.
 	add_settings_section(
 		'ei_customization_section',
-		esc_html__( 'Customization', 'environment-indicator' ),
+		esc_html__( 'Customization', '365i-environment-indicator' ),
 		'ei_customization_section_callback',
 		'ei_settings'
 	);
 
 	add_settings_field(
 		'ei_custom_labels',
-		esc_html__( 'Custom Labels', 'environment-indicator' ),
+		esc_html__( 'Custom Labels', '365i-environment-indicator' ),
 		'ei_field_custom_labels',
 		'ei_settings',
 		'ei_customization_section'
@@ -70,7 +70,7 @@ function ei_register_settings() {
 
 	add_settings_field(
 		'ei_custom_colors',
-		esc_html__( 'Custom Colors', 'environment-indicator' ),
+		esc_html__( 'Custom Colors', '365i-environment-indicator' ),
 		'ei_field_custom_colors',
 		'ei_settings',
 		'ei_customization_section'
@@ -79,14 +79,14 @@ function ei_register_settings() {
 	// Visual Enhancements.
 	add_settings_section(
 		'ei_visual_section',
-		esc_html__( 'Visual Enhancements', 'environment-indicator' ),
+		esc_html__( 'Visual Enhancements', '365i-environment-indicator' ),
 		'ei_visual_section_callback',
 		'ei_settings'
 	);
 
 	add_settings_field(
 		'ei_admin_bar_background',
-		esc_html__( 'Admin Bar Background', 'environment-indicator' ),
+		esc_html__( 'Admin Bar Background', '365i-environment-indicator' ),
 		'ei_field_admin_bar_background',
 		'ei_settings',
 		'ei_visual_section'
@@ -94,7 +94,7 @@ function ei_register_settings() {
 
 	add_settings_field(
 		'ei_admin_top_border',
-		esc_html__( 'Top Border', 'environment-indicator' ),
+		esc_html__( 'Top Border', '365i-environment-indicator' ),
 		'ei_field_admin_top_border',
 		'ei_settings',
 		'ei_visual_section'
@@ -102,7 +102,7 @@ function ei_register_settings() {
 
 	add_settings_field(
 		'ei_admin_footer_watermark',
-		esc_html__( 'Footer Watermark', 'environment-indicator' ),
+		esc_html__( 'Footer Watermark', '365i-environment-indicator' ),
 		'ei_field_admin_footer_watermark',
 		'ei_settings',
 		'ei_visual_section'
@@ -110,7 +110,7 @@ function ei_register_settings() {
 
 	add_settings_field(
 		'ei_dashboard_widget',
-		esc_html__( 'Dashboard Widget', 'environment-indicator' ),
+		esc_html__( 'Dashboard Widget', '365i-environment-indicator' ),
 		'ei_field_dashboard_widget',
 		'ei_settings',
 		'ei_visual_section'
@@ -119,14 +119,14 @@ function ei_register_settings() {
 	// Visibility Settings.
 	add_settings_section(
 		'ei_visibility_section',
-		esc_html__( 'Visibility & Permissions', 'environment-indicator' ),
+		esc_html__( 'Visibility & Permissions', '365i-environment-indicator' ),
 		'ei_visibility_section_callback',
 		'ei_settings'
 	);
 
 	add_settings_field(
 		'ei_role_visibility',
-		esc_html__( 'Role-Based Visibility', 'environment-indicator' ),
+		esc_html__( 'Role-Based Visibility', '365i-environment-indicator' ),
 		'ei_field_role_visibility',
 		'ei_settings',
 		'ei_visibility_section'
@@ -135,14 +135,14 @@ function ei_register_settings() {
 	// Export/Import Settings.
 	add_settings_section(
 		'ei_import_export_section',
-		esc_html__( 'Export / Import', 'environment-indicator' ),
+		esc_html__( 'Export / Import', '365i-environment-indicator' ),
 		'ei_import_export_section_callback',
 		'ei_settings'
 	);
 
 	add_settings_field(
 		'ei_export_import',
-		esc_html__( 'Settings Transfer', 'environment-indicator' ),
+		esc_html__( 'Settings Transfer', '365i-environment-indicator' ),
 		'ei_field_export_import',
 		'ei_settings',
 		'ei_import_export_section'
@@ -159,10 +159,10 @@ function ei_add_settings_page() {
 	}
 
 	add_options_page(
-		esc_html__( 'Environment Indicator', 'environment-indicator' ),
-		esc_html__( 'Environment Indicator', 'environment-indicator' ),
+		esc_html__( 'Environment Indicator', '365i-environment-indicator' ),
+		esc_html__( 'Environment Indicator', '365i-environment-indicator' ),
 		'manage_options',
-		'environment-indicator',
+		'365i-environment-indicator',
 		'ei_render_settings_page'
 	);
 }
@@ -178,10 +178,10 @@ function ei_add_network_settings_page() {
 
 	add_submenu_page(
 		'settings.php',
-		esc_html__( 'Environment Indicator', 'environment-indicator' ),
-		esc_html__( 'Environment Indicator', 'environment-indicator' ),
+		esc_html__( 'Environment Indicator', '365i-environment-indicator' ),
+		esc_html__( 'Environment Indicator', '365i-environment-indicator' ),
 		'manage_options',
-		'environment-indicator',
+		'365i-environment-indicator',
 		'ei_render_settings_page'
 	);
 }
@@ -203,7 +203,7 @@ function ei_add_plugin_action_links( $links ) {
 	}
 
 	$url           = admin_url( 'options-general.php?page=environment-indicator' );
-	$settings_link = '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Settings', 'environment-indicator' ) . '</a>';
+	$settings_link = '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Settings', '365i-environment-indicator' ) . '</a>';
 
 	array_unshift( $links, $settings_link );
 
@@ -227,7 +227,7 @@ function ei_add_network_plugin_action_links( $links ) {
 	}
 
 	$url           = network_admin_url( 'settings.php?page=environment-indicator' );
-	$settings_link = '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Settings', 'environment-indicator' ) . '</a>';
+	$settings_link = '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Settings', '365i-environment-indicator' ) . '</a>';
 
 	array_unshift( $links, $settings_link );
 
@@ -239,35 +239,35 @@ add_filter( 'network_admin_plugin_action_links_' . plugin_basename( EI_PLUGIN_FI
  * Detection section callback.
  */
 function ei_detection_section_callback() {
-	echo '<p class="description">' . esc_html__( 'Configure how the environment is detected and displayed.', 'environment-indicator' ) . '</p>';
+	echo '<p class="description">' . esc_html__( 'Configure how the environment is detected and displayed.', '365i-environment-indicator' ) . '</p>';
 }
 
 /**
  * Customization section callback.
  */
 function ei_customization_section_callback() {
-	echo '<p class="description">' . esc_html__( 'Customize the appearance of environment labels and colors.', 'environment-indicator' ) . '</p>';
+	echo '<p class="description">' . esc_html__( 'Customize the appearance of environment labels and colors.', '365i-environment-indicator' ) . '</p>';
 }
 
 /**
  * Visual section callback.
  */
 function ei_visual_section_callback() {
-	echo '<p class="description">' . esc_html__( 'Enable optional visual enhancements to make the environment more prominent.', 'environment-indicator' ) . '</p>';
+	echo '<p class="description">' . esc_html__( 'Enable optional visual enhancements to make the environment more prominent.', '365i-environment-indicator' ) . '</p>';
 }
 
 /**
  * Visibility section callback.
  */
 function ei_visibility_section_callback() {
-	echo '<p class="description">' . esc_html__( 'Control which user roles can see the environment indicator.', 'environment-indicator' ) . '</p>';
+	echo '<p class="description">' . esc_html__( 'Control which user roles can see the environment indicator.', '365i-environment-indicator' ) . '</p>';
 }
 
 /**
  * Import/Export section callback.
  */
 function ei_import_export_section_callback() {
-	echo '<p class="description">' . esc_html__( 'Export your settings to use on another site, or import settings from a JSON file.', 'environment-indicator' ) . '</p>';
+	echo '<p class="description">' . esc_html__( 'Export your settings to use on another site, or import settings from a JSON file.', '365i-environment-indicator' ) . '</p>';
 }
 
 /**
@@ -345,14 +345,15 @@ function ei_render_settings_page() {
 	$import_file = filter_input( INPUT_POST, 'ei_import_file', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 	if ( ! empty( $import_file ) && isset( $_FILES['ei_import_json'] ) ) {
 		check_admin_referer( 'ei_import_settings' );
-		$file = $_FILES['ei_import_json'];
-		if ( UPLOAD_ERR_OK === $file['error'] ) {
-			$json   = file_get_contents( $file['tmp_name'] );
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- File upload handled securely below
+		$file = isset( $_FILES['ei_import_json'] ) ? wp_unslash( $_FILES['ei_import_json'] ) : array();
+		if ( isset( $file['error'] ) && UPLOAD_ERR_OK === $file['error'] && isset( $file['tmp_name'] ) ) {
+			$json   = file_get_contents( sanitize_text_field( $file['tmp_name'] ) );
 			$result = ei_import_settings( $json );
 			if ( is_wp_error( $result ) ) {
 				echo '<div class="notice notice-error"><p>' . esc_html( $result->get_error_message() ) . '</p></div>';
 			} else {
-				echo '<div class="notice notice-success"><p>' . esc_html__( 'Settings imported successfully.', 'environment-indicator' ) . '</p></div>';
+				echo '<div class="notice notice-success"><p>' . esc_html__( 'Settings imported successfully.', '365i-environment-indicator' ) . '</p></div>';
 			}
 		}
 	}
@@ -366,11 +367,11 @@ function ei_render_settings_page() {
 		$input     = is_array( $raw_input ) ? wp_unslash( $raw_input ) : array();
 		$sanitized = ei_sanitize_settings( $input );
 		ei_update_settings( $sanitized );
-		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Settings saved.', 'environment-indicator' ) . '</p></div>';
+		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Settings saved.', '365i-environment-indicator' ) . '</p></div>';
 	}
 
 	echo '<div class="wrap ei-settings-wrap">';
-	echo '<h1>' . esc_html__( 'Environment Indicator Settings', 'environment-indicator' ) . '</h1>';
+	echo '<h1>' . esc_html__( 'Environment Indicator Settings', '365i-environment-indicator' ) . '</h1>';
 
 	// Live preview box.
 	$environment = ei_get_environment();
@@ -379,12 +380,12 @@ function ei_render_settings_page() {
 	$source      = ei_get_detection_source();
 
 	echo '<div class="ei-preview-box">';
-	echo '<div class="ei-preview-label">' . esc_html__( 'Live Preview', 'environment-indicator' ) . '</div>';
+	echo '<div class="ei-preview-label">' . esc_html__( 'Live Preview', '365i-environment-indicator' ) . '</div>';
 	echo '<div class="ei-preview-badge" style="background-color: ' . esc_attr( $color ) . ';">';
 	echo '<span>' . esc_html( $label ) . '</span>';
 	echo '</div>';
 	echo '<div class="ei-preview-info">';
-	echo '<strong>' . esc_html__( 'Detection:', 'environment-indicator' ) . '</strong> ';
+	echo '<strong>' . esc_html__( 'Detection:', '365i-environment-indicator' ) . '</strong> ';
 	echo '<code>' . esc_html( $source ) . '</code>';
 	echo '</div>';
 	echo '</div>';
@@ -424,7 +425,7 @@ function ei_render_settings_page() {
 
 	// Render export/import section separately, outside the main form.
 	echo '<hr style="margin: 40px 0;" />';
-	echo '<h2>' . esc_html__( 'Export / Import', 'environment-indicator' ) . '</h2>';
+	echo '<h2>' . esc_html__( 'Export / Import', '365i-environment-indicator' ) . '</h2>';
 	ei_import_export_section_callback( array() );
 	ei_field_export_import();
 
@@ -439,9 +440,9 @@ function ei_field_auto_detect() {
 
 	echo '<label>';
 	echo '<input type="checkbox" name="ei_settings[auto_detect]" value="1" id="ei_auto_detect" ' . checked( 1, $settings['auto_detect'], false ) . ' />';
-	echo ' ' . esc_html__( 'Enable automatic environment detection', 'environment-indicator' );
+	echo ' ' . esc_html__( 'Enable automatic environment detection', '365i-environment-indicator' );
 	echo '</label>';
-	echo '<p class="description">' . esc_html__( 'Automatically detect environment using constants (WP_ENVIRONMENT_TYPE, WP_ENV, etc.) or subdomain patterns.', 'environment-indicator' ) . '</p>';
+	echo '<p class="description">' . esc_html__( 'Automatically detect environment using constants (WP_ENVIRONMENT_TYPE, WP_ENV, etc.) or subdomain patterns.', '365i-environment-indicator' ) . '</p>';
 }
 
 /**
@@ -451,9 +452,9 @@ function ei_field_manual_environment() {
 	$settings     = ei_get_settings();
 	$current      = isset( $settings['manual_environment'] ) ? $settings['manual_environment'] : 'live';
 	$environments = array(
-		'dev'     => esc_html__( 'DEV', 'environment-indicator' ),
-		'staging' => esc_html__( 'STAGING', 'environment-indicator' ),
-		'live'    => esc_html__( 'LIVE', 'environment-indicator' ),
+		'dev'     => esc_html__( 'DEV', '365i-environment-indicator' ),
+		'staging' => esc_html__( 'STAGING', '365i-environment-indicator' ),
+		'live'    => esc_html__( 'LIVE', '365i-environment-indicator' ),
 	);
 
 	echo '<div id="ei_manual_environment_wrapper">';
@@ -465,7 +466,7 @@ function ei_field_manual_environment() {
 		echo '</label><br />';
 	}
 	echo '</fieldset>';
-	echo '<p class="description">' . esc_html__( 'Manually select the environment when automatic detection is disabled.', 'environment-indicator' ) . '</p>';
+	echo '<p class="description">' . esc_html__( 'Manually select the environment when automatic detection is disabled.', '365i-environment-indicator' ) . '</p>';
 	echo '</div>';
 }
 
@@ -480,7 +481,7 @@ function ei_field_detected_environment() {
 	echo '<div class="ei-current-env" style="display: inline-block; background-color: ' . esc_attr( $color ) . '; color: #fff; padding: 8px 16px; border-radius: 4px; font-weight: 700;">';
 	echo esc_html( $label );
 	echo '</div>';
-	echo '<p class="description">' . esc_html__( 'This is the currently active environment as detected or manually selected.', 'environment-indicator' ) . '</p>';
+	echo '<p class="description">' . esc_html__( 'This is the currently active environment as detected or manually selected.', '365i-environment-indicator' ) . '</p>';
 }
 
 /**
@@ -491,19 +492,19 @@ function ei_field_custom_labels() {
 
 	echo '<label>';
 	echo '<input type="checkbox" name="ei_settings[custom_labels]" value="1" id="ei_custom_labels" ' . checked( 1, $settings['custom_labels'], false ) . ' />';
-	echo ' ' . esc_html__( 'Use custom environment labels', 'environment-indicator' );
+	echo ' ' . esc_html__( 'Use custom environment labels', '365i-environment-indicator' );
 	echo '</label>';
-	echo '<p class="description">' . esc_html__( 'Replace DEV/STAGING/LIVE with your own labels (e.g., LOCAL, UAT, PRODUCTION).', 'environment-indicator' ) . '</p>';
+	echo '<p class="description">' . esc_html__( 'Replace DEV/STAGING/LIVE with your own labels (e.g., LOCAL, UAT, PRODUCTION).', '365i-environment-indicator' ) . '</p>';
 
 	echo '<div id="ei_custom_labels_inputs" style="margin-top: 15px;">';
 	echo '<table class="form-table" style="margin: 0;">';
-	echo '<tr><th scope="row">' . esc_html__( 'DEV Label', 'environment-indicator' ) . '</th><td>';
+	echo '<tr><th scope="row">' . esc_html__( 'DEV Label', '365i-environment-indicator' ) . '</th><td>';
 	echo '<input type="text" name="ei_settings[label_dev]" value="' . esc_attr( $settings['label_dev'] ) . '" class="regular-text" placeholder="DEV" />';
 	echo '</td></tr>';
-	echo '<tr><th scope="row">' . esc_html__( 'STAGING Label', 'environment-indicator' ) . '</th><td>';
+	echo '<tr><th scope="row">' . esc_html__( 'STAGING Label', '365i-environment-indicator' ) . '</th><td>';
 	echo '<input type="text" name="ei_settings[label_staging]" value="' . esc_attr( $settings['label_staging'] ) . '" class="regular-text" placeholder="STAGING" />';
 	echo '</td></tr>';
-	echo '<tr><th scope="row">' . esc_html__( 'LIVE Label', 'environment-indicator' ) . '</th><td>';
+	echo '<tr><th scope="row">' . esc_html__( 'LIVE Label', '365i-environment-indicator' ) . '</th><td>';
 	echo '<input type="text" name="ei_settings[label_live]" value="' . esc_attr( $settings['label_live'] ) . '" class="regular-text" placeholder="LIVE" />';
 	echo '</td></tr>';
 	echo '</table>';
@@ -518,19 +519,19 @@ function ei_field_custom_colors() {
 
 	echo '<label>';
 	echo '<input type="checkbox" name="ei_settings[custom_colors]" value="1" id="ei_custom_colors" ' . checked( 1, $settings['custom_colors'], false ) . ' />';
-	echo ' ' . esc_html__( 'Use custom environment colors', 'environment-indicator' );
+	echo ' ' . esc_html__( 'Use custom environment colors', '365i-environment-indicator' );
 	echo '</label>';
-	echo '<p class="description">' . esc_html__( 'Customize the colors for each environment to match your branding or preferences.', 'environment-indicator' ) . '</p>';
+	echo '<p class="description">' . esc_html__( 'Customize the colors for each environment to match your branding or preferences.', '365i-environment-indicator' ) . '</p>';
 
 	echo '<div id="ei_custom_colors_inputs" style="margin-top: 15px;">';
 	echo '<table class="form-table" style="margin: 0;">';
-	echo '<tr><th scope="row">' . esc_html__( 'DEV Color', 'environment-indicator' ) . '</th><td>';
+	echo '<tr><th scope="row">' . esc_html__( 'DEV Color', '365i-environment-indicator' ) . '</th><td>';
 	echo '<input type="text" name="ei_settings[color_dev]" value="' . esc_attr( $settings['color_dev'] ) . '" class="ei-color-picker" data-default-color="#2e8b57" />';
 	echo '</td></tr>';
-	echo '<tr><th scope="row">' . esc_html__( 'STAGING Color', 'environment-indicator' ) . '</th><td>';
+	echo '<tr><th scope="row">' . esc_html__( 'STAGING Color', '365i-environment-indicator' ) . '</th><td>';
 	echo '<input type="text" name="ei_settings[color_staging]" value="' . esc_attr( $settings['color_staging'] ) . '" class="ei-color-picker" data-default-color="#f39c12" />';
 	echo '</td></tr>';
-	echo '<tr><th scope="row">' . esc_html__( 'LIVE Color', 'environment-indicator' ) . '</th><td>';
+	echo '<tr><th scope="row">' . esc_html__( 'LIVE Color', '365i-environment-indicator' ) . '</th><td>';
 	echo '<input type="text" name="ei_settings[color_live]" value="' . esc_attr( $settings['color_live'] ) . '" class="ei-color-picker" data-default-color="#c0392b" />';
 	echo '</td></tr>';
 	echo '</table>';
@@ -545,9 +546,9 @@ function ei_field_admin_bar_background() {
 
 	echo '<label>';
 	echo '<input type="checkbox" name="ei_settings[admin_bar_background]" value="1" ' . checked( 1, $settings['admin_bar_background'], false ) . ' />';
-	echo ' ' . esc_html__( 'Color the entire admin bar background', 'environment-indicator' );
+	echo ' ' . esc_html__( 'Color the entire admin bar background', '365i-environment-indicator' );
 	echo '</label>';
-	echo '<p class="description">' . esc_html__( 'Makes the environment highly visible by coloring the entire admin bar (very prominent).', 'environment-indicator' ) . '</p>';
+	echo '<p class="description">' . esc_html__( 'Makes the environment highly visible by coloring the entire admin bar (very prominent).', '365i-environment-indicator' ) . '</p>';
 }
 
 /**
@@ -558,9 +559,9 @@ function ei_field_admin_top_border() {
 
 	echo '<label>';
 	echo '<input type="checkbox" name="ei_settings[admin_top_border]" value="1" ' . checked( 1, $settings['admin_top_border'], false ) . ' />';
-	echo ' ' . esc_html__( 'Show colored top border in admin', 'environment-indicator' );
+	echo ' ' . esc_html__( 'Show colored top border in admin', '365i-environment-indicator' );
 	echo '</label>';
-	echo '<p class="description">' . esc_html__( 'Adds a 4px colored border at the top of all wp-admin screens.', 'environment-indicator' ) . '</p>';
+	echo '<p class="description">' . esc_html__( 'Adds a 4px colored border at the top of all wp-admin screens.', '365i-environment-indicator' ) . '</p>';
 }
 
 /**
@@ -571,9 +572,9 @@ function ei_field_admin_footer_watermark() {
 
 	echo '<label>';
 	echo '<input type="checkbox" name="ei_settings[admin_footer_watermark]" value="1" ' . checked( 1, $settings['admin_footer_watermark'], false ) . ' />';
-	echo ' ' . esc_html__( 'Show environment label in admin footer', 'environment-indicator' );
+	echo ' ' . esc_html__( 'Show environment label in admin footer', '365i-environment-indicator' );
 	echo '</label>';
-	echo '<p class="description">' . esc_html__( 'Displays the environment name in the admin footer area.', 'environment-indicator' ) . '</p>';
+	echo '<p class="description">' . esc_html__( 'Displays the environment name in the admin footer area.', '365i-environment-indicator' ) . '</p>';
 }
 
 /**
@@ -584,9 +585,9 @@ function ei_field_dashboard_widget() {
 
 	echo '<label>';
 	echo '<input type="checkbox" name="ei_settings[dashboard_widget]" value="1" ' . checked( 1, $settings['dashboard_widget'], false ) . ' />';
-	echo ' ' . esc_html__( 'Show environment status dashboard widget', 'environment-indicator' );
+	echo ' ' . esc_html__( 'Show environment status dashboard widget', '365i-environment-indicator' );
 	echo '</label>';
-	echo '<p class="description">' . esc_html__( 'Adds a dashboard widget showing environment info, detection method, and system details.', 'environment-indicator' ) . '</p>';
+	echo '<p class="description">' . esc_html__( 'Adds a dashboard widget showing environment info, detection method, and system details.', '365i-environment-indicator' ) . '</p>';
 }
 
 /**
@@ -598,9 +599,9 @@ function ei_field_role_visibility() {
 
 	echo '<label>';
 	echo '<input type="checkbox" name="ei_settings[role_visibility]" value="1" id="ei_role_visibility" ' . checked( 1, $settings['role_visibility'], false ) . ' />';
-	echo ' ' . esc_html__( 'Restrict visibility to specific roles', 'environment-indicator' );
+	echo ' ' . esc_html__( 'Restrict visibility to specific roles', '365i-environment-indicator' );
 	echo '</label>';
-	echo '<p class="description">' . esc_html__( 'Only show the environment indicator to users with selected roles.', 'environment-indicator' ) . '</p>';
+	echo '<p class="description">' . esc_html__( 'Only show the environment indicator to users with selected roles.', '365i-environment-indicator' ) . '</p>';
 
 	echo '<div id="ei_role_visibility_inputs" style="margin-top: 15px;">';
 	echo '<fieldset>';
@@ -633,19 +634,19 @@ function ei_field_export_import() {
 	echo '<div class="ei-export-import-section" style="max-width: 800px;">';
 
 	// Export.
-	echo '<h3>' . esc_html__( 'Export Settings', 'environment-indicator' ) . '</h3>';
-	echo '<p>' . esc_html__( 'Export your current settings as a JSON file to use on another site.', 'environment-indicator' ) . '</p>';
-	echo '<button type="button" id="ei_export_settings" class="button button-secondary">' . esc_html__( 'Download Settings', 'environment-indicator' ) . '</button>';
+	echo '<h3>' . esc_html__( 'Export Settings', '365i-environment-indicator' ) . '</h3>';
+	echo '<p>' . esc_html__( 'Export your current settings as a JSON file to use on another site.', '365i-environment-indicator' ) . '</p>';
+	echo '<button type="button" id="ei_export_settings" class="button button-secondary">' . esc_html__( 'Download Settings', '365i-environment-indicator' ) . '</button>';
 	echo '<textarea id="ei_export_data" style="display:none;">' . esc_textarea( ei_export_settings() ) . '</textarea>';
 
 	// Import.
-	echo '<h3 style="margin-top: 35px;">' . esc_html__( 'Import Settings', 'environment-indicator' ) . '</h3>';
-	echo '<p>' . esc_html__( 'Import settings from a JSON file. This will overwrite your current settings.', 'environment-indicator' ) . '</p>';
+	echo '<h3 style="margin-top: 35px;">' . esc_html__( 'Import Settings', '365i-environment-indicator' ) . '</h3>';
+	echo '<p>' . esc_html__( 'Import settings from a JSON file. This will overwrite your current settings.', '365i-environment-indicator' ) . '</p>';
 	echo '<form method="post" action="' . esc_url( $form_action ) . '" enctype="multipart/form-data" style="margin-top: 10px;">';
 	wp_nonce_field( 'ei_import_settings' );
 	echo '<input type="file" name="ei_import_json" accept=".json" required style="margin-right: 10px;" />';
 	echo '<input type="hidden" name="ei_import_file" value="1" />';
-	echo '<button type="submit" class="button button-secondary">' . esc_html__( 'Import Settings', 'environment-indicator' ) . '</button>';
+	echo '<button type="submit" class="button button-secondary">' . esc_html__( 'Import Settings', '365i-environment-indicator' ) . '</button>';
 	echo '</form>';
 
 	echo '</div>';

@@ -172,7 +172,7 @@ function ei_get_detection_source() {
 	$settings = ei_get_settings();
 
 	if ( empty( $settings['auto_detect'] ) ) {
-		return __( 'Manual selection', 'environment-indicator' );
+		return __( 'Manual selection', '365i-environment-indicator' );
 	}
 
 	// Check constants in order.
@@ -203,8 +203,9 @@ function ei_get_detection_source() {
 	// Must be subdomain detection.
 	$host = wp_parse_url( get_home_url(), PHP_URL_HOST );
 	if ( ! empty( $host ) ) {
-		return sprintf( __( 'Subdomain: %s', 'environment-indicator' ), esc_html( $host ) );
+		/* translators: %s: The subdomain hostname used for environment detection */
+		return sprintf( __( 'Subdomain: %s', '365i-environment-indicator' ), esc_html( $host ) );
 	}
 
-	return __( 'Default (no detection)', 'environment-indicator' );
+	return __( 'Default (no detection)', '365i-environment-indicator' );
 }
