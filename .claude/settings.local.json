@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nFix blueprint.json configuration for WordPress Playground compatibility\n\n- Fix: Change activatePlugin to installPlugin to properly install from WordPress.org\n- Update PHP version from 8.0 to 8.5 for latest compatibility\n- Add landing page to WordPress admin dashboard\n- Add networking feature required for WordPress.org plugin installation\n- Remove unnecessary phpExtensionBundles \\(plugin doesn''t need special PHP extensions\\)\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)"
+    ]
+  }
+}
