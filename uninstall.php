@@ -9,12 +9,12 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
 
-$option_name = 'ei_settings';
+$i365ei_option_name = 'i365ei_settings';
 
 // Remove single-site settings.
-delete_option( $option_name );
+delete_option( $i365ei_option_name );
 
 // Remove network-wide settings if multisite.
 if ( is_multisite() ) {
-	delete_site_option( $option_name );
+	delete_site_option( $i365ei_option_name );
 }

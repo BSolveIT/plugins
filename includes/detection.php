@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @param string $value Raw environment value.
  * @return string
  */
-function ei_normalize_environment( $value ) {
+function i365ei_normalize_environment( $value ) {
 	$value = strtolower( sanitize_key( $value ) );
 
 	switch ( $value ) {
@@ -39,10 +39,10 @@ function ei_normalize_environment( $value ) {
  *
  * @return string
  */
-function ei_detect_environment_from_constants() {
+function i365ei_detect_environment_from_constants() {
 	// WordPress core constant (5.5+).
 	if ( defined( 'WP_ENVIRONMENT_TYPE' ) ) {
-		$normalized = ei_normalize_environment( WP_ENVIRONMENT_TYPE );
+		$normalized = i365ei_normalize_environment( WP_ENVIRONMENT_TYPE );
 		if ( '' !== $normalized ) {
 			return $normalized;
 		}
@@ -50,7 +50,7 @@ function ei_detect_environment_from_constants() {
 
 	// Legacy Bedrock constant.
 	if ( defined( 'WP_ENV' ) ) {
-		$normalized = ei_normalize_environment( WP_ENV );
+		$normalized = i365ei_normalize_environment( WP_ENV );
 		if ( '' !== $normalized ) {
 			return $normalized;
 		}
@@ -58,7 +58,7 @@ function ei_detect_environment_from_constants() {
 
 	// WP Engine.
 	if ( defined( 'WPE_ENVIRONMENT' ) ) {
-		$normalized = ei_normalize_environment( WPE_ENVIRONMENT );
+		$normalized = i365ei_normalize_environment( WPE_ENVIRONMENT );
 		if ( '' !== $normalized ) {
 			return $normalized;
 		}
@@ -66,7 +66,7 @@ function ei_detect_environment_from_constants() {
 
 	// Pantheon.
 	if ( defined( 'PANTHEON_ENVIRONMENT' ) ) {
-		$normalized = ei_normalize_environment( PANTHEON_ENVIRONMENT );
+		$normalized = i365ei_normalize_environment( PANTHEON_ENVIRONMENT );
 		if ( '' !== $normalized ) {
 			return $normalized;
 		}
@@ -74,7 +74,7 @@ function ei_detect_environment_from_constants() {
 
 	// Kinsta (uses WP_ENVIRONMENT_TYPE but check for fallback).
 	if ( isset( $_ENV['KINSTA_ENV_TYPE'] ) ) {
-		$normalized = ei_normalize_environment( sanitize_text_field( wp_unslash( $_ENV['KINSTA_ENV_TYPE'] ) ) );
+		$normalized = i365ei_normalize_environment( sanitize_text_field( wp_unslash( $_ENV['KINSTA_ENV_TYPE'] ) ) );
 		if ( '' !== $normalized ) {
 			return $normalized;
 		}
@@ -95,7 +95,7 @@ function ei_detect_environment_from_constants() {
  *
  * @return string
  */
-function ei_detect_environment_from_subdomain() {
+function i365ei_detect_environment_from_subdomain() {
 	$host = wp_parse_url( get_home_url(), PHP_URL_HOST );
 
 	if ( empty( $host ) ) {
@@ -131,34 +131,34 @@ function ei_detect_environment_from_subdomain() {
  *
  * @return string
  */
-function ei_get_environment() {
-	global $ei_environment_cache;
+function i365ei_get_environment() {
+	global $i365ei_environment_cache;
 
-	if ( ! empty( $ei_environment_cache ) ) {
-		return $ei_environment_cache;
+	if ( ! empty( $i365ei_environment_cache ) ) {
+		return $i365ei_environment_cache;
 	}
 
-	$settings = ei_get_settings();
+	$settings = i365ei_get_settings();
 
 	if ( empty( $settings['auto_detect'] ) ) {
-		$ei_environment_cache = ei_normalize_environment( $settings['manual_environment'] );
-		if ( '' === $ei_environment_cache ) {
-			$ei_environment_cache = 'LIVE';
+		$i365ei_environment_cache = i365ei_normalize_environment( $settings['manual_environment'] );
+		if ( '' === $i365ei_environment_cache ) {
+			$i365ei_environment_cache = 'LIVE';
 		}
-		return $ei_environment_cache;
+		return $i365ei_environment_cache;
 	}
 
-	$ei_environment_cache = ei_detect_environment_from_constants();
+	$i365ei_environment_cache = i365ei_detect_environment_from_constants();
 
-	if ( '' === $ei_environment_cache ) {
-		$ei_environment_cache = ei_detect_environment_from_subdomain();
+	if ( '' === $i365ei_environment_cache ) {
+		$i365ei_environment_cache = i365ei_detect_environment_from_subdomain();
 	}
 
-	if ( '' === $ei_environment_cache ) {
-		$ei_environment_cache = 'LIVE';
+	if ( '' === $i365ei_environment_cache ) {
+		$i365ei_environment_cache = 'LIVE';
 	}
 
-	return $ei_environment_cache;
+	return $i365ei_environment_cache;
 }
 
 /**
@@ -168,31 +168,31 @@ function ei_get_environment() {
  *
  * @return string
  */
-function ei_get_detection_source() {
-	$settings = ei_get_settings();
+function i365ei_get_detection_source() {
+	$settings = i365ei_get_settings();
 
 	if ( empty( $settings['auto_detect'] ) ) {
 		return __( 'Manual selection', '365i-environment-indicator' );
 	}
 
 	// Check constants in order.
-	if ( defined( 'WP_ENVIRONMENT_TYPE' ) && '' !== ei_normalize_environment( WP_ENVIRONMENT_TYPE ) ) {
+	if ( defined( 'WP_ENVIRONMENT_TYPE' ) && '' !== i365ei_normalize_environment( WP_ENVIRONMENT_TYPE ) ) {
 		return 'WP_ENVIRONMENT_TYPE';
 	}
 
-	if ( defined( 'WP_ENV' ) && '' !== ei_normalize_environment( WP_ENV ) ) {
+	if ( defined( 'WP_ENV' ) && '' !== i365ei_normalize_environment( WP_ENV ) ) {
 		return 'WP_ENV';
 	}
 
-	if ( defined( 'WPE_ENVIRONMENT' ) && '' !== ei_normalize_environment( WPE_ENVIRONMENT ) ) {
+	if ( defined( 'WPE_ENVIRONMENT' ) && '' !== i365ei_normalize_environment( WPE_ENVIRONMENT ) ) {
 		return 'WPE_ENVIRONMENT';
 	}
 
-	if ( defined( 'PANTHEON_ENVIRONMENT' ) && '' !== ei_normalize_environment( PANTHEON_ENVIRONMENT ) ) {
+	if ( defined( 'PANTHEON_ENVIRONMENT' ) && '' !== i365ei_normalize_environment( PANTHEON_ENVIRONMENT ) ) {
 		return 'PANTHEON_ENVIRONMENT';
 	}
 
-	if ( isset( $_ENV['KINSTA_ENV_TYPE'] ) && '' !== ei_normalize_environment( sanitize_text_field( wp_unslash( $_ENV['KINSTA_ENV_TYPE'] ) ) ) ) {
+	if ( isset( $_ENV['KINSTA_ENV_TYPE'] ) && '' !== i365ei_normalize_environment( sanitize_text_field( wp_unslash( $_ENV['KINSTA_ENV_TYPE'] ) ) ) ) {
 		return 'KINSTA_ENV_TYPE';
 	}
 

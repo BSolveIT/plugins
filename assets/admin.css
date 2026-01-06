@@ -1,7 +1,7 @@
 /* ========================================
    Admin Bar Environment Label
    ======================================== */
-#wpadminbar #wp-admin-bar-ei-environment .ab-item {
+#wpadminbar #wp-admin-bar-i365ei-environment .ab-item {
 	background: #23282d;
 	border-radius: 3px;
 	color: #ffffff;
@@ -13,95 +13,95 @@
 	text-transform: uppercase;
 }
 
-body.ei-env-dev #wp-admin-bar-ei-environment .ab-item {
+body.i365ei-env-dev #wp-admin-bar-i365ei-environment .ab-item {
 	background: #2e8b57;
 }
 
-body.ei-env-staging #wp-admin-bar-ei-environment .ab-item {
+body.i365ei-env-staging #wp-admin-bar-i365ei-environment .ab-item {
 	background: #f39c12;
 }
 
-body.ei-env-live #wp-admin-bar-ei-environment .ab-item {
+body.i365ei-env-live #wp-admin-bar-i365ei-environment .ab-item {
 	background: #c0392b;
 }
 
 /* Optional admin bar background */
-body.ei-admin-bar-bg.ei-env-dev #wpadminbar {
+body.i365ei-admin-bar-bg.i365ei-env-dev #wpadminbar {
 	background: #2e8b57;
 }
 
-body.ei-admin-bar-bg.ei-env-staging #wpadminbar {
+body.i365ei-admin-bar-bg.i365ei-env-staging #wpadminbar {
 	background: #f39c12;
 }
 
-body.ei-admin-bar-bg.ei-env-live #wpadminbar {
+body.i365ei-admin-bar-bg.i365ei-env-live #wpadminbar {
 	background: #c0392b;
 }
 
-body.ei-admin-bar-bg #wpadminbar .ab-item,
-body.ei-admin-bar-bg #wpadminbar a.ab-item,
-body.ei-admin-bar-bg #wpadminbar .ab-icon,
-body.ei-admin-bar-bg #wpadminbar .ab-label {
+body.i365ei-admin-bar-bg #wpadminbar .ab-item,
+body.i365ei-admin-bar-bg #wpadminbar a.ab-item,
+body.i365ei-admin-bar-bg #wpadminbar .ab-icon,
+body.i365ei-admin-bar-bg #wpadminbar .ab-label {
 	color: #ffffff;
 }
 
-body.ei-admin-bar-bg #wpadminbar .ab-item:focus,
-body.ei-admin-bar-bg #wpadminbar .ab-item:hover,
-body.ei-admin-bar-bg #wpadminbar > #wp-toolbar > #wp-admin-bar-root-default .ab-item:hover {
+body.i365ei-admin-bar-bg #wpadminbar .ab-item:focus,
+body.i365ei-admin-bar-bg #wpadminbar .ab-item:hover,
+body.i365ei-admin-bar-bg #wpadminbar > #wp-toolbar > #wp-admin-bar-root-default .ab-item:hover {
 	background: rgba(255, 255, 255, 0.15);
 }
 
 /* Optional admin top border */
-body.ei-admin-top-border.ei-env-dev #wpcontent {
+body.i365ei-admin-top-border.i365ei-env-dev #wpcontent {
 	border-top: 4px solid #2e8b57;
 }
 
-body.ei-admin-top-border.ei-env-staging #wpcontent {
+body.i365ei-admin-top-border.i365ei-env-staging #wpcontent {
 	border-top: 4px solid #f39c12;
 }
 
-body.ei-admin-top-border.ei-env-live #wpcontent {
+body.i365ei-admin-top-border.i365ei-env-live #wpcontent {
 	border-top: 4px solid #c0392b;
 }
 
 /* ========================================
    Admin Footer Watermark
    ======================================== */
-.ei-footer-watermark {
+.i365ei-footer-watermark {
 	font-size: 12px;
 	margin-left: 8px;
 	opacity: 0.7;
 }
 
-body.ei-env-dev .ei-footer-watermark {
+body.i365ei-env-dev .i365ei-footer-watermark {
 	color: #2e8b57;
 }
 
-body.ei-env-staging .ei-footer-watermark {
+body.i365ei-env-staging .i365ei-footer-watermark {
 	color: #f39c12;
 }
 
-body.ei-env-live .ei-footer-watermark {
+body.i365ei-env-live .i365ei-footer-watermark {
 	color: #c0392b;
 }
 
 /* ========================================
    Dashboard Widget
    ======================================== */
-.ei-dashboard-widget {
+.i365ei-dashboard-widget {
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 	background: #ffffff;
 }
 
 /* Widget Header */
-.ei-dashboard-widget .ei-widget-header {
+.i365ei-dashboard-widget .i365ei-widget-header {
 	background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 	padding: 24px 24px 20px 24px;
 	border-bottom: 1px solid #e2e8f0;
 	position: relative;
 }
 
-.ei-dashboard-widget .ei-widget-header::before {
+.i365ei-dashboard-widget .i365ei-widget-header::before {
 	content: '';
 	position: absolute;
 	top: 0;
@@ -111,17 +111,17 @@ body.ei-env-live .ei-footer-watermark {
 	background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
 }
 
-.ei-dashboard-widget .ei-header-content {
+.i365ei-dashboard-widget .i365ei-header-content {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 }
 
-.ei-dashboard-widget .ei-env-status {
+.i365ei-dashboard-widget .i365ei-env-status {
 	flex: 1;
 }
 
-.ei-dashboard-widget .ei-status-label {
+.i365ei-dashboard-widget .i365ei-status-label {
 	display: block;
 	font-size: 11px;
 	font-weight: 600;
@@ -131,11 +131,11 @@ body.ei-env-live .ei-footer-watermark {
 	margin-bottom: 10px;
 }
 
-.ei-dashboard-widget .ei-env-badge-wrapper {
+.i365ei-dashboard-widget .i365ei-env-badge-wrapper {
 	display: inline-block;
 }
 
-.ei-dashboard-widget .ei-env-badge {
+.i365ei-dashboard-widget .i365ei-env-badge {
 	display: inline-block;
 	padding: 10px 24px;
 	border-radius: 6px;
@@ -149,7 +149,7 @@ body.ei-env-live .ei-footer-watermark {
 	overflow: hidden;
 }
 
-.ei-dashboard-widget .ei-env-badge::before {
+.i365ei-dashboard-widget .i365ei-env-badge::before {
 	content: '';
 	position: absolute;
 	top: 0;
@@ -160,24 +160,24 @@ body.ei-env-live .ei-footer-watermark {
 	transition: left 0.5s ease;
 }
 
-.ei-dashboard-widget .ei-env-badge:hover::before {
+.i365ei-dashboard-widget .i365ei-env-badge:hover::before {
 	left: 100%;
 }
 
 /* Widget Body */
-.ei-dashboard-widget .ei-widget-body {
+.i365ei-dashboard-widget .i365ei-widget-body {
 	padding: 20px 24px 24px 24px;
 	background: #ffffff;
 }
 
 /* Info Grid */
-.ei-dashboard-widget .ei-info-grid {
+.i365ei-dashboard-widget .i365ei-info-grid {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
 	gap: 14px;
 }
 
-.ei-dashboard-widget .ei-info-card {
+.i365ei-dashboard-widget .i365ei-info-card {
 	background: #ffffff;
 	border: 1px solid #e2e8f0;
 	border-radius: 10px;
@@ -187,13 +187,13 @@ body.ei-env-live .ei-footer-watermark {
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.ei-dashboard-widget .ei-info-card:hover {
+.i365ei-dashboard-widget .i365ei-info-card:hover {
 	border-color: #cbd5e1;
 	box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
 	transform: translateY(-2px);
 }
 
-.ei-dashboard-widget .ei-card-header {
+.i365ei-dashboard-widget .i365ei-card-header {
 	display: flex;
 	align-items: center;
 	gap: 10px;
@@ -202,7 +202,7 @@ body.ei-env-live .ei-footer-watermark {
 	border-bottom: 1px solid #e2e8f0;
 }
 
-.ei-dashboard-widget .ei-card-icon {
+.i365ei-dashboard-widget .i365ei-card-icon {
 	flex-shrink: 0;
 	width: 32px;
 	height: 32px;
@@ -214,34 +214,34 @@ body.ei-env-live .ei-footer-watermark {
 	transition: all 0.2s ease;
 }
 
-.ei-dashboard-widget .ei-card-icon .dashicons {
+.i365ei-dashboard-widget .i365ei-card-icon .dashicons {
 	font-size: 16px;
 	width: 16px;
 	height: 16px;
 	color: #ffffff;
 }
 
-.ei-dashboard-widget .ei-icon-detection {
+.i365ei-dashboard-widget .i365ei-icon-detection {
 	background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
 }
 
-.ei-dashboard-widget .ei-icon-url {
+.i365ei-dashboard-widget .i365ei-icon-url {
 	background: linear-gradient(135deg, #10b981 0%, #059669 100%);
 }
 
-.ei-dashboard-widget .ei-icon-wp {
+.i365ei-dashboard-widget .i365ei-icon-wp {
 	background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
 }
 
-.ei-dashboard-widget .ei-icon-php {
+.i365ei-dashboard-widget .i365ei-icon-php {
 	background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
 }
 
-.ei-dashboard-widget .ei-info-card:hover .ei-card-icon {
+.i365ei-dashboard-widget .i365ei-info-card:hover .i365ei-card-icon {
 	transform: scale(1.1) rotate(5deg);
 }
 
-.ei-dashboard-widget .ei-card-title {
+.i365ei-dashboard-widget .i365ei-card-title {
 	font-size: 12px;
 	font-weight: 600;
 	text-transform: uppercase;
@@ -249,7 +249,7 @@ body.ei-env-live .ei-footer-watermark {
 	color: #475569;
 }
 
-.ei-dashboard-widget .ei-card-body {
+.i365ei-dashboard-widget .i365ei-card-body {
 	padding: 14px 16px;
 	font-size: 14px;
 	font-weight: 500;
@@ -258,7 +258,7 @@ body.ei-env-live .ei-footer-watermark {
 	background: #ffffff;
 }
 
-.ei-dashboard-widget .ei-card-url {
+.i365ei-dashboard-widget .i365ei-card-url {
 	font-family: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace;
 	font-size: 13px;
 	color: #3b82f6;
@@ -266,13 +266,13 @@ body.ei-env-live .ei-footer-watermark {
 }
 
 /* Widget Footer */
-.ei-dashboard-widget .ei-widget-footer {
+.i365ei-dashboard-widget .i365ei-widget-footer {
 	padding: 18px 24px;
 	background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 	border-top: 1px solid #e2e8f0;
 }
 
-.ei-dashboard-widget .ei-settings-link {
+.i365ei-dashboard-widget .i365ei-settings-link {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -291,7 +291,7 @@ body.ei-env-live .ei-footer-watermark {
 	width: 100%;
 }
 
-.ei-dashboard-widget .ei-settings-link:hover {
+.i365ei-dashboard-widget .i365ei-settings-link:hover {
 	background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
 	color: #ffffff;
 	border-color: #3b82f6;
@@ -299,46 +299,46 @@ body.ei-env-live .ei-footer-watermark {
 	transform: translateY(-2px);
 }
 
-.ei-dashboard-widget .ei-settings-link:focus {
+.i365ei-dashboard-widget .i365ei-settings-link:focus {
 	outline: none;
 	box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
 }
 
-.ei-dashboard-widget .ei-settings-link .dashicons {
+.i365ei-dashboard-widget .i365ei-settings-link .dashicons {
 	font-size: 16px;
 	width: 16px;
 	height: 16px;
 	flex-shrink: 0;
 }
 
-.ei-dashboard-widget .ei-settings-link .dashicons-arrow-right-alt2 {
+.i365ei-dashboard-widget .i365ei-settings-link .dashicons-arrow-right-alt2 {
 	transition: transform 0.25s ease;
 }
 
-.ei-dashboard-widget .ei-settings-link:hover .dashicons-arrow-right-alt2 {
+.i365ei-dashboard-widget .i365ei-settings-link:hover .dashicons-arrow-right-alt2 {
 	transform: translateX(4px);
 }
 
 /* Responsive adjustments */
 @media screen and (max-width: 782px) {
-	.ei-dashboard-widget .ei-info-grid {
+	.i365ei-dashboard-widget .i365ei-info-grid {
 		grid-template-columns: 1fr;
 		gap: 12px;
 	}
 
-	.ei-dashboard-widget .ei-widget-header {
+	.i365ei-dashboard-widget .i365ei-widget-header {
 		padding: 20px 18px 16px 18px;
 	}
 
-	.ei-dashboard-widget .ei-widget-body {
+	.i365ei-dashboard-widget .i365ei-widget-body {
 		padding: 16px 18px 20px 18px;
 	}
 
-	.ei-dashboard-widget .ei-widget-footer {
+	.i365ei-dashboard-widget .i365ei-widget-footer {
 		padding: 16px 18px;
 	}
 
-	.ei-dashboard-widget .ei-env-badge {
+	.i365ei-dashboard-widget .i365ei-env-badge {
 		font-size: 14px;
 		padding: 8px 20px;
 	}
@@ -347,16 +347,16 @@ body.ei-env-live .ei-footer-watermark {
 /* ========================================
    Settings Page
    ======================================== */
-.ei-settings-wrap .form-table th {
+.i365ei-settings-wrap .form-table th {
 	font-weight: 600;
 	padding-left: 0;
 }
 
-.ei-settings-wrap .form-table td {
+.i365ei-settings-wrap .form-table td {
 	padding-right: 0;
 }
 
-.ei-settings-wrap h2 {
+.i365ei-settings-wrap h2 {
 	border-bottom: 2px solid #0073aa;
 	padding-bottom: 10px;
 	margin-top: 30px;
@@ -364,12 +364,12 @@ body.ei-env-live .ei-footer-watermark {
 	font-weight: 600;
 }
 
-.ei-settings-wrap h2:first-of-type {
+.i365ei-settings-wrap h2:first-of-type {
 	margin-top: 20px;
 }
 
 /* Live Preview Box */
-.ei-preview-box {
+.i365ei-preview-box {
 	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 	border-radius: 8px;
 	padding: 25px;
@@ -377,7 +377,7 @@ body.ei-env-live .ei-footer-watermark {
 	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.ei-preview-label {
+.i365ei-preview-label {
 	color: rgba(255, 255, 255, 0.9);
 	font-size: 11px;
 	text-transform: uppercase;
@@ -386,7 +386,7 @@ body.ei-env-live .ei-footer-watermark {
 	margin-bottom: 12px;
 }
 
-.ei-preview-badge {
+.i365ei-preview-badge {
 	display: inline-block;
 	padding: 12px 32px;
 	border-radius: 6px;
@@ -395,11 +395,11 @@ body.ei-env-live .ei-footer-watermark {
 	transition: transform 0.2s ease;
 }
 
-.ei-preview-badge:hover {
+.i365ei-preview-badge:hover {
 	transform: scale(1.05);
 }
 
-.ei-preview-badge span {
+.i365ei-preview-badge span {
 	color: #ffffff;
 	font-size: 20px;
 	font-weight: 700;
@@ -407,17 +407,17 @@ body.ei-env-live .ei-footer-watermark {
 	letter-spacing: 1px;
 }
 
-.ei-preview-info {
+.i365ei-preview-info {
 	color: rgba(255, 255, 255, 0.95);
 	font-size: 13px;
 	line-height: 1.6;
 }
 
-.ei-preview-info strong {
+.i365ei-preview-info strong {
 	color: #ffffff;
 }
 
-.ei-preview-info code {
+.i365ei-preview-info code {
 	background: rgba(255, 255, 255, 0.2);
 	padding: 3px 8px;
 	border-radius: 3px;
@@ -427,7 +427,7 @@ body.ei-env-live .ei-footer-watermark {
 }
 
 /* Current Environment Display */
-.ei-current-env {
+.i365ei-current-env {
 	font-size: 16px;
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
@@ -435,36 +435,36 @@ body.ei-env-live .ei-footer-watermark {
 	transition: transform 0.2s ease;
 }
 
-.ei-current-env:hover {
+.i365ei-current-env:hover {
 	transform: scale(1.05);
 }
 
 /* Export/Import Section */
-.ei-export-import-section h4 {
+.i365ei-export-import-section h4 {
 	margin: 15px 0 10px 0;
 	color: #23282d;
 	font-weight: 600;
 	font-size: 14px;
 }
 
-.ei-export-import-section p {
+.i365ei-export-import-section p {
 	margin: 5px 0 10px 0;
 	color: #555;
 }
 
 /* Settings Sections */
-.ei-settings-wrap .form-table {
+.i365ei-settings-wrap .form-table {
 	margin-top: 15px;
 }
 
-.ei-settings-wrap .description {
+.i365ei-settings-wrap .description {
 	font-style: italic;
 	color: #666;
 	margin-top: 5px;
 }
 
 /* Color Picker Adjustments */
-.ei-color-picker {
+.i365ei-color-picker {
 	max-width: 100px;
 }
 
@@ -474,7 +474,7 @@ body.ei-env-live .ei-footer-watermark {
 
 /* Responsive */
 @media screen and (max-width: 782px) {
-	.ei-preview-badge span {
+	.i365ei-preview-badge span {
 		font-size: 16px;
 	}
 }

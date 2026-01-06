@@ -4,7 +4,7 @@ Tags: environment, development, staging, production, admin bar
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.5
+Stable tag: 1.0.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -142,6 +142,13 @@ For legacy Bedrock:
 
 == Changelog ==
 
+= 1.0.6 =
+* Fix: Updated function prefix from 'ei_' to 'i365ei_' for WordPress.org compliance (4+ character requirement)
+* Fix: Improved $_FILES sanitization with proper file type validation using wp_check_filetype()
+* Fix: Updated filter_input to use proper sanitization with direct $_POST handling
+* Fix: Added explicit CSS color escaping for inline styles with hex validation
+* Security: Enhanced input validation throughout settings handling
+
 = 1.0.5 =
 * Fix: Added translators comment for sprintf() placeholder in detection.php
 * Fix: Replaced parse_url() with wp_parse_url() in dashboard-widget.php for consistency
@@ -185,6 +192,9 @@ For legacy Bedrock:
 * Manual environment override
 
 == Upgrade Notice ==
+
+= 1.0.6 =
+WordPress.org compliance: Updated function prefix to 4+ characters, improved file upload validation, enhanced CSS escaping, and better input sanitization.
 
 = 1.0.5 =
 WordPress.org compliance fixes: translators comment, wp_parse_url usage, sanitized file upload, reduced tags.

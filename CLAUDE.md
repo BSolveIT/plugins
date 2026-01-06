@@ -6,11 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **WordPress plugin** designed for submission to the WordPress.org Plugin Repository. The plugin displays visual environment indicators (DEV/STAGING/LIVE) in the WordPress admin bar to prevent accidental modifications to production sites.
 
-- **Plugin Name:** Environment Indicator
-- **Plugin Slug:** environment-indicator
-- **Text Domain:** environment-indicator
-- **Function Prefix:** `ei_`
-- **Current Version:** 1.0.3
+- **Plugin Name:** 365i Environment Indicator
+- **Plugin Slug:** 365i-environment-indicator
+- **Text Domain:** 365i-environment-indicator
+- **Function Prefix:** `i365ei_`
+- **Constant Prefix:** `I365EI_`
+- **CSS Class Prefix:** `i365ei-`
+- **Current Version:** 1.0.6
 - **Requirements:** WordPress 6.0+, PHP 7.4+
 
 ## Core Architecture
@@ -21,13 +23,13 @@ The plugin uses a **procedural architecture** with clear separation of concerns 
 
 1. **Detection Module** (`includes/detection.php`)
    - Environment detection with priority: `WP_ENVIRONMENT_TYPE` → `WP_ENV` → subdomain heuristics → default to LIVE
-   - Main function: `ei_get_environment()` (globally cached)
+   - Main function: `i365ei_get_environment()` (globally cached)
    - Normalizes all environments to: DEV, STAGING, or LIVE
 
 2. **Helpers Module** (`includes/helpers.php`)
    - Settings management with global caching
    - Multisite-aware: uses `get_site_option()` when network-activated
-   - Main functions: `ei_get_settings()`, `ei_update_settings()`
+   - Main functions: `i365ei_get_settings()`, `i365ei_update_settings()`
 
 3. **Admin Bar Module** (`includes/admin-bar.php`)
    - Adds environment label to WordPress admin bar
@@ -100,7 +102,9 @@ This plugin is built for WordPress.org submission and strictly adheres to:
 
 ### Coding Standards
 - WordPress PHP Coding Standards
-- All functions/hooks prefixed with `ei_`
+- All functions/hooks prefixed with `i365ei_`
+- All constants prefixed with `I365EI_`
+- All CSS classes prefixed with `i365ei-`
 - No PHP namespaces (procedural only)
 - No unnecessary abstraction or frameworks
 
@@ -125,12 +129,12 @@ The plugin must NOT:
 
 ```php
 // Settings are cached globally to avoid repeated option lookups
-function ei_get_settings() {
-    global $ei_settings_cache;
-    if ( null === $ei_settings_cache ) {
+function i365ei_get_settings() {
+    global $i365ei_settings_cache;
+    if ( null === $i365ei_settings_cache ) {
         // Load from database only once per request
     }
-    return $ei_settings_cache;
+    return $i365ei_settings_cache;
 }
 ```
 
@@ -149,10 +153,10 @@ Functions automatically detect network activation and use appropriate storage:
 ## Important Constants
 
 Defined in `environment-indicator.php:18-21`:
-- `EI_VERSION` - Plugin version
-- `EI_PLUGIN_FILE` - Main plugin file path
-- `EI_PLUGIN_DIR` - Plugin directory path
-- `EI_PLUGIN_URL` - Plugin URL
+- `I365EI_VERSION` - Plugin version
+- `I365EI_PLUGIN_FILE` - Main plugin file path
+- `I365EI_PLUGIN_DIR` - Plugin directory path
+- `I365EI_PLUGIN_URL` - Plugin URL
 
 ## Making Changes
 
@@ -184,11 +188,11 @@ This plugin follows **STRICT SEMANTIC VERSIONING** (Major.Minor.Patch). **ANY co
 ### Files That MUST Be Updated With Every Version Change
 
 1. **environment-indicator.php** (line 5) - Plugin header version
-2. **environment-indicator.php** (line 18) - `EI_VERSION` constant
+2. **environment-indicator.php** (line 18) - `I365EI_VERSION` constant
 3. **readme.txt** (line 7) - Stable tag
 4. **readme.txt** - Changelog section (add new entry)
 5. **readme.txt** - Upgrade Notice section (add new entry)
-6. **CLAUDE.md** (line 13) - Current Version
+6. **CLAUDE.md** (line 15) - Current Version
 
 ### Changelog Entry Format
 
@@ -222,6 +226,6 @@ For **minor or major version bumps**, also review and update:
 
 ## Text Domain & Internationalization
 
-- Text domain: `environment-indicator`
+- Text domain: `365i-environment-indicator`
 - The plugin relies on WordPress.org translation loading (no manual `load_plugin_textdomain()` call)
 - All user-facing strings must use `__()`, `esc_html__()`, `esc_attr__()`, etc.
