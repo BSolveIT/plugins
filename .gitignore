@@ -19,3 +19,10 @@ Thumbs.db
 
 # Documentation (keep in repo but exclude from distribution)
 specification.md
+
+# Claude Code local data (not shared)
+.claude/sessions/
+.claude/settings.local.json
+
+# Windows artifacts
+nul

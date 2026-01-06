@@ -1,0 +1,25 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash|Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$PROJECT_DIR/.claude/hooks/capture-outcome.py\""
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$PROJECT_DIR/.claude/hooks/session-diary.py\""
+          }
+        ]
+      }
+    ]
+  }
+}
