@@ -196,6 +196,97 @@ function i365ei_get_settings() {
 - **Archive name**: `365i-environment-indicator-VERSION.zip`
 - **Folder name**: `365i-environment-indicator/` (no version in folder)
 - **Exclusions**: .git, .claude, CLAUDE.md, specification.md, .gitignore, .gitattributes
+- **Location**: `releases/` folder within project
+
+### Toggle Switches (W3Schools Pattern)
+Reference: https://www.w3schools.com/howto/howto_css_switch.asp
+
+**HTML Structure:**
+```html
+<div class="i365ei-toggle-row">
+  <label class="i365ei-switch">
+    <input type="checkbox" name="field_name" value="1" />
+    <span class="i365ei-slider i365ei-round"></span>
+  </label>
+  <span class="i365ei-toggle-label">Label text</span>
+</div>
+```
+
+**CSS Pattern:**
+```css
+/* Container */
+.i365ei-switch {
+  position: relative;
+  display: inline-block;
+  width: 56px;
+  height: 30px;
+}
+
+/* Hide default checkbox */
+.i365ei-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* Slider track */
+.i365ei-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #cbd5e1;
+  transition: 0.3s;
+}
+
+/* Slider knob */
+.i365ei-slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.3s;
+}
+
+/* Checked state - uses sibling selector */
+input:checked + .i365ei-slider {
+  background-color: #3b82f6;
+}
+
+input:checked + .i365ei-slider:before {
+  transform: translateX(26px);
+}
+
+/* Rounded style */
+.i365ei-slider.i365ei-round {
+  border-radius: 30px;
+}
+.i365ei-slider.i365ei-round:before {
+  border-radius: 50%;
+}
+```
+
+**PHP Helper Function:**
+```php
+function i365ei_render_toggle( $name, $id, $checked, $label ) {
+    echo '<div class="i365ei-toggle-row">';
+    echo '<label class="i365ei-switch">';
+    echo '<input type="checkbox" name="' . esc_attr( $name ) . '" value="1" id="' . esc_attr( $id ) . '" ' . checked( 1, $checked, false ) . ' />';
+    echo '<span class="i365ei-slider i365ei-round"></span>';
+    echo '</label>';
+    echo '<span class="i365ei-toggle-label">' . esc_html( $label ) . '</span>';
+    echo '</div>';
+}
+```
+
+**Key Points:**
+- Checkbox is hidden with `opacity: 0`, not `display: none` (accessibility)
+- Slider is positioned absolutely over the label
+- State changes via `input:checked + .slider` sibling selector
+- Label wraps checkbox for clickability
+- Always use rounded style (`.i365ei-round`) for modern look
 
 ### User Preferences
 - **Archive tool**: 7-Zip preferred over built-in zip
@@ -205,4 +296,4 @@ function i365ei_get_settings() {
 ---
 
 *This file is automatically updated by the /reflect command based on session diaries.*
-*Last updated: 2024-01-06*
+*Last updated: 2026-01-07*
