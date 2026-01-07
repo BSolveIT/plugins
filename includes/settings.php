@@ -453,15 +453,35 @@ function i365ei_render_settings_page() {
 }
 
 /**
+ * Render a toggle switch.
+ *
+ * @param string $name    Input name attribute.
+ * @param string $id      Input id attribute.
+ * @param bool   $checked Whether the switch is checked.
+ * @param string $label   Label text.
+ */
+function i365ei_render_toggle( $name, $id, $checked, $label ) {
+	echo '<div class="i365ei-toggle-row">';
+	echo '<label class="i365ei-switch">';
+	echo '<input type="checkbox" name="' . esc_attr( $name ) . '" value="1" id="' . esc_attr( $id ) . '" ' . checked( 1, $checked, false ) . ' />';
+	echo '<span class="i365ei-slider i365ei-round"></span>';
+	echo '</label>';
+	echo '<span class="i365ei-toggle-label">' . esc_html( $label ) . '</span>';
+	echo '</div>';
+}
+
+/**
  * Field: Automatic detection checkbox.
  */
 function i365ei_field_auto_detect() {
 	$settings = i365ei_get_settings();
 
-	echo '<label>';
-	echo '<input type="checkbox" name="i365ei_settings[auto_detect]" value="1" id="i365ei_auto_detect" ' . checked( 1, $settings['auto_detect'], false ) . ' />';
-	echo ' ' . esc_html__( 'Enable automatic environment detection', '365i-environment-indicator' );
-	echo '</label>';
+	i365ei_render_toggle(
+		'i365ei_settings[auto_detect]',
+		'i365ei_auto_detect',
+		$settings['auto_detect'],
+		__( 'Enable automatic environment detection', '365i-environment-indicator' )
+	);
 	echo '<p class="description">' . esc_html__( 'Automatically detect environment using constants (WP_ENVIRONMENT_TYPE, WP_ENV, etc.) or subdomain patterns.', '365i-environment-indicator' ) . '</p>';
 }
 
@@ -510,10 +530,12 @@ function i365ei_field_detected_environment() {
 function i365ei_field_custom_labels() {
 	$settings = i365ei_get_settings();
 
-	echo '<label>';
-	echo '<input type="checkbox" name="i365ei_settings[custom_labels]" value="1" id="i365ei_custom_labels" ' . checked( 1, $settings['custom_labels'], false ) . ' />';
-	echo ' ' . esc_html__( 'Use custom environment labels', '365i-environment-indicator' );
-	echo '</label>';
+	i365ei_render_toggle(
+		'i365ei_settings[custom_labels]',
+		'i365ei_custom_labels',
+		$settings['custom_labels'],
+		__( 'Use custom environment labels', '365i-environment-indicator' )
+	);
 	echo '<p class="description">' . esc_html__( 'Replace DEV/STAGING/LIVE with your own labels (e.g., LOCAL, UAT, PRODUCTION).', '365i-environment-indicator' ) . '</p>';
 
 	echo '<div id="i365ei_custom_labels_inputs" style="margin-top: 15px;">';
@@ -537,10 +559,12 @@ function i365ei_field_custom_labels() {
 function i365ei_field_custom_colors() {
 	$settings = i365ei_get_settings();
 
-	echo '<label>';
-	echo '<input type="checkbox" name="i365ei_settings[custom_colors]" value="1" id="i365ei_custom_colors" ' . checked( 1, $settings['custom_colors'], false ) . ' />';
-	echo ' ' . esc_html__( 'Use custom environment colors', '365i-environment-indicator' );
-	echo '</label>';
+	i365ei_render_toggle(
+		'i365ei_settings[custom_colors]',
+		'i365ei_custom_colors',
+		$settings['custom_colors'],
+		__( 'Use custom environment colors', '365i-environment-indicator' )
+	);
 	echo '<p class="description">' . esc_html__( 'Customize the colors for each environment to match your branding or preferences.', '365i-environment-indicator' ) . '</p>';
 
 	echo '<div id="i365ei_custom_colors_inputs" style="margin-top: 15px;">';
@@ -564,10 +588,12 @@ function i365ei_field_custom_colors() {
 function i365ei_field_admin_bar_background() {
 	$settings = i365ei_get_settings();
 
-	echo '<label>';
-	echo '<input type="checkbox" name="i365ei_settings[admin_bar_background]" value="1" ' . checked( 1, $settings['admin_bar_background'], false ) . ' />';
-	echo ' ' . esc_html__( 'Color the entire admin bar background', '365i-environment-indicator' );
-	echo '</label>';
+	i365ei_render_toggle(
+		'i365ei_settings[admin_bar_background]',
+		'i365ei_admin_bar_background',
+		$settings['admin_bar_background'],
+		__( 'Color the entire admin bar background', '365i-environment-indicator' )
+	);
 	echo '<p class="description">' . esc_html__( 'Makes the environment highly visible by coloring the entire admin bar (very prominent).', '365i-environment-indicator' ) . '</p>';
 }
 
@@ -577,10 +603,12 @@ function i365ei_field_admin_bar_background() {
 function i365ei_field_admin_top_border() {
 	$settings = i365ei_get_settings();
 
-	echo '<label>';
-	echo '<input type="checkbox" name="i365ei_settings[admin_top_border]" value="1" ' . checked( 1, $settings['admin_top_border'], false ) . ' />';
-	echo ' ' . esc_html__( 'Show colored top border in admin', '365i-environment-indicator' );
-	echo '</label>';
+	i365ei_render_toggle(
+		'i365ei_settings[admin_top_border]',
+		'i365ei_admin_top_border',
+		$settings['admin_top_border'],
+		__( 'Show colored top border in admin', '365i-environment-indicator' )
+	);
 	echo '<p class="description">' . esc_html__( 'Adds a 4px colored border at the top of all wp-admin screens.', '365i-environment-indicator' ) . '</p>';
 }
 
@@ -590,10 +618,12 @@ function i365ei_field_admin_top_border() {
 function i365ei_field_admin_footer_watermark() {
 	$settings = i365ei_get_settings();
 
-	echo '<label>';
-	echo '<input type="checkbox" name="i365ei_settings[admin_footer_watermark]" value="1" ' . checked( 1, $settings['admin_footer_watermark'], false ) . ' />';
-	echo ' ' . esc_html__( 'Show environment label in admin footer', '365i-environment-indicator' );
-	echo '</label>';
+	i365ei_render_toggle(
+		'i365ei_settings[admin_footer_watermark]',
+		'i365ei_admin_footer_watermark',
+		$settings['admin_footer_watermark'],
+		__( 'Show environment label in admin footer', '365i-environment-indicator' )
+	);
 	echo '<p class="description">' . esc_html__( 'Displays the environment name in the admin footer area.', '365i-environment-indicator' ) . '</p>';
 }
 
@@ -603,10 +633,12 @@ function i365ei_field_admin_footer_watermark() {
 function i365ei_field_dashboard_widget() {
 	$settings = i365ei_get_settings();
 
-	echo '<label>';
-	echo '<input type="checkbox" name="i365ei_settings[dashboard_widget]" value="1" ' . checked( 1, $settings['dashboard_widget'], false ) . ' />';
-	echo ' ' . esc_html__( 'Show environment status dashboard widget', '365i-environment-indicator' );
-	echo '</label>';
+	i365ei_render_toggle(
+		'i365ei_settings[dashboard_widget]',
+		'i365ei_dashboard_widget',
+		$settings['dashboard_widget'],
+		__( 'Show environment status dashboard widget', '365i-environment-indicator' )
+	);
 	echo '<p class="description">' . esc_html__( 'Adds a dashboard widget showing environment info, detection method, and system details.', '365i-environment-indicator' ) . '</p>';
 }
 
@@ -617,10 +649,12 @@ function i365ei_field_role_visibility() {
 	$settings = i365ei_get_settings();
 	global $wp_roles;
 
-	echo '<label>';
-	echo '<input type="checkbox" name="i365ei_settings[role_visibility]" value="1" id="i365ei_role_visibility" ' . checked( 1, $settings['role_visibility'], false ) . ' />';
-	echo ' ' . esc_html__( 'Restrict visibility to specific roles', '365i-environment-indicator' );
-	echo '</label>';
+	i365ei_render_toggle(
+		'i365ei_settings[role_visibility]',
+		'i365ei_role_visibility',
+		$settings['role_visibility'],
+		__( 'Restrict visibility to specific roles', '365i-environment-indicator' )
+	);
 	echo '<p class="description">' . esc_html__( 'Only show the environment indicator to users with selected roles.', '365i-environment-indicator' ) . '</p>';
 
 	echo '<div id="i365ei_role_visibility_inputs" style="margin-top: 15px;">';

@@ -681,8 +681,95 @@ body.i365ei-env-live .i365ei-footer-watermark {
 }
 
 /* ========================================
-   Custom Toggle Switches
+   Custom Toggle Switches (W3Schools Pattern)
    ======================================== */
+
+/* Toggle row layout */
+.i365ei-toggle-row {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+
+.i365ei-toggle-label {
+	font-weight: 500;
+	color: var(--i365ei-text-primary);
+	font-size: 14px;
+}
+
+/* The switch container */
+.i365ei-switch {
+	position: relative;
+	display: inline-block;
+	width: 56px;
+	height: 30px;
+	flex-shrink: 0;
+}
+
+/* Hide default checkbox */
+.i365ei-switch input {
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+/* The slider */
+.i365ei-slider {
+	position: absolute;
+	cursor: pointer;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: #cbd5e1;
+	transition: var(--i365ei-transition);
+}
+
+.i365ei-slider:before {
+	position: absolute;
+	content: "";
+	height: 22px;
+	width: 22px;
+	left: 4px;
+	bottom: 4px;
+	background-color: #ffffff;
+	transition: var(--i365ei-transition);
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Checked state */
+input:checked + .i365ei-slider {
+	background: linear-gradient(135deg, var(--i365ei-accent) 0%, var(--i365ei-accent-dark) 100%);
+	box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+}
+
+input:focus + .i365ei-slider {
+	box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+}
+
+input:checked + .i365ei-slider:before {
+	transform: translateX(26px);
+}
+
+/* Hover states */
+.i365ei-switch:hover .i365ei-slider {
+	background-color: #94a3b8;
+}
+
+.i365ei-switch:hover input:checked + .i365ei-slider {
+	background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+}
+
+/* Rounded slider */
+.i365ei-slider.i365ei-round {
+	border-radius: 30px;
+}
+
+.i365ei-slider.i365ei-round:before {
+	border-radius: 50%;
+}
+
+/* General label styling */
 .i365ei-settings-wrap label {
 	display: inline-flex;
 	align-items: center;
@@ -690,53 +777,6 @@ body.i365ei-env-live .i365ei-footer-watermark {
 	font-weight: 500;
 	color: var(--i365ei-text-primary);
 	cursor: pointer;
-}
-
-.i365ei-settings-wrap input[type="checkbox"] {
-	appearance: none;
-	-webkit-appearance: none;
-	width: 52px;
-	height: 28px;
-	background: #cbd5e1;
-	border-radius: 14px;
-	position: relative;
-	cursor: pointer;
-	transition: var(--i365ei-transition);
-	flex-shrink: 0;
-}
-
-.i365ei-settings-wrap input[type="checkbox"]::before {
-	content: '';
-	position: absolute;
-	top: 3px;
-	left: 3px;
-	width: 22px;
-	height: 22px;
-	background: #ffffff;
-	border-radius: 50%;
-	transition: var(--i365ei-transition);
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.i365ei-settings-wrap input[type="checkbox"]:checked {
-	background: linear-gradient(135deg, var(--i365ei-accent) 0%, var(--i365ei-accent-dark) 100%);
-}
-
-.i365ei-settings-wrap input[type="checkbox"]:checked::before {
-	transform: translateX(24px);
-}
-
-.i365ei-settings-wrap input[type="checkbox"]:focus {
-	outline: none;
-	box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
-}
-
-.i365ei-settings-wrap input[type="checkbox"]:hover {
-	background: #94a3b8;
-}
-
-.i365ei-settings-wrap input[type="checkbox"]:checked:hover {
-	background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
 }
 
 /* Radio Buttons */
