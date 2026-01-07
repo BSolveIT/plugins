@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python \"$PROJECT_DIR/.claude/hooks/capture-outcome.py\""
+            "command": "python .claude/hooks/capture-outcome.py"
           }
         ]
       }
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python \"$PROJECT_DIR/.claude/hooks/session-diary.py\""
+            "command": "python .claude/hooks/session-diary.py"
           }
         ]
       }

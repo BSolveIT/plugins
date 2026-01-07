@@ -21,7 +21,7 @@ The plugin slug is the directory name: `365i-environment-indicator`
 Use the 7z command to create the archive:
 
 ```bash
-cd "e:/Development" && 7z a -tzip "365i-environment-indicator-VERSION.zip" "./365i-environment-indicator" \
+cd "e:/Development/365i-environment-indicator" && 7z a -tzip "releases/365i-environment-indicator-VERSION.zip" "../365i-environment-indicator" \
   "-x!365i-environment-indicator/.git" \
   "-x!365i-environment-indicator/.claude" \
   "-x!365i-environment-indicator/*.zip" \

@@ -5,6 +5,7 @@ Thumbs.db
 
 # Zip packages
 *.zip
+releases/
 
 # IDE
 .idea/
