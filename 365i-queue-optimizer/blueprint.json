@@ -1,6 +1,6 @@
 {
   "$schema": "https://playground.wordpress.net/blueprint-schema.json",
-  "landingPage": "/wp-admin/tools.php?page=queue-optimizer",
+  "landingPage": "/wp-admin/",
   "preferredVersions": {
     "php": "8.5",
     "wp": "latest"
