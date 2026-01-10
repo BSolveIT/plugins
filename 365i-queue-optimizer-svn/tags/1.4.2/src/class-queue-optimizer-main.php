@@ -276,31 +276,23 @@ class Queue_Optimizer_Main {
 	 * Detect server type for recommended settings.
 	 *
 	 * @since 1.4.0
-	 * @since 1.5.0 Added manual override and more conservative auto-detection.
 	 * @return string Server type: 'shared', 'vps', or 'dedicated'.
 	 */
 	private static function detect_server_type() {
-		// First check for manual override.
-		$manual = get_option( 'queue_optimizer_server_type_override', '' );
-		if ( in_array( $manual, array( 'shared', 'vps', 'dedicated' ), true ) ) {
-			return $manual;
-		}
+		$memory_bytes    = wp_convert_hr_to_bytes( ini_get( 'memory_limit' ) );
+		$execution_time  = (int) ini_get( 'max_execution_time' );
 
-		$memory_bytes   = wp_convert_hr_to_bytes( ini_get( 'memory_limit' ) );
-		$execution_time = (int) ini_get( 'max_execution_time' );
-
-		// Very high thresholds for "dedicated" - be conservative.
-		// Many shared hosts now offer high PHP limits but share CPU/DB resources.
-		if ( $memory_bytes >= 1024 * MB_IN_BYTES && ( $execution_time >= 300 || 0 === $execution_time ) ) {
+		// High resources suggest dedicated/VPS.
+		if ( $memory_bytes >= 512 * MB_IN_BYTES && ( $execution_time >= 120 || 0 === $execution_time ) ) {
 			return 'dedicated';
 		}
 
-		// Higher thresholds for "vps".
-		if ( $memory_bytes >= 512 * MB_IN_BYTES && $execution_time >= 120 ) {
+		// Medium resources suggest VPS/managed.
+		if ( $memory_bytes >= 256 * MB_IN_BYTES && $execution_time >= 60 ) {
 			return 'vps';
 		}
 
-		// Default: assume shared hosting (safest).
+		// Lower resources suggest shared hosting.
 		return 'shared';
 	}
 
@@ -308,37 +300,35 @@ class Queue_Optimizer_Main {
 	 * Get recommended settings based on server environment.
 	 *
 	 * @since 1.4.0
-	 * @since 1.5.0 More conservative default values.
 	 * @return array Recommended settings.
 	 */
 	public static function get_recommended_settings() {
 		$server_type = self::detect_server_type();
 
-		// Conservative recommendations to prevent failures on shared resources.
 		$recommendations = array(
 			'shared' => array(
 				'time_limit'         => 30,
-				'concurrent_batches' => 1,
+				'concurrent_batches' => 2,
 				'batch_size'         => 25,
 				'retention_days'     => 3,
 			),
 			'vps' => array(
-				'time_limit'         => 45,
-				'concurrent_batches' => 2,
-				'batch_size'         => 35,
-				'retention_days'     => 5,
-			),
-			'dedicated' => array(
 				'time_limit'         => 60,
 				'concurrent_batches' => 4,
 				'batch_size'         => 50,
 				'retention_days'     => 7,
 			),
+			'dedicated' => array(
+				'time_limit'         => 120,
+				'concurrent_batches' => 8,
+				'batch_size'         => 100,
+				'retention_days'     => 14,
+			),
 		);
 
 		return isset( $recommendations[ $server_type ] )
 			? $recommendations[ $server_type ]
-			: $recommendations['shared'];
+			: $recommendations['vps'];
 	}
 
 	/**
