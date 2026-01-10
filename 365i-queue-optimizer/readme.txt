@@ -3,7 +3,7 @@ Contributors: bsolveit
 Tags: actionscheduler, queue, optimization, performance, background-tasks
 Requires at least: 5.8
 Tested up to: 6.9
-Stable tag: 1.4.0
+Stable tag: 1.4.1
 Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -193,6 +193,10 @@ Check the dashboard widget for queue health status, or visit Tools > Queue Optim
 
 == Changelog ==
 
+= 1.4.1 - 2025-01-10 =
+* Added WordPress Playground blueprint.json for Live Preview support
+* Fixed Contributors field to use valid WordPress.org username
+
 = 1.4.0 - 2025-01-10 =
 
 **Dashboard Widget & Server Detection**
@@ -327,6 +331,9 @@ A lightweight WordPress plugin designed to optimize ActionScheduler queue proces
 * Complete cleanup on uninstall
 
 == Upgrade Notice ==
+
+= 1.4.1 =
+Added WordPress Playground Live Preview support.
 
 = 1.4.0 =
 Major feature update: Dashboard widget for queue monitoring, server detection with recommended settings, batch size and retention controls. Full Plugin Check compliance.
