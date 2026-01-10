@@ -1,0 +1,320 @@
+/**
+ * Queue Optimizer Dashboard Widget Styles
+ *
+ * Refined WordPress admin aesthetic - native but elevated.
+ *
+ * @package QueueOptimizer
+ * @since 1.4.0
+ */
+
+/* ==========================================================================
+   WIDGET CONTAINER
+   ========================================================================== */
+
+.qo-widget {
+	margin: -12px;
+	padding: 0;
+}
+
+/* ==========================================================================
+   HEALTH-BASED THEMING
+   ========================================================================== */
+
+.qo-widget[data-health="healthy"] {
+	--qo-health-color: #00a32a;
+	--qo-health-bg: rgba(0, 163, 42, 0.08);
+}
+
+.qo-widget[data-health="warning"] {
+	--qo-health-color: #dba617;
+	--qo-health-bg: rgba(219, 166, 23, 0.08);
+}
+
+.qo-widget[data-health="critical"] {
+	--qo-health-color: #d63638;
+	--qo-health-bg: rgba(214, 54, 56, 0.08);
+}
+
+/* ==========================================================================
+   HEADER
+   ========================================================================== */
+
+.qo-widget-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 16px;
+	background: var(--qo-health-bg);
+	border-bottom: 1px solid #e1e1e3;
+}
+
+.qo-health-indicator {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.qo-health-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: var(--qo-health-color);
+	box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Pulse animation for non-healthy states */
+.qo-widget[data-health="warning"] .qo-health-dot,
+.qo-widget[data-health="critical"] .qo-health-dot {
+	animation: qo-pulse 2s ease-in-out infinite;
+}
+
+@keyframes qo-pulse {
+	0%, 100% {
+		box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+	}
+	50% {
+		box-shadow: 0 0 0 6px var(--qo-health-bg);
+	}
+}
+
+.qo-health-label {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--qo-health-color);
+	letter-spacing: -0.01em;
+}
+
+.qo-processing-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 10px;
+	background: #2271b1;
+	color: #fff;
+	border-radius: 12px;
+	font-size: 11px;
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+}
+
+.qo-pulse {
+	width: 6px;
+	height: 6px;
+	background: #fff;
+	border-radius: 50%;
+	animation: qo-blink 1s ease-in-out infinite;
+}
+
+@keyframes qo-blink {
+	0%, 100% { opacity: 1; }
+	50% { opacity: 0.3; }
+}
+
+/* ==========================================================================
+   STATS
+   ========================================================================== */
+
+.qo-widget-stats {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 1px;
+	background: #e1e1e3;
+	border-bottom: 1px solid #e1e1e3;
+}
+
+.qo-stat {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 16px 8px;
+	background: #fff;
+	text-align: center;
+	transition: background 0.15s ease;
+}
+
+.qo-stat:hover {
+	background: #f8f9fa;
+}
+
+.qo-stat-alert {
+	background: #fcf0f1;
+}
+
+.qo-stat-alert:hover {
+	background: #fce8e9;
+}
+
+.qo-stat-alert .qo-stat-value {
+	color: #d63638;
+}
+
+.qo-stat-value {
+	font-size: 24px;
+	font-weight: 600;
+	color: #1d2327;
+	line-height: 1;
+	font-variant-numeric: tabular-nums;
+}
+
+.qo-stat-label {
+	margin-top: 4px;
+	font-size: 11px;
+	color: #646970;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+}
+
+/* ==========================================================================
+   ALERT BANNER
+   ========================================================================== */
+
+.qo-widget-alert {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 16px;
+	background: linear-gradient(135deg, #fcf0f1 0%, #fff5f5 100%);
+	border-bottom: 1px solid #e1e1e3;
+	font-size: 12px;
+	color: #8a2424;
+}
+
+.qo-widget-alert .dashicons {
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+	color: #d63638;
+}
+
+.qo-widget-alert a {
+	margin-left: auto;
+	color: #d63638;
+	text-decoration: none;
+	font-weight: 500;
+}
+
+.qo-widget-alert a:hover {
+	text-decoration: underline;
+}
+
+/* ==========================================================================
+   ACTIONS
+   ========================================================================== */
+
+.qo-widget-actions {
+	display: flex;
+	gap: 8px;
+	padding: 12px 16px;
+	background: #f8f9fa;
+}
+
+.qo-widget-actions .button {
+	flex: 1;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	padding: 6px 12px;
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+.qo-widget-actions .button .dashicons {
+	font-size: 14px;
+	width: 14px;
+	height: 14px;
+	line-height: 1;
+}
+
+.qo-widget-actions .button-primary {
+	background: #2271b1;
+	border-color: #2271b1;
+	color: #fff;
+}
+
+.qo-widget-actions .button-primary:hover:not(:disabled) {
+	background: #135e96;
+	border-color: #135e96;
+}
+
+.qo-widget-actions .button-primary:disabled {
+	background: #a7aaad !important;
+	border-color: #a7aaad !important;
+	color: #fff !important;
+	cursor: not-allowed;
+}
+
+/* ==========================================================================
+   RESULT MESSAGE
+   ========================================================================== */
+
+.qo-widget-result {
+	display: none;
+	padding: 10px 16px;
+	font-size: 12px;
+	border-top: 1px solid #e1e1e3;
+}
+
+.qo-widget-result:not(:empty) {
+	display: block;
+}
+
+.qo-widget-result.qo-success {
+	background: #edfaef;
+	color: #1e4620;
+}
+
+.qo-widget-result.qo-error {
+	background: #fcf0f1;
+	color: #8a2424;
+}
+
+/* ==========================================================================
+   INACTIVE STATE
+   ========================================================================== */
+
+.qo-widget-inactive {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 24px 16px;
+	text-align: center;
+	color: #646970;
+}
+
+.qo-widget-inactive .dashicons {
+	font-size: 32px;
+	width: 32px;
+	height: 32px;
+	margin-bottom: 8px;
+	opacity: 0.5;
+}
+
+.qo-widget-inactive p {
+	margin: 0;
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+
+@media screen and (max-width: 782px) {
+	.qo-widget-header {
+		flex-direction: column;
+		gap: 10px;
+		align-items: flex-start;
+	}
+
+	.qo-stat-value {
+		font-size: 20px;
+	}
+
+	.qo-widget-actions {
+		flex-direction: column;
+	}
+}

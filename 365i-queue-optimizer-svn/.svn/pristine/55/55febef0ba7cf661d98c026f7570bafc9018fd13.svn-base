@@ -1,0 +1,70 @@
+/**
+ * 365i Queue Optimizer Admin Styles
+ *
+ * Lightweight styling for the simple settings page.
+ *
+ * @package QueueOptimizer
+ */
+
+/* ==========================================================================
+   SETTINGS PAGE ENHANCEMENTS
+   ========================================================================== */
+
+.tools_page_queue-optimizer .notice-info {
+	border-left-color: #2271b1;
+}
+
+.tools_page_queue-optimizer .notice-info p {
+	margin: 0.5em 0;
+}
+
+.tools_page_queue-optimizer .card {
+	margin-top: 20px;
+}
+
+.tools_page_queue-optimizer .card h2 {
+	margin-top: 0;
+	padding-bottom: 10px;
+	border-bottom: 1px solid #e1e1e3;
+}
+
+.tools_page_queue-optimizer .widefat th,
+.tools_page_queue-optimizer .widefat td {
+	padding: 12px;
+}
+
+.tools_page_queue-optimizer .widefat td:first-child {
+	width: 30%;
+	font-weight: 500;
+}
+
+/* Form field descriptions */
+.tools_page_queue-optimizer .description {
+	font-style: italic;
+	color: #646970;
+	margin-left: 10px;
+}
+
+/* Button styling */
+.tools_page_queue-optimizer .button-secondary {
+	margin-top: 10px;
+}
+
+/* Status indicators */
+.tools_page_queue-optimizer span[style*="color: green"] {
+	font-weight: 500;
+}
+
+.tools_page_queue-optimizer span[style*="color: orange"] {
+	font-weight: 500;
+}
+/* Form validation styles */
+.tools_page_queue-optimizer input.error {
+	border-color: #dc3232;
+	box-shadow: 0 0 2px rgba(220, 50, 50, 0.8);
+}
+
+.tools_page_queue-optimizer input.error:focus {
+	border-color: #dc3232;
+	box-shadow: 0 0 2px rgba(220, 50, 50, 0.8);
+}
