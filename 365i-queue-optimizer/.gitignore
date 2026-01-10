@@ -1,0 +1,19 @@
+# Release archives - local only, not shared with GitHub
+releases/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.sublime-*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Dependencies
+node_modules/
+vendor/
+
+# Claude Code session data (logs and diaries are local only)
+.claude/sessions/*
+!.claude/sessions/.gitkeep

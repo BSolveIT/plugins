@@ -3,6 +3,7 @@
  * Main Queue Optimizer Class
  *
  * @package QueueOptimizer
+ * @since 1.0.0
  */
 
 // Prevent direct access.
@@ -11,7 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Main plugin class - simplified approach based on user's working plugin.
+ * Main plugin class - handles ActionScheduler optimization filters.
+ *
+ * @since 1.0.0
  */
 class Queue_Optimizer_Main {
 
@@ -38,8 +41,6 @@ class Queue_Optimizer_Main {
 	 * Constructor.
 	 */
 	private function __construct() {
-		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
-
 		// Check WordPress version compatibility.
 		if ( version_compare( $GLOBALS['wp_version'], esc_html( QUEUE_OPTIMIZER_MIN_WP_VERSION ), '<' ) ) {
 			add_action( 'admin_notices', array( $this, 'display_version_notice' ) );
@@ -50,34 +51,32 @@ class Queue_Optimizer_Main {
 	}
 
 	/**
-	 * Initialize hooks - simplified approach.
+	 * Initialize hooks.
 	 */
 	private function init_hooks() {
-		// Load admin settings page only if needed.
+		// Load admin components only if needed.
 		if ( is_admin() ) {
 			require_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'admin/class-settings-page.php';
 			Queue_Optimizer_Settings_Page::get_instance();
+
+			require_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'admin/class-dashboard-widget.php';
+			Queue_Optimizer_Dashboard_Widget::get_instance();
 		}
 
-		// Apply the three essential ActionScheduler optimization filters.
-		// This is the core functionality that makes image processing fast.
+		// Core ActionScheduler optimization filters.
 		add_filter( 'action_scheduler_queue_runner_time_limit', array( $this, 'set_time_limit' ) );
 		add_filter( 'action_scheduler_queue_runner_concurrent_batches', array( $this, 'set_concurrent_batches' ) );
+		add_filter( 'action_scheduler_queue_runner_batch_size', array( $this, 'set_batch_size' ) );
+		add_filter( 'action_scheduler_retention_period', array( $this, 'set_retention_period' ) );
+
+		// Image editor priority.
 		add_filter( 'wp_image_editors', array( $this, 'set_image_editor' ) );
+
+		// Raise memory limit for image processing.
+		add_filter( 'image_memory_limit', array( $this, 'set_image_memory_limit' ) );
 
 		// Plugin activation hook.
 		register_activation_hook( QUEUE_OPTIMIZER_PLUGIN_DIR . '365i-queue-optimizer.php', array( __CLASS__, 'activate' ) );
-	}
-
-	/**
-	 * Load plugin translations.
-	 */
-	public function load_textdomain() {
-		load_plugin_textdomain(
-			'365i-queue-optimizer',
-			false,
-			dirname( QUEUE_OPTIMIZER_PLUGIN_BASENAME ) . '/languages/'
-		);
 	}
 
 	/**
@@ -100,16 +99,9 @@ class Queue_Optimizer_Main {
 	 * @return int Modified time limit.
 	 */
 	public function set_time_limit( $time_limit ) {
-		$value      = get_option( 'queue_optimizer_time_limit', 60 );
-		$validated  = $this->validate_int_option( $value, 10, 300, 60 );
+		$value     = get_option( 'queue_optimizer_time_limit', 60 );
+		$validated = $this->validate_int_option( $value, 10, 300, 60 );
 
-		/**
-		 * Filter the ActionScheduler time limit.
-		 *
-		 * @param int $validated The validated time limit value.
-		 * @param int $value The original option value.
-		 * @param int $time_limit The default time limit.
-		 */
 		return apply_filters( 'queue_optimizer_time_limit', $validated, $value, $time_limit );
 	}
 
@@ -123,14 +115,36 @@ class Queue_Optimizer_Main {
 		$value     = get_option( 'queue_optimizer_concurrent_batches', 4 );
 		$validated = $this->validate_int_option( $value, 1, 10, 4 );
 
-		/**
-		 * Filter the ActionScheduler concurrent batches.
-		 *
-		 * @param int $validated The validated concurrent batches value.
-		 * @param int $value The original option value.
-		 * @param int $batches The default number of batches.
-		 */
 		return apply_filters( 'queue_optimizer_concurrent_batches', $validated, $value, $batches );
+	}
+
+	/**
+	 * Set ActionScheduler batch size.
+	 *
+	 * @since 1.4.0
+	 * @param int $batch_size The default batch size.
+	 * @return int Modified batch size.
+	 */
+	public function set_batch_size( $batch_size ) {
+		$value     = get_option( 'queue_optimizer_batch_size', 50 );
+		$validated = $this->validate_int_option( $value, 25, 200, 50 );
+
+		return apply_filters( 'queue_optimizer_batch_size', $validated, $value, $batch_size );
+	}
+
+	/**
+	 * Set ActionScheduler data retention period.
+	 *
+	 * @since 1.4.0
+	 * @param int $period The default retention period in seconds.
+	 * @return int Modified retention period.
+	 */
+	public function set_retention_period( $period ) {
+		$days      = get_option( 'queue_optimizer_retention_days', 7 );
+		$validated = $this->validate_int_option( $days, 1, 30, 7 );
+		$seconds   = $validated * DAY_IN_SECONDS;
+
+		return apply_filters( 'queue_optimizer_retention_period', $seconds, $validated, $period );
 	}
 
 	/**
@@ -149,14 +163,24 @@ class Queue_Optimizer_Main {
 
 		$result = array_merge( array( $preferred ), array_diff( $editors, array( $preferred ) ) );
 
-		/**
-		 * Filter the image editor priority array.
-		 *
-		 * @param array  $result The reordered editors array.
-		 * @param string $preferred The preferred editor.
-		 * @param array  $editors The original editors array.
-		 */
 		return apply_filters( 'queue_optimizer_image_editors', $result, $preferred, $editors );
+	}
+
+	/**
+	 * Set image memory limit for processing.
+	 *
+	 * @since 1.4.0
+	 * @param int $limit Current memory limit.
+	 * @return int Optimized memory limit.
+	 */
+	public function set_image_memory_limit( $limit ) {
+		// Use WordPress's recommended image memory limit.
+		$wp_limit = wp_convert_hr_to_bytes( WP_MAX_MEMORY_LIMIT );
+
+		// Return the higher of current or WP max.
+		$optimized = max( $limit, $wp_limit );
+
+		return apply_filters( 'queue_optimizer_image_memory_limit', $optimized, $limit );
 	}
 
 	/**
@@ -174,12 +198,148 @@ class Queue_Optimizer_Main {
 	}
 
 	/**
+	 * Get server environment information.
+	 *
+	 * @since 1.4.0
+	 * @return array Server environment data.
+	 */
+	public static function get_server_environment() {
+		$env = array();
+
+		// PHP settings.
+		$env['php_version']         = PHP_VERSION;
+		$env['max_execution_time']  = (int) ini_get( 'max_execution_time' );
+		$env['memory_limit']        = ini_get( 'memory_limit' );
+		$env['memory_limit_bytes']  = wp_convert_hr_to_bytes( ini_get( 'memory_limit' ) );
+
+		// WordPress settings.
+		$env['wp_version']          = $GLOBALS['wp_version'];
+		$env['wp_memory_limit']     = WP_MEMORY_LIMIT;
+		$env['wp_max_memory_limit'] = WP_MAX_MEMORY_LIMIT;
+
+		// ImageMagick detection.
+		$env['imagick_available'] = extension_loaded( 'imagick' ) && class_exists( 'Imagick' );
+		$env['imagick_version']   = '';
+		if ( $env['imagick_available'] ) {
+			$imagick = new Imagick();
+			$version = $imagick->getVersion();
+			if ( isset( $version['versionString'] ) ) {
+				// Extract version number from string like "ImageMagick 7.1.0-62 Q16..."
+				preg_match( '/ImageMagick\s+([\d.]+)/', $version['versionString'], $matches );
+				$env['imagick_version'] = isset( $matches[1] ) ? $matches[1] : '';
+			}
+		}
+
+		// GD detection.
+		$env['gd_available'] = extension_loaded( 'gd' ) && function_exists( 'gd_info' );
+		$env['gd_version']   = '';
+		if ( $env['gd_available'] ) {
+			$gd_info = gd_info();
+			$env['gd_version'] = isset( $gd_info['GD Version'] ) ? $gd_info['GD Version'] : '';
+		}
+
+		// WebP/AVIF support.
+		$env['webp_support'] = false;
+		$env['avif_support'] = false;
+		if ( $env['imagick_available'] ) {
+			$formats = Imagick::queryFormats();
+			$env['webp_support'] = in_array( 'WEBP', $formats, true );
+			$env['avif_support'] = in_array( 'AVIF', $formats, true );
+		} elseif ( $env['gd_available'] ) {
+			$gd_info = gd_info();
+			$env['webp_support'] = ! empty( $gd_info['WebP Support'] );
+			$env['avif_support'] = ! empty( $gd_info['AVIF Support'] );
+		}
+
+		// ActionScheduler status.
+		$env['actionscheduler_active']  = class_exists( 'ActionScheduler' );
+		$env['actionscheduler_version'] = '';
+		$env['pending_actions']         = 0;
+		if ( $env['actionscheduler_active'] && class_exists( 'ActionScheduler_Versions' ) ) {
+			$env['actionscheduler_version'] = ActionScheduler_Versions::instance()->latest_version();
+			if ( function_exists( 'as_get_scheduled_actions' ) ) {
+				$pending = as_get_scheduled_actions( array(
+					'status'   => ActionScheduler_Store::STATUS_PENDING,
+					'per_page' => 0,
+				), 'ids' );
+				$env['pending_actions'] = count( $pending );
+			}
+		}
+
+		// Hosting environment detection.
+		$env['server_type'] = self::detect_server_type();
+
+		return $env;
+	}
+
+	/**
+	 * Detect server type for recommended settings.
+	 *
+	 * @since 1.4.0
+	 * @return string Server type: 'shared', 'vps', or 'dedicated'.
+	 */
+	private static function detect_server_type() {
+		$memory_bytes    = wp_convert_hr_to_bytes( ini_get( 'memory_limit' ) );
+		$execution_time  = (int) ini_get( 'max_execution_time' );
+
+		// High resources suggest dedicated/VPS.
+		if ( $memory_bytes >= 512 * MB_IN_BYTES && ( $execution_time >= 120 || 0 === $execution_time ) ) {
+			return 'dedicated';
+		}
+
+		// Medium resources suggest VPS/managed.
+		if ( $memory_bytes >= 256 * MB_IN_BYTES && $execution_time >= 60 ) {
+			return 'vps';
+		}
+
+		// Lower resources suggest shared hosting.
+		return 'shared';
+	}
+
+	/**
+	 * Get recommended settings based on server environment.
+	 *
+	 * @since 1.4.0
+	 * @return array Recommended settings.
+	 */
+	public static function get_recommended_settings() {
+		$server_type = self::detect_server_type();
+
+		$recommendations = array(
+			'shared' => array(
+				'time_limit'         => 30,
+				'concurrent_batches' => 2,
+				'batch_size'         => 25,
+				'retention_days'     => 3,
+			),
+			'vps' => array(
+				'time_limit'         => 60,
+				'concurrent_batches' => 4,
+				'batch_size'         => 50,
+				'retention_days'     => 7,
+			),
+			'dedicated' => array(
+				'time_limit'         => 120,
+				'concurrent_batches' => 8,
+				'batch_size'         => 100,
+				'retention_days'     => 14,
+			),
+		);
+
+		return isset( $recommendations[ $server_type ] )
+			? $recommendations[ $server_type ]
+			: $recommendations['vps'];
+	}
+
+	/**
 	 * Plugin activation.
 	 */
 	public static function activate() {
 		// Set default options.
 		add_option( 'queue_optimizer_time_limit', 60 );
 		add_option( 'queue_optimizer_concurrent_batches', 4 );
+		add_option( 'queue_optimizer_batch_size', 50 );
+		add_option( 'queue_optimizer_retention_days', 7 );
 		add_option( 'queue_optimizer_image_engine', 'WP_Image_Editor_Imagick' );
 		add_option( 'queue_optimizer_activated', time() );
 

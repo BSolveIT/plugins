@@ -13,6 +13,8 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 // Clean up options.
 delete_option( 'queue_optimizer_time_limit' );
 delete_option( 'queue_optimizer_concurrent_batches' );
+delete_option( 'queue_optimizer_batch_size' );
+delete_option( 'queue_optimizer_retention_days' );
 delete_option( 'queue_optimizer_image_engine' );
 delete_option( 'queue_optimizer_activated' );
 
