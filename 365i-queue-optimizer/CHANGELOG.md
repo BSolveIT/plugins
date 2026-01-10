@@ -2,6 +2,58 @@
 
 All notable changes to this project will be documented in this file.
 
+### [1.5.0] - 2025-01-10
+
+#### Fixed
+- Server detection being too optimistic (shared hosting incorrectly detected as dedicated)
+- Default fallback changed from VPS to Shared for unknown environments
+
+#### Added
+- Manual server type override setting (Shared/VPS/Dedicated dropdown)
+- More conservative auto-detection thresholds (1GB+ for dedicated, 512MB+ for VPS)
+
+#### Changed
+- Lowered recommended settings to safer defaults:
+  - Shared: 30s time limit, 1 batch, 25 actions, 3 days retention
+  - VPS: 45s time limit, 2 batches, 35 actions, 5 days retention
+  - Dedicated: 60s time limit, 4 batches, 50 actions, 7 days retention
+
+### [1.4.2] - 2025-01-10
+
+#### Added
+- Save notification that appears when settings are saved and auto-dismisses after 3 seconds
+
+### [1.4.1] - 2025-01-10
+
+#### Added
+- WordPress Playground blueprint.json for Live Preview support
+
+#### Fixed
+- Contributors field to use valid WordPress.org username
+
+### [1.4.0] - 2025-01-10
+
+#### Added
+- Dashboard widget showing queue health, pending/running/failed counts
+- Server environment detection (Shared, VPS, Dedicated hosting)
+- Recommended settings based on detected server type
+- "Apply Recommended Settings" one-click optimization button
+- "Run Queue Now" button on both settings page and dashboard widget
+- Batch size setting (25-200 actions per batch)
+- Data retention setting (1-30 days for completed action logs)
+- Queue status display with breakdown by action hook type
+- Server environment info panel (PHP, WordPress, memory, image libraries)
+- Image processing capabilities display (WebP, AVIF support)
+
+#### Changed
+- Enhanced settings page with two-column layout
+- Improved current settings display with recommended value indicators
+- Updated admin styling for better visual hierarchy
+
+#### Fixed
+- Plugin Check compliance (translators comments, variable prefixes, output escaping)
+- Removed deprecated load_plugin_textdomain() call (handled by WordPress 4.6+)
+
 ### [1.3.1] - 2025-12-17
 
 #### Removed
