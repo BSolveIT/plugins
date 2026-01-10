@@ -163,17 +163,25 @@
      * Show save notification when settings are saved
      */
     function initSaveNotification() {
-        // Check if settings were just saved
+        // Check if settings were just saved (check both possible parameter names)
         var urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('settings-updated') === 'true') {
-            // Create and show the notification
+        var settingsUpdated = urlParams.get('settings-updated') === 'true';
+
+        // Also check for the settings saved notice as a fallback
+        var hasWpNotice = $('.qo-settings-saved, .notice-success, .updated').length > 0;
+
+        if (settingsUpdated || hasWpNotice) {
+            // Hide the native WordPress notice
+            $('.qo-settings-saved, .notice-success, .updated').hide();
+
+            // Create and show our custom notification
             var $notice = $('<div class="qo-save-notice">' +
                 '<span class="dashicons dashicons-yes-alt"></span> ' +
                 'Settings saved successfully!</div>');
 
-            $('body').append($notice);
+            $('#wpbody').append($notice);
 
-            // Trigger animation
+            // Trigger animation after a brief delay
             setTimeout(function() {
                 $notice.addClass('qo-notice-visible');
             }, 100);
@@ -187,8 +195,10 @@
             }, 3000);
 
             // Remove the query parameter from URL without reload
-            var newUrl = window.location.pathname + '?page=queue-optimizer';
-            window.history.replaceState({}, '', newUrl);
+            if (settingsUpdated) {
+                var newUrl = window.location.pathname + '?page=queue-optimizer';
+                window.history.replaceState({}, '', newUrl);
+            }
         }
     }
 

@@ -106,6 +106,12 @@ class Queue_Optimizer_Settings_Page {
 			'default'           => 'WP_Image_Editor_Imagick',
 		) );
 
+		register_setting( 'queue_optimizer_settings', 'queue_optimizer_server_type_override', array(
+			'type'              => 'string',
+			'sanitize_callback' => array( $this, 'sanitize_server_type_override' ),
+			'default'           => '',
+		) );
+
 		add_settings_section(
 			'queue_optimizer_main',
 			__( 'ActionScheduler Optimization Settings', '365i-queue-optimizer' ),
@@ -149,6 +155,14 @@ class Queue_Optimizer_Settings_Page {
 			'queue_optimizer_image_engine',
 			__( 'Image Processing Engine', '365i-queue-optimizer' ),
 			array( $this, 'render_image_engine_field' ),
+			'queue_optimizer_settings',
+			'queue_optimizer_main'
+		);
+
+		add_settings_field(
+			'queue_optimizer_server_type_override',
+			__( 'Server Type', '365i-queue-optimizer' ),
+			array( $this, 'render_server_type_field' ),
 			'queue_optimizer_settings',
 			'queue_optimizer_main'
 		);
@@ -523,5 +537,50 @@ class Queue_Optimizer_Settings_Page {
 	public function sanitize_image_engine( $value ) {
 		$allowed = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
 		return in_array( $value, $allowed, true ) ? $value : 'WP_Image_Editor_Imagick';
+	}
+
+	/**
+	 * Render server type override field.
+	 *
+	 * @since 1.5.0
+	 */
+	public function render_server_type_field() {
+		$value         = get_option( 'queue_optimizer_server_type_override', '' );
+		$detected_type = Queue_Optimizer_Main::get_server_environment()['server_type'];
+
+		$types = array(
+			''          => sprintf(
+				/* translators: %s: auto-detected server type */
+				__( 'Auto-detect (%s)', '365i-queue-optimizer' ),
+				ucfirst( $detected_type )
+			),
+			'shared'    => __( 'Shared Hosting', '365i-queue-optimizer' ),
+			'vps'       => __( 'VPS / Managed', '365i-queue-optimizer' ),
+			'dedicated' => __( 'Dedicated / High Performance', '365i-queue-optimizer' ),
+		);
+		?>
+		<select id="queue_optimizer_server_type_override" name="queue_optimizer_server_type_override">
+			<?php foreach ( $types as $type_value => $type_label ) : ?>
+				<option value="<?php echo esc_attr( $type_value ); ?>" <?php selected( $value, $type_value ); ?>>
+					<?php echo esc_html( $type_label ); ?>
+				</option>
+			<?php endforeach; ?>
+		</select>
+		<span class="description">
+			<?php esc_html_e( 'Override auto-detection if recommendations don\'t match your server.', '365i-queue-optimizer' ); ?>
+		</span>
+		<?php
+	}
+
+	/**
+	 * Sanitize server type override setting.
+	 *
+	 * @since 1.5.0
+	 * @param mixed $value The value to sanitize.
+	 * @return string Sanitized value.
+	 */
+	public function sanitize_server_type_override( $value ) {
+		$allowed = array( '', 'shared', 'vps', 'dedicated' );
+		return in_array( $value, $allowed, true ) ? $value : '';
 	}
 }

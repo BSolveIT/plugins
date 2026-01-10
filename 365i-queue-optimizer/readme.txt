@@ -3,7 +3,7 @@ Contributors: bsolveit
 Tags: actionscheduler, queue, optimization, performance, background-tasks
 Requires at least: 5.8
 Tested up to: 6.9
-Stable tag: 1.4.2
+Stable tag: 1.5.0
 Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -193,6 +193,21 @@ Check the dashboard widget for queue health status, or visit Tools > Queue Optim
 
 == Changelog ==
 
+= 1.5.0 - 2025-01-10 =
+
+**Server Detection Improvements**
+
+* Fixed server detection being too optimistic (shared hosting incorrectly detected as dedicated)
+* Added manual server type override setting - choose Shared, VPS, or Dedicated manually
+* More conservative auto-detection thresholds (requires 1GB+ for dedicated, 512MB+ for VPS)
+* Lowered recommended settings to safer defaults that work better on shared resources
+* Default fallback changed from VPS to Shared for unknown environments
+
+**Changed Recommended Settings:**
+* Shared: 30s time limit, 1 batch, 25 actions, 3 days retention
+* VPS: 45s time limit, 2 batches, 35 actions, 5 days retention
+* Dedicated: 60s time limit, 4 batches, 50 actions, 7 days retention
+
 = 1.4.2 - 2025-01-10 =
 * Added save notification that appears when settings are saved and auto-dismisses after 3 seconds
 
@@ -334,6 +349,9 @@ A lightweight WordPress plugin designed to optimize ActionScheduler queue proces
 * Complete cleanup on uninstall
 
 == Upgrade Notice ==
+
+= 1.5.0 =
+Important fix: Server detection now more conservative to prevent failures on shared hosting. Adds manual server type override. Recommended settings lowered to safer defaults.
 
 = 1.4.2 =
 UX improvement: Save notification now appears when settings are saved.

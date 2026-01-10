@@ -16,6 +16,7 @@ delete_option( 'queue_optimizer_concurrent_batches' );
 delete_option( 'queue_optimizer_batch_size' );
 delete_option( 'queue_optimizer_retention_days' );
 delete_option( 'queue_optimizer_image_engine' );
+delete_option( 'queue_optimizer_server_type_override' );
 delete_option( 'queue_optimizer_activated' );
 
 // Clean up any legacy options.

@@ -365,24 +365,24 @@
 
 .qo-save-notice {
 	position: fixed;
-	top: 50px;
-	right: 20px;
+	top: 45px;
+	right: 25px;
 	z-index: 99999;
 	background: #00a32a;
 	color: #fff;
-	padding: 12px 20px;
+	padding: 14px 22px;
 	border-radius: 4px;
 	font-size: 14px;
 	font-weight: 500;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 	opacity: 0;
-	transform: translateX(100px);
+	transform: translateY(-20px);
 	transition: all 0.3s ease;
 }
 
 .qo-save-notice.qo-notice-visible {
 	opacity: 1;
-	transform: translateX(0);
+	transform: translateY(0);
 }
 
 .qo-save-notice .dashicons {
@@ -391,4 +391,20 @@
 	height: 18px;
 	vertical-align: middle;
 	margin-right: 6px;
+}
+
+/* Ensure notice is visible below admin bar */
+@media screen and (min-width: 783px) {
+	.qo-save-notice {
+		top: 45px;
+	}
+}
+
+@media screen and (max-width: 782px) {
+	.qo-save-notice {
+		top: 56px;
+		right: 10px;
+		left: 10px;
+		text-align: center;
+	}
 }
