@@ -16,7 +16,6 @@
         initApplyRecommended();
         initRunQueue();
         initHelpText();
-        initSaveNotification();
     }
 
     /**
@@ -157,39 +156,6 @@
         $('.description').each(function() {
             $(this).attr('title', $(this).text().trim());
         });
-    }
-
-    /**
-     * Show save notification when settings are saved
-     */
-    function initSaveNotification() {
-        // Check if settings were just saved
-        var urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('settings-updated') === 'true') {
-            // Create and show the notification
-            var $notice = $('<div class="qo-save-notice">' +
-                '<span class="dashicons dashicons-yes-alt"></span> ' +
-                'Settings saved successfully!</div>');
-
-            $('body').append($notice);
-
-            // Trigger animation
-            setTimeout(function() {
-                $notice.addClass('qo-notice-visible');
-            }, 100);
-
-            // Auto-dismiss after 3 seconds
-            setTimeout(function() {
-                $notice.removeClass('qo-notice-visible');
-                setTimeout(function() {
-                    $notice.remove();
-                }, 300);
-            }, 3000);
-
-            // Remove the query parameter from URL without reload
-            var newUrl = window.location.pathname + '?page=queue-optimizer';
-            window.history.replaceState({}, '', newUrl);
-        }
     }
 
     // Initialize when document is ready

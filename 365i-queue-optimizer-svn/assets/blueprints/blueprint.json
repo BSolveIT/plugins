@@ -13,6 +13,16 @@
       "step": "installPlugin",
       "pluginData": {
         "resource": "wordpress.org/plugins",
+        "slug": "action-scheduler"
+      },
+      "options": {
+        "activate": true
+      }
+    },
+    {
+      "step": "installPlugin",
+      "pluginData": {
+        "resource": "wordpress.org/plugins",
         "slug": "365i-queue-optimizer"
       },
       "options": {

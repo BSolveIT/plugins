@@ -358,37 +358,3 @@
 .tools_page_queue-optimizer .qo-actions .button {
 	margin-right: 8px;
 }
-
-/* ==========================================================================
-   SAVE NOTIFICATION
-   ========================================================================== */
-
-.qo-save-notice {
-	position: fixed;
-	top: 50px;
-	right: 20px;
-	z-index: 99999;
-	background: #00a32a;
-	color: #fff;
-	padding: 12px 20px;
-	border-radius: 4px;
-	font-size: 14px;
-	font-weight: 500;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-	opacity: 0;
-	transform: translateX(100px);
-	transition: all 0.3s ease;
-}
-
-.qo-save-notice.qo-notice-visible {
-	opacity: 1;
-	transform: translateX(0);
-}
-
-.qo-save-notice .dashicons {
-	font-size: 18px;
-	width: 18px;
-	height: 18px;
-	vertical-align: middle;
-	margin-right: 6px;
-}
