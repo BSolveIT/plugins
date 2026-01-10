@@ -1,5 +1,5 @@
 === 365i Queue Optimizer ===
-Contributors: 365i
+Contributors: bsolveit
 Tags: actionscheduler, queue, optimization, performance, background-tasks
 Requires at least: 5.8
 Tested up to: 6.9
