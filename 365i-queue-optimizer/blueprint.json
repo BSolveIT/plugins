@@ -2,7 +2,7 @@
   "$schema": "https://playground.wordpress.net/blueprint-schema.json",
   "landingPage": "/wp-admin/tools.php?page=queue-optimizer",
   "preferredVersions": {
-    "php": "8.0",
+    "php": "8.5",
     "wp": "latest"
   },
   "features": {
