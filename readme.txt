@@ -4,7 +4,7 @@ Tags: environment, development, staging, production, admin bar
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.6
+Stable tag: 1.0.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -142,6 +142,10 @@ For legacy Bedrock:
 
 == Changelog ==
 
+= 1.0.7 =
+* Enhancement: Added Plugin URI header for WordPress.org integration
+* Enhancement: "View details" link now works in Plugins admin screen
+
 = 1.0.6 =
 * Fix: Updated function prefix from 'ei_' to 'i365ei_' for WordPress.org compliance (4+ character requirement)
 * Fix: Improved $_FILES sanitization with proper file type validation using wp_check_filetype()
@@ -192,6 +196,9 @@ For legacy Bedrock:
 * Manual environment override
 
 == Upgrade Notice ==
+
+= 1.0.7 =
+Added Plugin URI for proper WordPress.org integration. "View details" link now works.
 
 = 1.0.6 =
 WordPress.org compliance: Updated function prefix to 4+ characters, improved file upload validation, enhanced CSS escaping, and better input sanitization.

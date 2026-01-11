@@ -12,7 +12,7 @@ This is a **WordPress plugin** designed for submission to the WordPress.org Plug
 - **Function Prefix:** `i365ei_`
 - **Constant Prefix:** `I365EI_`
 - **CSS Class Prefix:** `i365ei-`
-- **Current Version:** 1.0.6
+- **Current Version:** 1.0.7
 - **Requirements:** WordPress 6.0+, PHP 7.4+
 
 ## Core Architecture
