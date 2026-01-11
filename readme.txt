@@ -133,12 +133,12 @@ For legacy Bedrock:
 
 == Screenshots ==
 
-1. Admin bar indicator showing DEV environment (green)
-2. Settings page with live preview and all customization options
-3. Dashboard widget displaying environment status and system information
-4. Custom colors and labels configuration
-5. Admin bar with full background coloring enabled (high-visibility)
-6. Role-based visibility settings
+1. Settings page showing DEV environment with live preview badge and manual detection mode
+2. Settings page with automatic detection enabled showing LIVE environment via subdomain detection
+3. Dashboard widget displaying environment status, detection method, site URL, and system versions
+4. Customization options with custom labels and custom colors enabled, plus color pickers
+5. Settings page showing STAGING environment with orange admin bar background coloring
+6. Visual enhancements toggles and role-based visibility settings with user role selection
 
 == Changelog ==
 
