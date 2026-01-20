@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+### [1.7.0] - 2025-01-20
+
+#### Added
+- Inline help popovers with detailed explanations for each setting
+- Click (?) icon next to fields to learn what they do and see recommended values
+- Server-specific recommendations and tips in help content
+- Accessible keyboard navigation and screen reader support
+
 ### [1.6.0] - 2025-01-20
 
 #### Improved
