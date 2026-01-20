@@ -101,7 +101,7 @@ Assets are conditionally loaded based on admin page hook:
 
 ### WordPress.org SVN
 
-The SVN repository is at `../365i-queue-optimizer-svn/` relative to this repo.
+The SVN repository is at `E:\Development\plugins\365i-queue-optimizer-svn`.
 
 ```bash
 # Sync trunk
