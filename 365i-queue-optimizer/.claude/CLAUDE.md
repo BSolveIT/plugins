@@ -141,3 +141,66 @@ The plugin provides filters for third-party customization:
 - `queue_optimizer_retention_period`
 - `queue_optimizer_image_editors`
 - `queue_optimizer_image_memory_limit`
+
+---
+
+## Learned Patterns
+
+*Patterns discovered through development sessions and added via /reflect command.*
+
+### CRITICAL: SVN Commit Approval Required
+**When**: Any SVN commit operation
+**Why**: User explicitly requires confirmation before deployment
+**Rule**: ALWAYS ask user before running `svn commit`. Never commit automatically.
+**Learned from**: diary-20260120-225931.md
+
+### Windows Path Escaping in Bash
+**When**: Running bash commands with Windows paths
+**Why**: Direct Windows paths in bash commands can create garbage files
+**How**: Use `cd` to change directory first, then use relative paths:
+```bash
+# CORRECT - cd first, then relative paths
+cd "E:/Development/plugins/365i-queue-optimizer"
+cp "file.php" "../365i-queue-optimizer-svn/trunk/"
+
+# INCORRECT - may create garbage files
+cp "E:/Development/plugins/365i-queue-optimizer/file.php" "E:/Development/plugins/365i-queue-optimizer-svn/trunk/"
+```
+**Learned from**: diary-20260120-225931.md
+
+### PHP to JavaScript Data Passing
+**When**: Need to pass server-side data (options, settings, recommendations) to admin JS
+**Why**: Enables client-side functionality without AJAX calls
+**How**: Use `wp_localize_script` with all needed data:
+```php
+wp_localize_script( 'queue-optimizer-admin', 'queueOptimizerAdmin', array(
+    'ajaxUrl'            => admin_url( 'admin-ajax.php' ),
+    'nonce'              => wp_create_nonce( 'qo_admin_nonce' ),
+    'recommended'        => Queue_Optimizer_Main::get_recommended_settings(),
+    'allRecommendations' => Queue_Optimizer_Main::get_all_recommendations(),
+    'i18n'               => array( /* translatable strings */ ),
+) );
+```
+**Learned from**: diary-20260120-225931.md
+
+### Help Popover UI Pattern
+**When**: Adding inline help/documentation to settings fields
+**Components**:
+1. **PHP**: Render help trigger button with `data-help` attribute
+2. **JS**: Event delegation for dynamic popover creation/destruction
+3. **CSS**: Absolute positioning, visibility transitions, mobile bottom-sheet
+**Accessibility Requirements**:
+- `aria-expanded` on trigger
+- `role="dialog"` and `aria-modal="true"` on popover
+- Auto-focus close button
+- Escape key closes popover
+- Outside click closes popover
+**Learned from**: diary-20260120-225931.md
+
+### User UX Preferences
+**Observed preferences**:
+- Streamlined workflows (avoid save → apply → save sequences)
+- Both auto-functionality AND manual override options
+- Inline documentation for end users
+- Explicit confirmation before deployment actions
+**Learned from**: diary-20260120-225931.md
