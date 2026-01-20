@@ -1,0 +1,114 @@
+# Copyright (C) 2025 365i Queue Optimizer
+# This file is distributed under the same license as the 365i Queue Optimizer plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: 365i Queue Optimizer 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/365i-queue-optimizer\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2025-06-15T23:18:00+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.8.1\n"
+"X-Domain: 365i-queue-optimizer\n"
+
+#. Plugin Name of the plugin
+msgid "365i Queue Optimizer"
+msgstr ""
+
+#. Plugin URI of the plugin
+msgid "https://www.365i.co.uk/"
+msgstr ""
+
+#. Description of the plugin
+msgid "A lightweight WordPress plugin to optimize ActionScheduler queue processing for faster image optimization and background tasks."
+msgstr ""
+
+#. Author of the plugin
+msgid "365i"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://www.365i.co.uk/"
+msgstr ""
+
+#: admin/class-settings-page.php:60
+#: admin/class-settings-page.php:61
+msgid "Queue Optimizer"
+msgstr ""
+
+#: admin/class-settings-page.php:94
+msgid "ActionScheduler Optimization Settings"
+msgstr ""
+
+#: admin/class-settings-page.php:102
+msgid "Time Limit"
+msgstr ""
+
+#: admin/class-settings-page.php:110
+msgid "Concurrent Batches"
+msgstr ""
+
+#: admin/class-settings-page.php:118
+msgid "Image Processing Engine"
+msgstr ""
+
+#: admin/class-settings-page.php:139
+msgid "Configure ActionScheduler optimization settings to improve background task processing speed."
+msgstr ""
+
+#: admin/class-settings-page.php:150
+msgid "Maximum time (in seconds) for ActionScheduler queue processing. Default: 60 seconds."
+msgstr ""
+
+#: admin/class-settings-page.php:169
+msgid "Number of concurrent batches ActionScheduler can process. Higher values = faster processing. Default: 4 batches."
+msgstr ""
+
+#: admin/class-settings-page.php:182
+msgid "GD Library (Recommended)"
+msgstr ""
+
+#: admin/class-settings-page.php:185
+msgid "ImageMagick"
+msgstr ""
+
+#: admin/class-settings-page.php:189
+msgid "Image processing engine to prioritize. GD is usually faster for basic operations."
+msgstr ""
+
+#: src/class-queue-optimizer-main.php:67
+msgid "365i Queue Optimizer requires WordPress version %s or higher."
+msgstr ""
+
+#: templates/partials/header.php:15
+msgid "Simple & Fast"
+msgstr ""
+
+#: templates/partials/header.php:16
+msgid "This plugin applies three essential optimizations to ActionScheduler for faster image processing and background tasks. No complex configuration needed - just set your preferences below."
+msgstr ""
+
+#: templates/admin/settings-page.php:29
+msgid "Current Status"
+msgstr ""
+
+#: templates/admin/settings-page.php:33
+msgid "seconds"
+msgstr ""
+
+#: templates/admin/settings-page.php:44
+msgid "Active & Optimized"
+msgstr ""
+
+#: templates/admin/settings-page.php:46
+msgid "ActionScheduler not detected"
+msgstr ""
+
+#: templates/admin/settings-page.php:42
+msgid "ActionScheduler Status"
+msgstr ""
+
+#: templates/admin/settings-page.php:53
+msgid "View ActionScheduler Status"
+msgstr ""

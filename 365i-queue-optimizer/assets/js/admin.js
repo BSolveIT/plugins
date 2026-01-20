@@ -16,7 +16,7 @@
         initServerTypeChange();
         initApplyRecommended();
         initRunQueue();
-        initHelpText();
+        initHelpPopovers();
         initSaveNotification();
     }
 
@@ -202,12 +202,196 @@
     }
 
     /**
-     * Initialize help text interactions
+     * Initialize help popovers
      */
-    function initHelpText() {
-        $('.description').each(function() {
-            $(this).attr('title', $(this).text().trim());
+    function initHelpPopovers() {
+        var $activePopover = null;
+
+        // Close popover function
+        function closePopover() {
+            if ($activePopover) {
+                $activePopover.removeClass('qo-popover-visible');
+                $activePopover.prev('.qo-help-trigger').attr('aria-expanded', 'false');
+                setTimeout(function() {
+                    $activePopover.remove();
+                    $activePopover = null;
+                }, 200);
+            }
+        }
+
+        // Handle help trigger clicks
+        $(document).on('click', '.qo-help-trigger', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var $trigger = $(this);
+            var helpId = $trigger.data('help');
+
+            // If clicking same trigger, close it
+            if ($activePopover && $trigger.attr('aria-expanded') === 'true') {
+                closePopover();
+                return;
+            }
+
+            // Close any existing popover
+            closePopover();
+
+            // Get help content
+            var helpContent = getHelpContent(helpId);
+            if (!helpContent) {
+                return;
+            }
+
+            // Create popover
+            var $popover = $(
+                '<div class="qo-help-popover" role="dialog" aria-modal="true">' +
+                    '<div class="qo-popover-header">' +
+                        '<h4 class="qo-popover-title">' + helpContent.title + '</h4>' +
+                        '<button type="button" class="qo-popover-close" aria-label="Close">&times;</button>' +
+                    '</div>' +
+                    '<div class="qo-popover-content">' + helpContent.content + '</div>' +
+                '</div>'
+            );
+
+            // Position popover
+            $trigger.after($popover);
+            $trigger.attr('aria-expanded', 'true');
+
+            // Calculate position
+            var triggerOffset = $trigger.offset();
+            var triggerHeight = $trigger.outerHeight();
+
+            $popover.css({
+                position: 'absolute',
+                top: triggerHeight + 8,
+                left: 0
+            });
+
+            // Show with animation
+            setTimeout(function() {
+                $popover.addClass('qo-popover-visible');
+            }, 10);
+
+            $activePopover = $popover;
+
+            // Focus close button for accessibility
+            $popover.find('.qo-popover-close').focus();
         });
+
+        // Close button click
+        $(document).on('click', '.qo-popover-close', function(e) {
+            e.preventDefault();
+            closePopover();
+        });
+
+        // Close on outside click
+        $(document).on('click', function(e) {
+            if ($activePopover && !$(e.target).closest('.qo-help-popover, .qo-help-trigger').length) {
+                closePopover();
+            }
+        });
+
+        // Close on Escape key
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape' && $activePopover) {
+                closePopover();
+            }
+        });
+    }
+
+    /**
+     * Get help content for a specific field
+     */
+    function getHelpContent(helpId) {
+        var helpData = {
+            'time_limit': {
+                title: 'Time Limit',
+                content: '<p>Controls how long ActionScheduler is allowed to process tasks in a single run before stopping.</p>' +
+                    '<p><strong>Higher values</strong> = more tasks processed per run, but longer server load.</p>' +
+                    '<p><strong>Lower values</strong> = shorter processing bursts, better for shared hosting.</p>' +
+                    '<div class="qo-popover-recommendations">' +
+                        '<strong>Recommended by Server Type</strong>' +
+                        '<ul>' +
+                            '<li><span>Shared Hosting</span><span>30 seconds</span></li>' +
+                            '<li><span>VPS / Managed</span><span>45 seconds</span></li>' +
+                            '<li><span>Dedicated</span><span>60 seconds</span></li>' +
+                        '</ul>' +
+                    '</div>'
+            },
+            'concurrent_batches': {
+                title: 'Concurrent Batches',
+                content: '<p>The number of simultaneous queue runners that can process actions at the same time.</p>' +
+                    '<p><strong>Higher values</strong> = faster processing but more server resources used.</p>' +
+                    '<p><strong>Lower values</strong> = slower processing but gentler on the server.</p>' +
+                    '<div class="qo-popover-recommendations">' +
+                        '<strong>Recommended by Server Type</strong>' +
+                        '<ul>' +
+                            '<li><span>Shared Hosting</span><span>1 batch</span></li>' +
+                            '<li><span>VPS / Managed</span><span>2 batches</span></li>' +
+                            '<li><span>Dedicated</span><span>4 batches</span></li>' +
+                        '</ul>' +
+                    '</div>' +
+                    '<div class="qo-popover-tip">Start low and increase gradually while monitoring server performance.</div>'
+            },
+            'batch_size': {
+                title: 'Batch Size',
+                content: '<p>The maximum number of actions that can be claimed and processed in each batch.</p>' +
+                    '<p><strong>Higher values</strong> = more actions processed per batch, faster overall.</p>' +
+                    '<p><strong>Lower values</strong> = smaller batches, reduces memory usage and timeout risk.</p>' +
+                    '<div class="qo-popover-recommendations">' +
+                        '<strong>Recommended by Server Type</strong>' +
+                        '<ul>' +
+                            '<li><span>Shared Hosting</span><span>25 actions</span></li>' +
+                            '<li><span>VPS / Managed</span><span>35 actions</span></li>' +
+                            '<li><span>Dedicated</span><span>50 actions</span></li>' +
+                        '</ul>' +
+                    '</div>'
+            },
+            'retention_days': {
+                title: 'Data Retention',
+                content: '<p>How many days to keep completed action logs in the database before they are automatically deleted.</p>' +
+                    '<p><strong>Higher values</strong> = longer history for debugging, but larger database.</p>' +
+                    '<p><strong>Lower values</strong> = smaller database, faster queries.</p>' +
+                    '<div class="qo-popover-recommendations">' +
+                        '<strong>Recommended by Server Type</strong>' +
+                        '<ul>' +
+                            '<li><span>Shared Hosting</span><span>3 days</span></li>' +
+                            '<li><span>VPS / Managed</span><span>5 days</span></li>' +
+                            '<li><span>Dedicated</span><span>7 days</span></li>' +
+                        '</ul>' +
+                    '</div>' +
+                    '<div class="qo-popover-tip">Shorter retention keeps your database lean and improves performance.</div>'
+            },
+            'image_engine': {
+                title: 'Image Processing Engine',
+                content: '<p>Choose which PHP image library WordPress should prioritize for image processing.</p>' +
+                    '<p><strong>ImageMagick</strong> (Recommended)</p>' +
+                    '<ul style="margin: 8px 0 8px 20px; font-size: 12px;">' +
+                        '<li>Better quality for resizing and compression</li>' +
+                        '<li>More memory efficient for large images</li>' +
+                        '<li>Better color profile handling</li>' +
+                        '<li>Supports more image formats</li>' +
+                    '</ul>' +
+                    '<p><strong>GD Library</strong></p>' +
+                    '<ul style="margin: 8px 0 8px 20px; font-size: 12px;">' +
+                        '<li>More widely available on shared hosting</li>' +
+                        '<li>Simpler, fewer dependencies</li>' +
+                        '<li>May be faster for simple operations</li>' +
+                    '</ul>' +
+                    '<div class="qo-popover-tip">If ImageMagick is available, use it. Only switch to GD if you experience issues.</div>'
+            },
+            'server_type': {
+                title: 'Server Type',
+                content: '<p>Select your hosting environment to get appropriate recommended settings.</p>' +
+                    '<p><strong>Auto-detect</strong> analyzes your PHP memory limit and execution time to guess your server type.</p>' +
+                    '<p><strong>Shared Hosting</strong> - Budget hosting with limited resources (e.g., Bluehost, SiteGround shared plans)</p>' +
+                    '<p><strong>VPS / Managed</strong> - Virtual private server or managed WordPress hosting (e.g., Cloudways, Kinsta)</p>' +
+                    '<p><strong>Dedicated</strong> - High-performance dedicated server or enterprise hosting</p>' +
+                    '<div class="qo-popover-tip">If auto-detect gets it wrong, manually select your actual hosting type for better recommendations.</div>'
+            }
+        };
+
+        return helpData[helpId] || null;
     }
 
     /**

@@ -361,21 +361,40 @@ class Queue_Optimizer_Settings_Page {
 	}
 
 	/**
+	 * Render a help trigger button.
+	 *
+	 * @since 1.6.0
+	 * @param string $help_id The help content identifier.
+	 */
+	private function render_help_trigger( $help_id ) {
+		?>
+		<button type="button"
+				class="qo-help-trigger"
+				data-help="<?php echo esc_attr( $help_id ); ?>"
+				aria-expanded="false"
+				aria-label="<?php esc_attr_e( 'Help', '365i-queue-optimizer' ); ?>">?</button>
+		<?php
+	}
+
+	/**
 	 * Render time limit field.
 	 */
 	public function render_time_limit_field() {
 		$value = get_option( 'queue_optimizer_time_limit', 60 );
 		?>
-		<input type="number"
-			   id="queue_optimizer_time_limit"
-			   name="queue_optimizer_time_limit"
-			   value="<?php echo esc_attr( $value ); ?>"
-			   min="10"
-			   max="300"
-			   step="1"
-			   class="small-text" />
+		<div class="qo-field-with-help">
+			<input type="number"
+				   id="queue_optimizer_time_limit"
+				   name="queue_optimizer_time_limit"
+				   value="<?php echo esc_attr( $value ); ?>"
+				   min="10"
+				   max="300"
+				   step="1"
+				   class="small-text" />
+			<?php $this->render_help_trigger( 'time_limit' ); ?>
+		</div>
 		<span class="description">
-			<?php esc_html_e( 'seconds (10-300). Maximum time for queue processing per run.', '365i-queue-optimizer' ); ?>
+			<?php esc_html_e( 'seconds (10-300)', '365i-queue-optimizer' ); ?>
 		</span>
 		<?php
 	}
@@ -386,16 +405,19 @@ class Queue_Optimizer_Settings_Page {
 	public function render_concurrent_batches_field() {
 		$value = get_option( 'queue_optimizer_concurrent_batches', 4 );
 		?>
-		<input type="number"
-			   id="queue_optimizer_concurrent_batches"
-			   name="queue_optimizer_concurrent_batches"
-			   value="<?php echo esc_attr( $value ); ?>"
-			   min="1"
-			   max="10"
-			   step="1"
-			   class="small-text" />
+		<div class="qo-field-with-help">
+			<input type="number"
+				   id="queue_optimizer_concurrent_batches"
+				   name="queue_optimizer_concurrent_batches"
+				   value="<?php echo esc_attr( $value ); ?>"
+				   min="1"
+				   max="10"
+				   step="1"
+				   class="small-text" />
+			<?php $this->render_help_trigger( 'concurrent_batches' ); ?>
+		</div>
 		<span class="description">
-			<?php esc_html_e( 'batches (1-10). Simultaneous processing threads.', '365i-queue-optimizer' ); ?>
+			<?php esc_html_e( 'batches (1-10)', '365i-queue-optimizer' ); ?>
 		</span>
 		<?php
 	}
@@ -408,16 +430,19 @@ class Queue_Optimizer_Settings_Page {
 	public function render_batch_size_field() {
 		$value = get_option( 'queue_optimizer_batch_size', 50 );
 		?>
-		<input type="number"
-			   id="queue_optimizer_batch_size"
-			   name="queue_optimizer_batch_size"
-			   value="<?php echo esc_attr( $value ); ?>"
-			   min="25"
-			   max="200"
-			   step="5"
-			   class="small-text" />
+		<div class="qo-field-with-help">
+			<input type="number"
+				   id="queue_optimizer_batch_size"
+				   name="queue_optimizer_batch_size"
+				   value="<?php echo esc_attr( $value ); ?>"
+				   min="25"
+				   max="200"
+				   step="5"
+				   class="small-text" />
+			<?php $this->render_help_trigger( 'batch_size' ); ?>
+		</div>
 		<span class="description">
-			<?php esc_html_e( 'actions (25-200). Actions claimed per batch.', '365i-queue-optimizer' ); ?>
+			<?php esc_html_e( 'actions (25-200)', '365i-queue-optimizer' ); ?>
 		</span>
 		<?php
 	}
@@ -430,16 +455,19 @@ class Queue_Optimizer_Settings_Page {
 	public function render_retention_days_field() {
 		$value = get_option( 'queue_optimizer_retention_days', 7 );
 		?>
-		<input type="number"
-			   id="queue_optimizer_retention_days"
-			   name="queue_optimizer_retention_days"
-			   value="<?php echo esc_attr( $value ); ?>"
-			   min="1"
-			   max="30"
-			   step="1"
-			   class="small-text" />
+		<div class="qo-field-with-help">
+			<input type="number"
+				   id="queue_optimizer_retention_days"
+				   name="queue_optimizer_retention_days"
+				   value="<?php echo esc_attr( $value ); ?>"
+				   min="1"
+				   max="30"
+				   step="1"
+				   class="small-text" />
+			<?php $this->render_help_trigger( 'retention_days' ); ?>
+		</div>
 		<span class="description">
-			<?php esc_html_e( 'days (1-30). How long to keep completed action logs.', '365i-queue-optimizer' ); ?>
+			<?php esc_html_e( 'days (1-30)', '365i-queue-optimizer' ); ?>
 		</span>
 		<?php
 	}
@@ -452,26 +480,29 @@ class Queue_Optimizer_Settings_Page {
 		$imagick_available = extension_loaded( 'imagick' ) && class_exists( 'Imagick' );
 		$gd_available      = extension_loaded( 'gd' ) && function_exists( 'gd_info' );
 		?>
-		<select id="queue_optimizer_image_engine" name="queue_optimizer_image_engine">
-			<option value="WP_Image_Editor_Imagick" <?php selected( $value, 'WP_Image_Editor_Imagick' ); ?>>
-				<?php
-				if ( $imagick_available ) {
-					esc_html_e( 'ImageMagick (Recommended)', '365i-queue-optimizer' );
-				} else {
-					esc_html_e( 'ImageMagick (Not Available)', '365i-queue-optimizer' );
-				}
-				?>
-			</option>
-			<option value="WP_Image_Editor_GD" <?php selected( $value, 'WP_Image_Editor_GD' ); ?>>
-				<?php
-				if ( $gd_available ) {
-					esc_html_e( 'GD Library', '365i-queue-optimizer' );
-				} else {
-					esc_html_e( 'GD Library (Not Available)', '365i-queue-optimizer' );
-				}
-				?>
-			</option>
-		</select>
+		<div class="qo-field-with-help">
+			<select id="queue_optimizer_image_engine" name="queue_optimizer_image_engine">
+				<option value="WP_Image_Editor_Imagick" <?php selected( $value, 'WP_Image_Editor_Imagick' ); ?>>
+					<?php
+					if ( $imagick_available ) {
+						esc_html_e( 'ImageMagick (Recommended)', '365i-queue-optimizer' );
+					} else {
+						esc_html_e( 'ImageMagick (Not Available)', '365i-queue-optimizer' );
+					}
+					?>
+				</option>
+				<option value="WP_Image_Editor_GD" <?php selected( $value, 'WP_Image_Editor_GD' ); ?>>
+					<?php
+					if ( $gd_available ) {
+						esc_html_e( 'GD Library', '365i-queue-optimizer' );
+					} else {
+						esc_html_e( 'GD Library (Not Available)', '365i-queue-optimizer' );
+					}
+					?>
+				</option>
+			</select>
+			<?php $this->render_help_trigger( 'image_engine' ); ?>
+		</div>
 		<?php if ( ! $imagick_available && 'WP_Image_Editor_Imagick' === $value ) : ?>
 			<span class="qo-warning">
 				<?php esc_html_e( 'ImageMagick is not installed. GD will be used as fallback.', '365i-queue-optimizer' ); ?>
@@ -561,15 +592,18 @@ class Queue_Optimizer_Settings_Page {
 			'dedicated' => __( 'Dedicated / High Performance', '365i-queue-optimizer' ),
 		);
 		?>
-		<select id="queue_optimizer_server_type_override" name="queue_optimizer_server_type_override">
-			<?php foreach ( $types as $type_value => $type_label ) : ?>
-				<option value="<?php echo esc_attr( $type_value ); ?>" <?php selected( $value, $type_value ); ?>>
-					<?php echo esc_html( $type_label ); ?>
-				</option>
-			<?php endforeach; ?>
-		</select>
+		<div class="qo-field-with-help">
+			<select id="queue_optimizer_server_type_override" name="queue_optimizer_server_type_override">
+				<?php foreach ( $types as $type_value => $type_label ) : ?>
+					<option value="<?php echo esc_attr( $type_value ); ?>" <?php selected( $value, $type_value ); ?>>
+						<?php echo esc_html( $type_label ); ?>
+					</option>
+				<?php endforeach; ?>
+			</select>
+			<?php $this->render_help_trigger( 'server_type' ); ?>
+		</div>
 		<span class="description">
-			<?php esc_html_e( 'Override auto-detection if recommendations don\'t match your server.', '365i-queue-optimizer' ); ?>
+			<?php esc_html_e( 'Changing this will auto-apply recommended settings.', '365i-queue-optimizer' ); ?>
 		</span>
 		<?php
 	}
