@@ -1,207 +1,143 @@
-# 365i Queue Optimizer - Project Instructions
+# CLAUDE.md
 
-This file contains project-specific patterns and learnings for Claude Code.
-Reference: https://developer.wordpress.org/plugins/
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Architecture
+## Project Overview
 
-### Directory Structure
+**365i Queue Optimizer** is a WordPress plugin that optimizes ActionScheduler queue processing for faster image optimization and background tasks. It provides server-aware recommended settings and a dashboard widget for queue monitoring.
+
+## Architecture
+
+### Directory Structure (Actual)
 ```
 365i-queue-optimizer/
-├── 365i-queue-optimizer.php   # Main plugin file (bootstrap only)
-├── admin/                      # Admin-only functionality
-│   ├── class-admin.php         # Admin class
-│   └── views/                  # Admin templates
-├── public/                     # Frontend-only functionality
-│   ├── class-public.php        # Public class
-│   └── views/                  # Public templates
-├── includes/                   # Core logic (shared)
-│   ├── class-core.php          # Core functionality
-│   └── class-*.php             # Feature classes
+├── 365i-queue-optimizer.php       # Bootstrap: defines constants, loads main class
+├── src/
+│   └── class-queue-optimizer-main.php  # Core: singleton, ActionScheduler filters
+├── admin/
+│   ├── class-settings-page.php    # Settings API, AJAX handlers
+│   └── class-dashboard-widget.php # WP Dashboard widget
+├── templates/
+│   ├── admin/settings-page.php    # Settings page template
+│   └── partials/                  # Header/footer partials
 ├── assets/
-│   ├── css/
-│   └── js/
-├── releases/                   # Release archives (git-ignored)
-└── .claude/                    # Claude Code learning system
-    ├── sessions/               # Session logs and diaries
-    ├── hooks/                  # Automation hooks
-    ├── commands/               # Slash commands
-    └── skills/                 # Development skills
+│   ├── css/admin.css, dashboard-widget.css
+│   └── js/admin.js, dashboard-widget.js
+├── languages/                     # i18n (.pot file)
+├── releases/                      # Release archives (git-ignored)
+└── uninstall.php                  # Cleanup on uninstall
 ```
 
-### Code Organization Principles
-- **Keep files focused**: Under 300 lines where possible
-- **One class per file**: Each class in its own file
-- **Separate concerns**: Admin code in admin/, public code in public/, shared in includes/
-- **Conditional loading**: Only load code when needed
+### Class Responsibilities
 
-## WordPress Plugin Handbook Compliance
+**Queue_Optimizer_Main** (`src/class-queue-optimizer-main.php`)
+- Singleton pattern via `get_instance()`
+- Applies ActionScheduler filters on init
+- Server environment detection and recommended settings
+- Image editor priority management
 
-### Security Checklist (Every PHP File)
+**Queue_Optimizer_Settings_Page** (`admin/class-settings-page.php`)
+- WordPress Settings API registration
+- AJAX handlers for queue operations (`qo_run_queue`, `qo_get_queue_status`)
+- Sanitization callbacks for all settings
+
+**Queue_Optimizer_Dashboard_Widget** (`admin/class-dashboard-widget.php`)
+- Dashboard widget registration
+- Queue health status calculation (healthy/warning/critical)
+- Assets only loaded on `index.php` (dashboard)
+
+### Conditional Loading
+Admin classes are only loaded when `is_admin()` returns true:
 ```php
-// 1. Direct access prevention (FIRST LINE after <?php)
-if ( ! defined( 'ABSPATH' ) ) { exit; }
-
-// 2. Capability check before sensitive operations
-if ( ! current_user_can( 'manage_options' ) ) {
-    wp_die( esc_html__( 'Unauthorized access', 'textdomain' ) );
-}
-
-// 3. Nonce verification on form submissions
-if ( ! check_admin_referer( 'qo_action', 'qo_nonce' ) ) {
-    wp_die( esc_html__( 'Security check failed', 'textdomain' ) );
-}
-
-// 4. Input sanitization (ALWAYS)
-$text = sanitize_text_field( wp_unslash( $_POST['field'] ) );
-$int = absint( $_POST['number'] );
-$email = sanitize_email( $_POST['email'] );
-$url = esc_url_raw( $_POST['url'] );
-
-// 5. Output escaping (ALWAYS)
-echo esc_html( $text );
-echo esc_attr( $attribute );
-echo esc_url( $url );
-echo wp_kses_post( $html_content );
-```
-
-### Prefix Convention
-Use `qo_` or `queue_optimizer_` prefix for:
-- Function names: `qo_get_queue_items()`
-- Constants: `QO_VERSION`
-- Options: `qo_settings`
-- Transients: `qo_cache_*`
-- CSS classes: `.qo-container`
-- JavaScript globals: `qoAdmin`
-- Database tables: `{$wpdb->prefix}qo_*`
-
-### Hook Registration
-```php
-// Actions - use descriptive names, appropriate priority
-add_action( 'admin_init', array( $this, 'register_settings' ) );
-add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_public_assets' ) );
-
-// Filters - always return the filtered value
-add_filter( 'plugin_action_links_' . QO_BASENAME, array( $this, 'add_action_links' ) );
-```
-
-## Development Workflow
-
-### Before Writing Code
-1. Read existing code first - understand the patterns
-2. Check where new code belongs (admin/public/includes)
-3. Verify file won't exceed 300 lines with additions
-4. Plan security measures needed
-
-### While Writing Code
-1. Add ABSPATH check if new PHP file
-2. Sanitize all input as it comes in
-3. Escape all output as it goes out
-4. Use WordPress functions over PHP natives
-
-### After Writing Code
-1. Verify no security vulnerabilities
-2. Check file organization is correct
-3. Confirm conditional loading works
-4. Test in admin and frontend contexts
-
-## Conditional Loading Patterns
-
-### Main Plugin File Bootstrap
-```php
-// In main plugin file - minimal bootstrap
 if ( is_admin() ) {
-    require_once QO_PATH . 'admin/class-admin.php';
-    new QO_Admin();
+    require_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'admin/class-settings-page.php';
+    require_once QUEUE_OPTIMIZER_PLUGIN_DIR . 'admin/class-dashboard-widget.php';
 }
-
-if ( ! is_admin() || wp_doing_ajax() ) {
-    require_once QO_PATH . 'public/class-public.php';
-    new QO_Public();
-}
-
-// Always load core
-require_once QO_PATH . 'includes/class-core.php';
 ```
 
-### Feature-Specific Loading
-```php
-// Only load on specific admin pages
-public function maybe_load_assets( $hook ) {
-    if ( 'settings_page_qo-settings' !== $hook ) {
-        return;
-    }
-    wp_enqueue_style( 'qo-admin' );
-    wp_enqueue_script( 'qo-admin' );
-}
-add_action( 'admin_enqueue_scripts', array( $this, 'maybe_load_assets' ) );
-```
+## ActionScheduler Filters
 
-## Release Process
+The plugin hooks into these ActionScheduler filters:
+- `action_scheduler_queue_runner_time_limit` - Processing time per run (10-300s)
+- `action_scheduler_queue_runner_concurrent_batches` - Simultaneous batches (1-10)
+- `action_scheduler_queue_runner_batch_size` - Actions per batch (25-200)
+- `action_scheduler_retention_period` - Log retention (1-30 days, stored as seconds)
 
-### Archive Creation (ONLY use 7-Zip)
+## WordPress Options
+
+All options use `queue_optimizer_` prefix:
+| Option | Type | Default | Range |
+|--------|------|---------|-------|
+| `queue_optimizer_time_limit` | int | 60 | 10-300 |
+| `queue_optimizer_concurrent_batches` | int | 4 | 1-10 |
+| `queue_optimizer_batch_size` | int | 50 | 25-200 |
+| `queue_optimizer_retention_days` | int | 7 | 1-30 |
+| `queue_optimizer_image_engine` | string | WP_Image_Editor_Imagick | Imagick/GD |
+| `queue_optimizer_server_type_override` | string | '' | shared/vps/dedicated/'' |
+| `queue_optimizer_activated` | int | timestamp | - |
+
+## Server Detection Logic
+
+Detection in `detect_server_type()` checks PHP limits:
+- **Dedicated**: memory >= 1GB AND (execution_time >= 300 OR unlimited)
+- **VPS**: memory >= 512MB AND execution_time >= 120
+- **Shared**: Default fallback (safest)
+
+Manual override via `queue_optimizer_server_type_override` option takes precedence.
+
+## AJAX Endpoints
+
+Both require `qo_admin_nonce` verification and `manage_options` capability:
+- `wp_ajax_qo_run_queue` - Triggers `ActionScheduler_QueueRunner::run()`
+- `wp_ajax_qo_get_queue_status` - Returns pending/running/failed counts
+
+## Asset Loading
+
+Assets are conditionally loaded based on admin page hook:
+- Settings page (`tools_page_queue-optimizer`): admin.css, admin.js
+- Dashboard (`index.php`): dashboard-widget.css, dashboard-widget.js
+
+## Deployment Workflow
+
+### WordPress.org SVN
+
+The SVN repository is at `../365i-queue-optimizer-svn/` relative to this repo.
+
 ```bash
-# Get version from plugin header
-# Create archive: plugin-slug-VERSION.zip
-# Contents extract to: plugin-slug/ (fixed, no version in folder)
+# Sync trunk
+cp -r *.php src/ admin/ templates/ assets/ languages/ ../365i-queue-optimizer-svn/trunk/
 
-7z a -tzip "releases/365i-queue-optimizer-X.Y.Z.zip" . \
-    -xr!.git -xr!.claude -xr!node_modules -xr!vendor \
-    -xr!releases -xr!.gitignore -xr!.gitattributes
+# Update assets (screenshots, banners, blueprints)
+cp screenshot-*.png ../365i-queue-optimizer-svn/assets/
+
+# Commit trunk
+cd ../365i-queue-optimizer-svn
+svn commit -m "Version X.Y.Z description"
+
+# Create tag
+svn cp trunk tags/X.Y.Z
+svn commit -m "Tagging version X.Y.Z"
 ```
 
-### Pre-Release Checklist
-- [ ] Version updated in plugin header
-- [ ] Changelog updated
-- [ ] All files under 300 lines
-- [ ] Security audit passed
-- [ ] Tested on target WP versions
-- [ ] No debug code remaining
+### Release Checklist
+1. Update version in `365i-queue-optimizer.php` header AND `QUEUE_OPTIMIZER_VERSION` constant
+2. Update `readme.txt` Stable tag and Changelog
+3. Update `CHANGELOG.md`
+4. Commit to GitHub
+5. Sync to SVN trunk, commit
+6. Create SVN tag, commit
 
-## Common Gotchas
+## Prefix Convention
 
-### AJAX Handling
-```php
-// Register AJAX handlers for both logged-in and logged-out users if needed
-add_action( 'wp_ajax_qo_action', array( $this, 'handle_ajax' ) );
-add_action( 'wp_ajax_nopriv_qo_action', array( $this, 'handle_ajax_public' ) );
+Use `queue_optimizer_` for options, settings, filters.
+Use `qo_` for AJAX actions, CSS classes, JS objects, widget IDs.
 
-// Always verify nonce in AJAX handlers
-public function handle_ajax() {
-    check_ajax_referer( 'qo_ajax_nonce', 'nonce' );
-    // ... handler code
-    wp_send_json_success( $data );
-}
-```
+## Custom Filters (Extensibility)
 
-### Options API
-```php
-// Use get_option with defaults
-$options = get_option( 'qo_settings', array(
-    'enabled' => true,
-    'limit'   => 10,
-) );
-
-// Sanitize before saving
-update_option( 'qo_settings', $this->sanitize_settings( $options ) );
-```
-
-### Transient Caching
-```php
-// Check transient first
-$data = get_transient( 'qo_cached_data' );
-if ( false === $data ) {
-    $data = $this->expensive_operation();
-    set_transient( 'qo_cached_data', $data, HOUR_IN_SECONDS );
-}
-```
-
-## Learned Patterns
-
-*This section is updated automatically by the /reflect command based on session diaries.*
-
-<!-- Patterns learned from development sessions will be added here -->
-
----
-*Last updated: Initial setup*
-*Learning system: Active*
+The plugin provides filters for third-party customization:
+- `queue_optimizer_time_limit`
+- `queue_optimizer_concurrent_batches`
+- `queue_optimizer_batch_size`
+- `queue_optimizer_retention_period`
+- `queue_optimizer_image_editors`
+- `queue_optimizer_image_memory_limit`
