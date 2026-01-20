@@ -13,6 +13,7 @@
      */
     function initAdmin() {
         validateNumericInputs();
+        initServerTypeChange();
         initApplyRecommended();
         initRunQueue();
         initHelpText();
@@ -46,42 +47,44 @@
     }
 
     /**
-     * Handle "Apply Recommended Settings" button
+     * Apply recommended settings to form fields
+     *
+     * @param {Object} rec Recommended settings object
+     * @param {boolean} showNotice Whether to show the notification
      */
-    function initApplyRecommended() {
-        $('#qo-apply-recommended').on('click', function(e) {
-            e.preventDefault();
+    function applyRecommendedSettings(rec, showNotice) {
+        if (!rec) {
+            return;
+        }
 
-            if (typeof queueOptimizerAdmin === 'undefined' || !queueOptimizerAdmin.recommended) {
-                return;
-            }
+        // Apply recommended values to form fields
+        $('#queue_optimizer_time_limit').val(rec.time_limit).removeClass('error');
+        $('#queue_optimizer_concurrent_batches').val(rec.concurrent_batches).removeClass('error');
+        $('#queue_optimizer_batch_size').val(rec.batch_size).removeClass('error');
+        $('#queue_optimizer_retention_days').val(rec.retention_days).removeClass('error');
 
-            var rec = queueOptimizerAdmin.recommended;
+        // Highlight changed fields briefly
+        var fields = [
+            '#queue_optimizer_time_limit',
+            '#queue_optimizer_concurrent_batches',
+            '#queue_optimizer_batch_size',
+            '#queue_optimizer_retention_days'
+        ];
 
-            // Apply recommended values to form fields
-            $('#queue_optimizer_time_limit').val(rec.time_limit).removeClass('error');
-            $('#queue_optimizer_concurrent_batches').val(rec.concurrent_batches).removeClass('error');
-            $('#queue_optimizer_batch_size').val(rec.batch_size).removeClass('error');
-            $('#queue_optimizer_retention_days').val(rec.retention_days).removeClass('error');
+        fields.forEach(function(selector) {
+            $(selector).addClass('qo-highlight');
+            setTimeout(function() {
+                $(selector).removeClass('qo-highlight');
+            }, 1500);
+        });
 
-            // Highlight changed fields briefly
-            var fields = [
-                '#queue_optimizer_time_limit',
-                '#queue_optimizer_concurrent_batches',
-                '#queue_optimizer_batch_size',
-                '#queue_optimizer_retention_days'
-            ];
+        // Show notice if requested
+        if (showNotice) {
+            var message = queueOptimizerAdmin.i18n.recommendedApplied ||
+                'Recommended settings applied. Click "Save Changes" to save.';
 
-            fields.forEach(function(selector) {
-                $(selector).addClass('qo-highlight');
-                setTimeout(function() {
-                    $(selector).removeClass('qo-highlight');
-                }, 1500);
-            });
-
-            // Show notice
             var $notice = $('<div class="notice notice-info is-dismissible qo-applied-notice"><p>' +
-                'Recommended settings applied. Click "Save Changes" to save.</p></div>');
+                message + '</p></div>');
 
             $('.qo-applied-notice').remove();
             $('form').before($notice);
@@ -92,6 +95,54 @@
                     $(this).remove();
                 });
             }, 5000);
+        }
+    }
+
+    /**
+     * Handle server type dropdown change - auto-populate recommended settings
+     */
+    function initServerTypeChange() {
+        $('#queue_optimizer_server_type_override').on('change', function() {
+            if (typeof queueOptimizerAdmin === 'undefined' || !queueOptimizerAdmin.allRecommendations) {
+                return;
+            }
+
+            var selectedType = $(this).val();
+            var rec;
+
+            if (selectedType && queueOptimizerAdmin.allRecommendations[selectedType]) {
+                // User selected a specific server type
+                rec = queueOptimizerAdmin.allRecommendations[selectedType];
+            } else {
+                // Auto-detect selected - use the current recommended settings
+                rec = queueOptimizerAdmin.recommended;
+            }
+
+            applyRecommendedSettings(rec, true);
+        });
+    }
+
+    /**
+     * Handle "Apply Recommended Settings" button
+     */
+    function initApplyRecommended() {
+        $('#qo-apply-recommended').on('click', function(e) {
+            e.preventDefault();
+
+            if (typeof queueOptimizerAdmin === 'undefined') {
+                return;
+            }
+
+            var selectedType = $('#queue_optimizer_server_type_override').val();
+            var rec;
+
+            if (selectedType && queueOptimizerAdmin.allRecommendations && queueOptimizerAdmin.allRecommendations[selectedType]) {
+                rec = queueOptimizerAdmin.allRecommendations[selectedType];
+            } else {
+                rec = queueOptimizerAdmin.recommended;
+            }
+
+            applyRecommendedSettings(rec, true);
         });
     }
 

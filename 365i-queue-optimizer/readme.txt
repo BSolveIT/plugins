@@ -3,7 +3,7 @@ Contributors: bsolveit
 Tags: actionscheduler, queue, optimization, performance, background-tasks
 Requires at least: 5.8
 Tested up to: 6.9
-Stable tag: 1.5.0
+Stable tag: 1.6.0
 Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -190,6 +190,15 @@ Check the dashboard widget for queue health status, or visit Tools > Queue Optim
 2. **Dashboard Widget** - At-a-glance queue health monitoring on your WordPress dashboard showing pending, running, and failed actions
 
 == Changelog ==
+
+= 1.6.0 - 2025-01-20 =
+
+**Improved Settings UX**
+
+* Server type dropdown now auto-populates recommended settings immediately when changed
+* No need to save first before applying recommendations - settings update instantly via AJAX
+* "Apply Recommended Settings" button still works as a shortcut
+* Streamlined workflow: select server type, adjust if needed, save once
 
 = 1.5.0 - 2025-01-10 =
 

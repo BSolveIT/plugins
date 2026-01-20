@@ -305,17 +305,13 @@ class Queue_Optimizer_Main {
 	}
 
 	/**
-	 * Get recommended settings based on server environment.
+	 * Get all recommendations for all server types.
 	 *
-	 * @since 1.4.0
-	 * @since 1.5.0 More conservative default values.
-	 * @return array Recommended settings.
+	 * @since 1.6.0
+	 * @return array All server type recommendations.
 	 */
-	public static function get_recommended_settings() {
-		$server_type = self::detect_server_type();
-
-		// Conservative recommendations to prevent failures on shared resources.
-		$recommendations = array(
+	public static function get_all_recommendations() {
+		return array(
 			'shared' => array(
 				'time_limit'         => 30,
 				'concurrent_batches' => 1,
@@ -335,6 +331,18 @@ class Queue_Optimizer_Main {
 				'retention_days'     => 7,
 			),
 		);
+	}
+
+	/**
+	 * Get recommended settings based on server environment.
+	 *
+	 * @since 1.4.0
+	 * @since 1.5.0 More conservative default values.
+	 * @return array Recommended settings.
+	 */
+	public static function get_recommended_settings() {
+		$server_type     = self::detect_server_type();
+		$recommendations = self::get_all_recommendations();
 
 		return isset( $recommendations[ $server_type ] )
 			? $recommendations[ $server_type ]

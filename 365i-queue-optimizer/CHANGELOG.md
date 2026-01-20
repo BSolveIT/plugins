@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+### [1.6.0] - 2025-01-20
+
+#### Improved
+- Settings UX: Server type dropdown now auto-populates recommended settings instantly via AJAX
+- No longer need to save before applying recommendations - select server type and settings update immediately
+- Streamlined workflow: select server type, adjust if needed, save once
+
 ### [1.5.0] - 2025-01-10
 
 #### Fixed

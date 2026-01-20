@@ -194,16 +194,18 @@ class Queue_Optimizer_Settings_Page {
 		);
 
 		wp_localize_script( 'queue-optimizer-admin', 'queueOptimizerAdmin', array(
-			'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
-			'nonce'       => wp_create_nonce( 'qo_admin_nonce' ),
-			'recommended' => Queue_Optimizer_Main::get_recommended_settings(),
-			'i18n'        => array(
-				'running'    => __( 'Processing...', '365i-queue-optimizer' ),
-				'runQueue'   => __( 'Run Queue Now', '365i-queue-optimizer' ),
+			'ajaxUrl'            => admin_url( 'admin-ajax.php' ),
+			'nonce'              => wp_create_nonce( 'qo_admin_nonce' ),
+			'recommended'        => Queue_Optimizer_Main::get_recommended_settings(),
+			'allRecommendations' => Queue_Optimizer_Main::get_all_recommendations(),
+			'i18n'               => array(
+				'running'           => __( 'Processing...', '365i-queue-optimizer' ),
+				'runQueue'          => __( 'Run Queue Now', '365i-queue-optimizer' ),
 				/* translators: %d: number of actions processed */
-				'processed'  => __( 'Processed %d actions', '365i-queue-optimizer' ),
-				'noActions'  => __( 'No pending actions to process', '365i-queue-optimizer' ),
-				'error'      => __( 'Error running queue', '365i-queue-optimizer' ),
+				'processed'         => __( 'Processed %d actions', '365i-queue-optimizer' ),
+				'noActions'         => __( 'No pending actions to process', '365i-queue-optimizer' ),
+				'error'             => __( 'Error running queue', '365i-queue-optimizer' ),
+				'recommendedApplied' => __( 'Recommended settings applied for this server type.', '365i-queue-optimizer' ),
 			),
 		) );
 	}
