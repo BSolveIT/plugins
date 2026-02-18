@@ -4,11 +4,11 @@ Tags: environment, development, staging, production, admin bar
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.7
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Displays a prominent admin bar label showing the current environment: DEV (green), STAGING (orange), or LIVE (red) to prevent accidental changes.
+Displays a color-coded environment indicator (DEV, STAGING, LIVE) in the WordPress admin bar to prevent accidental changes on production sites. Works with WP Engine, Pantheon, Kinsta, and Flywheel.
 
 == Description ==
 
@@ -33,6 +33,7 @@ Perfect for developers, agencies, and teams managing multiple environments (deve
 **Visual Enhancements**
 * Admin bar label (always visible)
 * Full admin bar background coloring (high-visibility option)
+* Browser tab prefix - instantly identify environments across multiple tabs
 * Top border in wp-admin screens
 * Admin footer watermark
 * Dashboard widget showing environment status and system information
@@ -121,6 +122,10 @@ If no environment constants or recognized subdomain patterns are found, the site
 
 Yes! Use the Export/Import feature to download your settings as JSON and import them on other sites. Perfect for agencies deploying the same configuration across client sites.
 
+= Can I see the environment in my browser tabs? =
+
+Yes! Enable "Browser Tab Prefix" in Visual Enhancements and your page titles will show the environment, e.g. [DEV] Dashboard or [LIVE] Edit Post. This makes it easy to identify environments when you have multiple tabs open.
+
 = How do I set the environment constant? =
 
 Add one of these lines to your `wp-config.php` file:
@@ -141,6 +146,11 @@ For legacy Bedrock:
 6. Visual enhancements toggles and role-based visibility settings with user role selection
 
 == Changelog ==
+
+= 1.1.0 =
+* New: Browser tab prefix - prepends environment label to page titles (e.g. [DEV] Dashboard)
+* New: Works in both wp-admin and front-end for logged-in users
+* Enhancement: Easily identify which environment each browser tab belongs to
 
 = 1.0.7 =
 * Enhancement: Added Plugin URI header for WordPress.org integration
@@ -196,6 +206,9 @@ For legacy Bedrock:
 * Manual environment override
 
 == Upgrade Notice ==
+
+= 1.1.0 =
+New feature: Browser tab prefix shows the environment in your browser tab title. Never confuse DEV and LIVE tabs again!
 
 = 1.0.7 =
 Added Plugin URI for proper WordPress.org integration. "View details" link now works.

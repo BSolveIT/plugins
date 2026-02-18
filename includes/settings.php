@@ -109,6 +109,14 @@ function i365ei_register_settings() {
 	);
 
 	add_settings_field(
+		'i365ei_browser_tab_prefix',
+		esc_html__( 'Browser Tab Prefix', '365i-environment-indicator' ),
+		'i365ei_field_browser_tab_prefix',
+		'i365ei_settings',
+		'i365ei_visual_section'
+	);
+
+	add_settings_field(
 		'i365ei_dashboard_widget',
 		esc_html__( 'Dashboard Widget', '365i-environment-indicator' ),
 		'i365ei_field_dashboard_widget',
@@ -286,6 +294,7 @@ function i365ei_sanitize_settings( $input ) {
 	$output['admin_bar_background']   = ! empty( $input['admin_bar_background'] ) ? 1 : 0;
 	$output['admin_top_border']       = ! empty( $input['admin_top_border'] ) ? 1 : 0;
 	$output['admin_footer_watermark'] = ! empty( $input['admin_footer_watermark'] ) ? 1 : 0;
+	$output['browser_tab_prefix']     = ! empty( $input['browser_tab_prefix'] ) ? 1 : 0;
 	$output['dashboard_widget']       = ! empty( $input['dashboard_widget'] ) ? 1 : 0;
 	$output['custom_colors']          = ! empty( $input['custom_colors'] ) ? 1 : 0;
 	$output['custom_labels']          = ! empty( $input['custom_labels'] ) ? 1 : 0;
@@ -625,6 +634,26 @@ function i365ei_field_admin_footer_watermark() {
 		__( 'Show environment label in admin footer', '365i-environment-indicator' )
 	);
 	echo '<p class="description">' . esc_html__( 'Displays the environment name in the admin footer area.', '365i-environment-indicator' ) . '</p>';
+}
+
+/**
+ * Field: Browser tab prefix toggle.
+ */
+function i365ei_field_browser_tab_prefix() {
+	$settings    = i365ei_get_settings();
+	$environment = i365ei_get_environment();
+	$label       = i365ei_get_environment_label( $environment );
+
+	i365ei_render_toggle(
+		'i365ei_settings[browser_tab_prefix]',
+		'i365ei_browser_tab_prefix',
+		$settings['browser_tab_prefix'],
+		__( 'Show environment label in browser tab title', '365i-environment-indicator' )
+	);
+	echo '<p class="description">';
+	/* translators: %s: Example browser tab title with environment prefix */
+	echo esc_html( sprintf( __( 'Prepends the environment to the page title, e.g. [%s] Dashboard. Helps identify environments across multiple browser tabs.', '365i-environment-indicator' ), $label ) );
+	echo '</p>';
 }
 
 /**

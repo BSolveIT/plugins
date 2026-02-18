@@ -28,6 +28,7 @@ function i365ei_get_default_settings() {
 		'admin_bar_background'   => 0,
 		'admin_top_border'       => 0,
 		'admin_footer_watermark' => 0,
+		'browser_tab_prefix'     => 0,
 		'dashboard_widget'       => 1,
 		'custom_colors'          => 0,
 		'color_dev'              => '#2e8b57',
@@ -89,6 +90,7 @@ function i365ei_get_settings() {
 	$i365ei_settings_cache['admin_bar_background']   = ! empty( $i365ei_settings_cache['admin_bar_background'] ) ? 1 : 0;
 	$i365ei_settings_cache['admin_top_border']       = ! empty( $i365ei_settings_cache['admin_top_border'] ) ? 1 : 0;
 	$i365ei_settings_cache['admin_footer_watermark'] = ! empty( $i365ei_settings_cache['admin_footer_watermark'] ) ? 1 : 0;
+	$i365ei_settings_cache['browser_tab_prefix']     = ! empty( $i365ei_settings_cache['browser_tab_prefix'] ) ? 1 : 0;
 	$i365ei_settings_cache['dashboard_widget']       = ! empty( $i365ei_settings_cache['dashboard_widget'] ) ? 1 : 0;
 	$i365ei_settings_cache['custom_colors']          = ! empty( $i365ei_settings_cache['custom_colors'] ) ? 1 : 0;
 	$i365ei_settings_cache['custom_labels']          = ! empty( $i365ei_settings_cache['custom_labels'] ) ? 1 : 0;

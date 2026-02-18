@@ -181,6 +181,59 @@ function i365ei_admin_footer_watermark( $footer_text ) {
 add_filter( 'admin_footer_text', 'i365ei_admin_footer_watermark', 20 );
 
 /**
+ * Prepend environment label to admin page titles.
+ *
+ * @param string $admin_title The page title with extra context appended.
+ * @param string $title       The original page title.
+ * @return string
+ */
+function i365ei_admin_title_prefix( $admin_title, $title ) {
+	$settings = i365ei_get_settings();
+
+	if ( empty( $settings['browser_tab_prefix'] ) ) {
+		return $admin_title;
+	}
+
+	if ( ! i365ei_user_can_see_indicator() ) {
+		return $admin_title;
+	}
+
+	$environment = i365ei_get_environment();
+	$label       = i365ei_get_environment_label( $environment );
+
+	return '[' . esc_html( $label ) . '] ' . $admin_title;
+}
+add_filter( 'admin_title', 'i365ei_admin_title_prefix', 10, 2 );
+
+/**
+ * Prepend environment label to front-end page titles.
+ *
+ * @param array $title_parts The document title parts.
+ * @return array
+ */
+function i365ei_document_title_prefix( $title_parts ) {
+	$settings = i365ei_get_settings();
+
+	if ( empty( $settings['browser_tab_prefix'] ) ) {
+		return $title_parts;
+	}
+
+	if ( ! i365ei_user_can_see_indicator() ) {
+		return $title_parts;
+	}
+
+	$environment = i365ei_get_environment();
+	$label       = i365ei_get_environment_label( $environment );
+
+	if ( ! empty( $title_parts['title'] ) ) {
+		$title_parts['title'] = '[' . $label . '] ' . $title_parts['title'];
+	}
+
+	return $title_parts;
+}
+add_filter( 'document_title_parts', 'i365ei_document_title_prefix' );
+
+/**
  * Escape a hex color for safe use in CSS.
  *
  * @param string $color Hex color code.
