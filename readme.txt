@@ -8,7 +8,7 @@ Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Displays a color-coded environment indicator (DEV, STAGING, LIVE) in the WordPress admin bar to prevent accidental changes on production sites. Works with WP Engine, Pantheon, Kinsta, and Flywheel.
+Displays a color-coded DEV, STAGING, or LIVE indicator in the admin bar to prevent accidental changes on production sites.
 
 == Description ==
 
