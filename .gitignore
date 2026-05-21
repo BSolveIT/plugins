@@ -1,0 +1,8 @@
+# WordPress.org SVN working copies (distribution staging, not source)
+*-svn/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+*~
