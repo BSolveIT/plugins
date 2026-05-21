@@ -2,9 +2,9 @@
 Contributors: bsolveit
 Tags: environment, development, staging, production, admin bar
 Requires at least: 6.0
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -147,6 +147,9 @@ For legacy Bedrock:
 
 == Changelog ==
 
+= 1.1.1 =
+* Compatibility: Tested up to WordPress 7.0
+
 = 1.1.0 =
 * New: Browser tab prefix - prepends environment label to page titles (e.g. [DEV] Dashboard)
 * New: Works in both wp-admin and front-end for logged-in users
@@ -206,6 +209,9 @@ For legacy Bedrock:
 * Manual environment override
 
 == Upgrade Notice ==
+
+= 1.1.1 =
+Confirmed compatibility with WordPress 7.0.
 
 = 1.1.0 =
 New feature: Browser tab prefix shows the environment in your browser tab title. Never confuse DEV and LIVE tabs again!
