@@ -3,12 +3,23 @@
     "PostToolUse": [
       {
         "matcher": "Bash|Edit|Write|MultiEdit",
-        "command": "python .claude/hooks/capture-outcome.py"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/capture-outcome.py"
+          }
+        ]
       }
     ],
     "PreCompact": [
       {
-        "command": "python .claude/hooks/session-diary.py"
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/session-diary.py"
+          }
+        ]
       }
     ]
   }
