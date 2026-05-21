@@ -2,8 +2,8 @@
 Contributors: bsolveit
 Tags: actionscheduler, queue, optimization, performance, background-tasks
 Requires at least: 5.8
-Tested up to: 6.9
-Stable tag: 1.7.0
+Tested up to: 7.0
+Stable tag: 1.7.1
 Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -190,6 +190,13 @@ Check the dashboard widget for queue health status, or visit Tools > Queue Optim
 2. **Dashboard Widget** - At-a-glance queue health monitoring on your WordPress dashboard showing pending, running, and failed actions
 
 == Changelog ==
+
+= 1.7.1 - 2026-05-21 =
+
+**Compatibility**
+
+* Tested and confirmed compatible with WordPress 7.0
+* Updated "Tested up to" metadata
 
 = 1.7.0 - 2025-01-20 =
 
